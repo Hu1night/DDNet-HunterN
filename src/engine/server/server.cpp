@@ -3728,9 +3728,9 @@ bool CServer::SetTimedOut(int ClientID, int OrigID)
 	else
 	{
 		if(HasMarkedDisruptiveLeave(ClientID))
-			DelClientCallback(OrigID, "Rejoined", this);
+			DelClientCallback(OrigID, "重加入", this); // language
 		else
-			DelClientCallback(OrigID, "Timeout Protection used", this);
+			DelClientCallback(OrigID, "触发连接超时保护", this); // language
 	}
 
 	m_aClients[ClientID].m_Authed = AUTHED_NO;

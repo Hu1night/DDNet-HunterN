@@ -289,7 +289,7 @@ static void ConKick(IConsole::IResult *pResult, void *pUserData)
 	{
 		if(pSelf->GameServer()->Teams()->SetForcePlayerTeam(VictimID, 0, CGameTeams::TEAM_REASON_FORCE, nullptr))
 		{
-			pSelf->GameServer()->SendChatTarget(VictimID, "You have been moved to room 0");
+			pSelf->GameServer()->SendChatTarget(VictimID, "你被移动到房间 0"); // language
 			pSelf->GameServer()->Teams()->SetClientInvited(pSelf->GameWorld()->Team(), VictimID, false);
 		}
 		else
@@ -704,12 +704,12 @@ bool IGameController::OnInternalCharacterTile(CCharacter *pChr, int MapIndex)
 	// solo part
 	if(((m_TileIndex == TILE_SOLO_ENABLE) || (m_TileFIndex == TILE_SOLO_ENABLE)) && !GameServer()->Teams()->m_Core.GetSolo(ClientID))
 	{
-		GameServer()->SendChatTarget(ClientID, "You are now in a solo part");
+		GameServer()->SendChatTarget(ClientID, "You are now in a solo part"); // language
 		pChr->SetSolo(true);
 	}
 	else if(((m_TileIndex == TILE_SOLO_DISABLE) || (m_TileFIndex == TILE_SOLO_DISABLE)) && GameServer()->Teams()->m_Core.GetSolo(ClientID))
 	{
-		GameServer()->SendChatTarget(ClientID, "You are now out of the solo part");
+		GameServer()->SendChatTarget(ClientID, "You are now out of the solo part"); // language
 		pChr->SetSolo(false);
 	}
 
@@ -1110,20 +1110,20 @@ void IGameController::OnInternalPlayerJoin(CPlayer *pPlayer, int Type)
 		if(Type == INSTANCE_CONNECTION_SERVER)
 		{
 			if(g_Config.m_SvRoom == 0)
-				str_format(aBuf, sizeof(aBuf), "'%s' entered and joined the %s", Server()->ClientName(ClientID), GetTeamName(pPlayer->GetTeam()));
+				str_format(aBuf, sizeof(aBuf), "'%s' 连接并加入了%s", Server()->ClientName(ClientID), GetTeamName(pPlayer->GetTeam())); // language
 			else
-				str_format(aBuf, sizeof(aBuf), "'%s' entered and joined the %s in %s room %d", Server()->ClientName(ClientID), GetTeamName(pPlayer->GetTeam()), m_pGameType, GameWorld()->Team());
+				str_format(aBuf, sizeof(aBuf), "'%s' 连接并加入了 %s 房间 %d 的%s", Server()->ClientName(ClientID), m_pGameType, GameWorld()->Team(), GetTeamName(pPlayer->GetTeam())); // language
 
 			GameServer()->SendChat(-1, CGameContext::CHAT_ALL, aBuf, -1);
 		}
 		else if(Type == INSTANCE_CONNECTION_CREATE)
 		{
-			str_format(aBuf, sizeof(aBuf), "'%s' created %s room %d and joined the %s", Server()->ClientName(ClientID), m_pGameType, GameWorld()->Team(), GetTeamName(pPlayer->GetTeam()));
+			str_format(aBuf, sizeof(aBuf), "'%s' 创建了 %s 房间 %d 并加入%s", Server()->ClientName(ClientID), m_pGameType, GameWorld()->Team(), GetTeamName(pPlayer->GetTeam())); // language
 			GameServer()->SendChat(-1, CGameContext::CHAT_ALL, aBuf, -1);
 		}
 		else
 		{
-			str_format(aBuf, sizeof(aBuf), "'%s' entered the room and joined the %s", Server()->ClientName(ClientID), GetTeamName(pPlayer->GetTeam()));
+			str_format(aBuf, sizeof(aBuf), "'%s' 进入了房间并加入%s", Server()->ClientName(ClientID), GetTeamName(pPlayer->GetTeam())); // language
 			SendChatTarget(-1, aBuf);
 		}
 	}
@@ -1148,7 +1148,7 @@ void IGameController::OnInternalPlayerLeave(CPlayer *pPlayer, int Type)
 		if(Type == INSTANCE_CONNECTION_NORMAL)
 		{
 			char aBuf[128];
-			str_format(aBuf, sizeof(aBuf), "'%s' has left the room", Server()->ClientName(ClientID));
+			str_format(aBuf, sizeof(aBuf), "'%s' 离开了房间", Server()->ClientName(ClientID)); // language
 			for(int i = 0; i < MAX_CLIENTS; i++)
 				if(GetPlayerIfInRoom(i) && i != pPlayer->GetCID())
 					GameServer()->SendChatTarget(i, aBuf);
@@ -1156,7 +1156,7 @@ void IGameController::OnInternalPlayerLeave(CPlayer *pPlayer, int Type)
 		else if(Type == INSTANCE_CONNECTION_FORCED)
 		{
 			char aBuf[128];
-			str_format(aBuf, sizeof(aBuf), "'%s' has left the room (kicked)", Server()->ClientName(ClientID));
+			str_format(aBuf, sizeof(aBuf), "'%s' 离开了房间 (被踢出)", Server()->ClientName(ClientID)); // language
 			for(int i = 0; i < MAX_CLIENTS; i++)
 				if(GetPlayerIfInRoom(i) && i != pPlayer->GetCID())
 					GameServer()->SendChatTarget(i, aBuf);
@@ -1560,7 +1560,7 @@ void IGameController::OnPlayerReadyChange(CPlayer *pPlayer)
 				{
 					if(pPlayer->m_PauseCount >= m_PausePerMatch)
 					{
-						SendChatTarget(ClientID, "You can't pause the match anymore");
+						SendChatTarget(ClientID, "You can't pause the match anymore"); // language
 						return;
 					}
 				}
@@ -1692,7 +1692,7 @@ void IGameController::FakeClientBroadcast(int SnappingClient)
 	case IGS_WARMUP_GAME:
 	case IGS_WARMUP_USER:
 		if(m_GameStateTimer == TIMER_INFINITE && pPlayer->GetTeam() != TEAM_SPECTATORS)
-			GameServer()->SendBroadcast("Waiting for more players", SnappingClient, false);
+			GameServer()->SendBroadcast("等待更多玩家", SnappingClient, false); // language
 		else
 			GameServer()->SendBroadcast(" ", SnappingClient, false);
 		pState->m_NextBroadcastTick = Server()->Tick() + 5 * Server()->TickSpeed();
@@ -1702,18 +1702,18 @@ void IGameController::FakeClientBroadcast(int SnappingClient)
 		if(m_GameStateTimer != TIMER_INFINITE)
 		{
 			char aBuf[128];
-			str_format(aBuf, sizeof(aBuf), "Game starts in %d", TimerNumber);
+			str_format(aBuf, sizeof(aBuf), "游戏于 %d 秒后开始", TimerNumber); // language
 			GameServer()->SendBroadcast(aBuf, SnappingClient, false);
 		}
 		break;
 	case IGS_END_ROUND:
-		GameServer()->SendBroadcast("Round over", SnappingClient, false);
+		GameServer()->SendBroadcast("回合结束", SnappingClient, false); // language
 		pState->m_NextBroadcastTick = Server()->Tick() + 5 * Server()->TickSpeed();
 		break;
 	case IGS_GAME_RUNNING:
 		if(pPlayer->m_DeadSpecMode)
 		{
-			GameServer()->SendBroadcast("Wait for next round", SnappingClient, false);
+			GameServer()->SendBroadcast("等待下一局", SnappingClient, false); // language
 			break;
 		}
 		GameServer()->SendBroadcast(" ", SnappingClient, false);
@@ -1947,7 +1947,7 @@ void IGameController::Tick()
 		// abort the kick-vote on player-leave
 		if(m_VoteEnforce == VOTE_ENFORCE_ABORT)
 		{
-			SendChatTarget(-1, "Vote aborted");
+			SendChatTarget(-1, "投票中止"); // language
 			EndVote(true);
 		}
 		else
@@ -2052,7 +2052,7 @@ void IGameController::Tick()
 				InstanceConsole()->ExecuteLine(m_aVoteCommand, m_VoteCreator);
 				Server()->SetRconCID(IServer::RCON_CID_SERV);
 				EndVote(true);
-				SendChatTarget(-1, "Vote passed", CGameContext::CHAT_SIX);
+				SendChatTarget(-1, "投票通过", CGameContext::CHAT_SIX); // language
 
 				CPlayer *pVotePlayer = GetPlayerIfInRoom(m_VoteCreator);
 				if(pVotePlayer && !IsKickVote() && !IsSpecVote())
@@ -2063,7 +2063,7 @@ void IGameController::Tick()
 				char aBuf[64];
 				// silence voted command response
 				GameServer()->m_ChatResponseTargetID = -1;
-				str_format(aBuf, sizeof(aBuf), "Vote passed enforced by authorized player");
+				str_format(aBuf, sizeof(aBuf), "投票被管理员强制通过"); // language
 				InstanceConsole()->SetFlagMask(CFGFLAG_INSTANCE);
 				InstanceConsole()->ExecuteLine(m_aVoteCommand, m_VoteCreator);
 				SendChatTarget(-1, aBuf, CGameContext::CHAT_SIX);
@@ -2072,14 +2072,14 @@ void IGameController::Tick()
 			else if(m_VoteEnforce == VOTE_ENFORCE_NO_ADMIN)
 			{
 				char aBuf[64];
-				str_format(aBuf, sizeof(aBuf), "Vote failed enforced by authorized player");
+				str_format(aBuf, sizeof(aBuf), "投票被管理员强制通过"); // language
 				EndVote(true);
 				SendChatTarget(-1, aBuf, CGameContext::CHAT_SIX);
 			}
 			else if(m_VoteEnforce == VOTE_ENFORCE_NO || (time_get() > m_VoteCloseTime && g_Config.m_SvVoteMajority))
 			{
 				EndVote(true);
-				SendChatTarget(-1, "Vote failed", CGameContext::CHAT_SIX);
+				SendChatTarget(-1, "投票否决", CGameContext::CHAT_SIX); // language
 			}
 			else if(m_VoteUpdate)
 			{
@@ -2286,16 +2286,16 @@ void IGameController::SendGameMsg(int GameMsgID, int ClientID, int *i1, int *i2,
 			switch(GameMsgID)
 			{
 			case GAMEMSG_TEAM_SWAP:
-				GameServer()->SendChatTarget(CID, "Teams were swapped");
+				GameServer()->SendChatTarget(CID, "Teams were swapped"); // language
 				break;
 			case GAMEMSG_SPEC_INVALIDID:
-				GameServer()->SendChatTarget(CID, "You can't spectate this player");
+				GameServer()->SendChatTarget(CID, "你不能旁观此玩家"); // language
 				break;
 			case GAMEMSG_TEAM_SHUFFLE:
-				GameServer()->SendChatTarget(CID, "Teams were shuffled");
+				GameServer()->SendChatTarget(CID, "Teams were shuffled"); // language
 				break;
 			case GAMEMSG_TEAM_BALANCE:
-				GameServer()->SendChatTarget(CID, "Teams have been balanced");
+				GameServer()->SendChatTarget(CID, "Teams have been balanced"); // language
 				break;
 			case GAMEMSG_CTF_DROP:
 				FakeGameMsgSound(CID, SOUND_CTF_DROP);
@@ -2309,7 +2309,7 @@ void IGameController::SendGameMsg(int GameMsgID, int ClientID, int *i1, int *i2,
 					break;
 
 				if(!aBuf[0])
-					str_format(aBuf, sizeof(aBuf), "All players were moved to the %s", GetTeamName(*i1));
+					str_format(aBuf, sizeof(aBuf), "All players were moved to the %s", GetTeamName(*i1)); // language
 				GameServer()->SendChatTarget(CID, aBuf);
 				break;
 			}
@@ -2319,7 +2319,7 @@ void IGameController::SendGameMsg(int GameMsgID, int ClientID, int *i1, int *i2,
 					break;
 
 				if(!aBuf[0])
-					str_format(aBuf, sizeof(aBuf), "You were moved to the %s due to team balancing", GetTeamName(*i1));
+					str_format(aBuf, sizeof(aBuf), "You were moved to the %s due to team balancing", GetTeamName(*i1)); // language
 				GameServer()->SendBroadcast(aBuf, CID);
 				break;
 			}
@@ -2342,11 +2342,11 @@ void IGameController::SendGameMsg(int GameMsgID, int ClientID, int *i1, int *i2,
 					float CaptureTime = *i3 / (float)Server()->TickSpeed();
 					if(CaptureTime <= 60)
 					{
-						str_format(aBuf, sizeof(aBuf), "The %s flag was captured by '%s' (%d.%s%d seconds)", *i1 ? "blue" : "red", Server()->ClientName(*i2), (int)CaptureTime % 60, ((int)(CaptureTime * 100) % 100) < 10 ? "0" : "", (int)(CaptureTime * 100) % 100);
+						str_format(aBuf, sizeof(aBuf), "The %s flag was captured by '%s' (%d.%s%d seconds)", *i1 ? "blue" : "red", Server()->ClientName(*i2), (int)CaptureTime % 60, ((int)(CaptureTime * 100) % 100) < 10 ? "0" : "", (int)(CaptureTime * 100) % 100); // language
 					}
 					else
 					{
-						str_format(aBuf, sizeof(aBuf), "The %s flag was captured by '%s'", *i1 ? "blue" : "red", Server()->ClientName(*i2));
+						str_format(aBuf, sizeof(aBuf), "The %s flag was captured by '%s'", *i1 ? "blue" : "red", Server()->ClientName(*i2)); // language
 					}
 				}
 				GameServer()->SendChatTarget(CID, aBuf);
@@ -2358,7 +2358,7 @@ void IGameController::SendGameMsg(int GameMsgID, int ClientID, int *i1, int *i2,
 					break;
 
 				if(!aBuf[0])
-					str_format(aBuf, sizeof(aBuf), "'%s' initiated a pause", Server()->ClientName(*i1));
+					str_format(aBuf, sizeof(aBuf), "'%s' initiated a pause", Server()->ClientName(*i1)); // language
 				GameServer()->SendChatTarget(CID, aBuf);
 				break;
 			}
@@ -2507,9 +2507,9 @@ bool IGameController::CanJoinTeam(int Team, int ClientID, bool SendReason) const
 		if(SendReason)
 		{
 			if(Config()->m_SvRoomVotes)
-				GameServer()->SendBroadcast("You need to join a room to play. Check vote menu to join rooms.", ClientID);
+				GameServer()->SendBroadcast("You need to join a room to play. Check vote menu to join rooms.", ClientID); // language
 			else
-				GameServer()->SendBroadcast("You need to join a room to play.", ClientID);
+				GameServer()->SendBroadcast("You need to join a room to play.", ClientID); // language
 		}
 
 		return false;
@@ -2524,7 +2524,7 @@ bool IGameController::CanJoinTeam(int Team, int ClientID, bool SendReason) const
 	if(!CanJoin && SendReason)
 	{
 		char aBuf[128];
-		str_format(aBuf, sizeof(aBuf), "Only %d active players are allowed in this room", m_PlayerSlots);
+		str_format(aBuf, sizeof(aBuf), "Only %d active players are allowed in this room", m_PlayerSlots); // language
 		GameServer()->SendBroadcast(aBuf, ClientID);
 	}
 	return CanJoin;
@@ -2554,7 +2554,7 @@ void IGameController::DoTeamChange(CPlayer *pPlayer, int Team, bool DoChatMsg)
 
 	if(DoChatMsg)
 	{
-		str_format(aBuf, sizeof(aBuf), "'%s' joined the %s", Server()->ClientName(ClientID), GetTeamName(Team));
+		str_format(aBuf, sizeof(aBuf), "'%s' 加入了%s", Server()->ClientName(ClientID), GetTeamName(Team)); // language
 		SendChatTarget(-1, aBuf);
 	}
 
@@ -2614,16 +2614,16 @@ const char *IGameController::GetTeamName(int Team)
 	if(IsTeamplay())
 	{
 		if(Team == 0)
-			return "red team";
+			return "红队"; // language
 		if(Team == 1)
-			return "blue team";
-		return "spectators";
+			return "蓝队"; // language
+		return "旁观者"; // language
 	}
 	else
 	{
 		if(Team == 0)
-			return "game";
-		return "spectators";
+			return "游戏"; // language
+		return "旁观者"; // language
 	}
 }
 
@@ -2734,7 +2734,7 @@ void IGameController::ForceVote(int EnforcerID, bool Success)
 
 	char aBuf[256];
 	const char *pOption = Success ? "yes" : "no";
-	str_format(aBuf, sizeof(aBuf), "authorized player forced vote %s", pOption);
+	str_format(aBuf, sizeof(aBuf), "管理员强制通过了投票 %s", pOption); // language
 	SendChatTarget(-1, aBuf);
 	str_format(aBuf, sizeof(aBuf), "forcing vote %s", pOption);
 	InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);

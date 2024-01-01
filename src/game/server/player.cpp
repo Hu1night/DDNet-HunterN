@@ -310,10 +310,10 @@ void CPlayer::Tick()
 	if(m_Moderating && m_Afk)
 	{
 		m_Moderating = false;
-		GameServer()->SendChatTarget(m_ClientID, "Active moderator mode disabled because you are afk.");
+		GameServer()->SendChatTarget(m_ClientID, "Active moderator mode disabled because you are afk."); // language
 
 		if(!GameServer()->PlayerModerating())
-			GameServer()->SendChat(-1, CGameContext::CHAT_ALL, "Server kick/spec votes are no longer actively moderated.");
+			GameServer()->SendChat(-1, CGameContext::CHAT_ALL, "Server kick/spec votes are no longer actively moderated."); // language
 	}
 
 	// do latency stuff
@@ -343,7 +343,7 @@ void CPlayer::Tick()
 		if(!Server()->HasLeftDisruptively(m_ClientID))
 		{
 			char aBuf[512];
-			str_format(aBuf, sizeof(aBuf), "'%s' would have timed out, but can use timeout protection now", Server()->ClientName(m_ClientID));
+			str_format(aBuf, sizeof(aBuf), "'%s' 的连接超时了 但仍有超时保护", Server()->ClientName(m_ClientID)); // language
 			GameServer()->SendChat(-1, CGameContext::CHAT_ALL, aBuf);
 			Server()->ResetNetErrorString(m_ClientID);
 		}
@@ -1026,7 +1026,7 @@ bool CPlayer::AfkTimer(int NewTargetX, int NewTargetY)
 			if(m_Sent1stAfkWarning == 0 && m_LastPlaytime < time_get() - time_freq() * (int)(g_Config.m_SvMaxAfkTime * 0.5))
 			{
 				str_format(m_pAfkMsg, sizeof(m_pAfkMsg),
-					"You have been afk for %d seconds now. Please note that you get kicked after not playing for %d seconds.",
+					"You have been afk for %d seconds now. Please note that you get kicked after not playing for %d seconds.", // language
 					(int)(g_Config.m_SvMaxAfkTime * 0.5),
 					g_Config.m_SvMaxAfkTime);
 				m_pGameServer->SendChatTarget(m_ClientID, m_pAfkMsg);
@@ -1035,7 +1035,7 @@ bool CPlayer::AfkTimer(int NewTargetX, int NewTargetY)
 			else if(m_Sent2ndAfkWarning == 0 && m_LastPlaytime < time_get() - time_freq() * (int)(g_Config.m_SvMaxAfkTime * 0.9))
 			{
 				str_format(m_pAfkMsg, sizeof(m_pAfkMsg),
-					"You have been afk for %d seconds now. Please note that you get kicked after not playing for %d seconds.",
+					"You have been afk for %d seconds now. Please note that you get kicked after not playing for %d seconds.", // language
 					(int)(g_Config.m_SvMaxAfkTime * 0.9),
 					g_Config.m_SvMaxAfkTime);
 				m_pGameServer->SendChatTarget(m_ClientID, m_pAfkMsg);
@@ -1043,7 +1043,7 @@ bool CPlayer::AfkTimer(int NewTargetX, int NewTargetY)
 			}
 			else if(m_LastPlaytime < time_get() - time_freq() * g_Config.m_SvMaxAfkTime)
 			{
-				m_pGameServer->Server()->Kick(m_ClientID, "Away from keyboard");
+				m_pGameServer->Server()->Kick(m_ClientID, "Away from keyboard"); // language
 				return true;
 			}
 		}
