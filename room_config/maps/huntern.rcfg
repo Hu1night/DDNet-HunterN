@@ -1,0 +1,7 @@
+# room config (map votes)
+
+add_vote "Change Map: hunter1" "map hunter1"
+add_vote "Change Map: hunter2" "map hunter2"
+add_vote "Change Map: hunter3" "map hunter3"
+add_vote "Change Map: hunter4" "map hunter4"
+add_vote "Change Map: hunter6" "map hunter6"

@@ -286,6 +286,9 @@ public:
 		int m_HitOrder;
 		bool m_FirstImpact;
 	} m_HitData;
+
+	int m_MaxHealth; // Hunter
+	int m_MaxArmor; // Hunter
 };
 
 enum

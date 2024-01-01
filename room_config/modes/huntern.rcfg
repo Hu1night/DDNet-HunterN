@@ -1,0 +1,31 @@
+# hunterN room config
+
+# game settings
+map hunter2
+timelimit 3
+warmup 0
+powerups 1
+minimum_players 2
+
+# 旁观聊天设置
+tournament_chat 1
+
+# room votes
+add_vote " " "info"
+add_vote "=== ROOM SETTINGS ===" "info"
+add_vote "Restart" "restart"
+
+# add mode switch votes
+exec "room_config/modes.rcfg"
+
+# rulesets
+add_vote "Rule: 2min" "timelimit 2"
+add_vote "Rule: 3min" "timelimit 3"
+add_vote "Rule: 4min" "timelimit 4"
+add_vote "Rule: 5min" "timelimit 5"
+add_vote "Rule: 3 Player Per Hunter" "htn_hunt_ratio 3"
+add_vote "Rule: 4 Player Per Hunter" "htn_hunt_ratio 4"
+add_vote "Rule: 5 Player Per Hunter" "htn_hunt_ratio 5"
+
+# add map votes
+exec "room_config/maps/huntern.rcfg"

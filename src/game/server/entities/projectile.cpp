@@ -28,9 +28,9 @@ CProjectile::CProjectile(
 {
 	m_Type = WeaponType;
 	m_Pos = Pos;
+	m_StartPos = Pos; // Hunter
 	m_Direction = Dir;
 	m_LifeSpan = Span;
-	m_TotalLifeSpan = Span;
 	m_Owner = Owner;
 	m_Callback = Callback;
 	m_Radius = Radius;
@@ -53,7 +53,7 @@ CProjectile::CProjectile(
 	m_Layer = Layer;
 	m_Number = Number;
 
-	m_TuneZone = GameServer()->Collision()->IsTune(GameServer()->Collision()->GetMapIndex(m_Pos));
+	m_TuneZone = GameServer()->Collision()->IsTune(GameServer()->Collision()->GetMapIndex(m_StartPos)); // Hunter
 	m_HitMask = 0;
 	GameWorld()->InsertEntity(this);
 }
@@ -121,7 +121,7 @@ vec2 CProjectile::GetPos(float Time)
 	float Curvature = 0;
 	float Speed = 0;
 	GetProjectileProperties(&Curvature, &Speed);
-	return CalcPos(m_Pos, m_Direction, Curvature, Speed, Time);
+	return CalcPos(m_StartPos, m_Direction, Curvature, Speed, Time); // Hunter
 }
 
 void CProjectile::Tick()
@@ -129,10 +129,10 @@ void CProjectile::Tick()
 	float Pt = (Server()->Tick() - m_StartTick - 1) / (float)Server()->TickSpeed();
 	float Ct = (Server()->Tick() - m_StartTick) / (float)Server()->TickSpeed();
 	vec2 PrevPos = GetPos(Pt);
-	vec2 CurPos = GetPos(Ct);
+	m_Pos = GetPos(Ct); // Hunter
 	vec2 ColPos;
 	vec2 NewPos;
-	int Collide = GameServer()->Collision()->IntersectLine(PrevPos, CurPos, &ColPos, &NewPos);
+	int Collide = GameServer()->Collision()->IntersectLine(PrevPos, m_Pos, &ColPos, &NewPos);
 	CCharacter *pOwnerChar = nullptr;
 	CPlayer *pOwnerPlayer = nullptr;
 
@@ -203,7 +203,7 @@ void CProjectile::Tick()
 			}
 		}
 
-		if(Collide || GameLayerClipped(CurPos))
+		if(Collide || GameLayerClipped(m_Pos))
 		{
 			if(m_Callback(this, ColPos, nullptr, false))
 			{
@@ -220,7 +220,7 @@ void CProjectile::Tick()
 	if(Collide && m_Bouncing != 0)
 	{
 		m_StartTick = Server()->Tick();
-		m_Pos = NewPos + (-(m_Direction * 4));
+		m_StartPos = NewPos + (-(m_Direction * 4)); // Hunter
 		if(m_Bouncing == 1)
 			m_Direction.x = -m_Direction.x;
 		else if(m_Bouncing == 2)
@@ -229,7 +229,7 @@ void CProjectile::Tick()
 			m_Direction.x = 0;
 		if(fabs(m_Direction.y) < 1e-6)
 			m_Direction.y = 0;
-		m_Pos += m_Direction;
+		m_StartPos += m_Direction; // Hunter
 		if(m_Callback)
 			if(m_Callback(this, ColPos, nullptr, false))
 			{
@@ -247,7 +247,7 @@ void CProjectile::Tick()
 	}
 
 	// Projectile Tele
-	int x = GameServer()->Collision()->GetIndex(PrevPos, CurPos);
+	int x = GameServer()->Collision()->GetIndex(PrevPos, m_Pos);
 	int z;
 	if(g_Config.m_SvOldTeleportWeapons)
 		z = GameServer()->Collision()->IsTeleport(x);
@@ -256,7 +256,7 @@ void CProjectile::Tick()
 
 	if(z && GameServer()->Collision()->NumTeles(z - 1))
 	{
-		m_Pos = GameServer()->Collision()->TelePos(z - 1);
+		m_StartPos = GameServer()->Collision()->TelePos(z - 1); // Hunter
 		m_StartTick = Server()->Tick();
 	}
 }
@@ -268,8 +268,8 @@ void CProjectile::TickPaused()
 
 void CProjectile::FillInfo(CNetObj_Projectile *pProj)
 {
-	pProj->m_X = (int)m_Pos.x;
-	pProj->m_Y = (int)m_Pos.y;
+	pProj->m_X = (int)m_StartPos.x; // Hunter
+	pProj->m_Y = (int)m_StartPos.y; // Hunter
 	pProj->m_VelX = (int)(m_Direction.x * 100.0f);
 	pProj->m_VelY = (int)(m_Direction.y * 100.0f);
 	pProj->m_StartTick = m_StartTick;
@@ -326,7 +326,7 @@ void CProjectile::SetBouncing(int Value)
 bool CProjectile::FillExtraInfo(CNetObj_DDNetProjectile *pProj)
 {
 	const int MaxPos = 0x7fffffff / 100;
-	if(abs((int)m_Pos.y) + 1 >= MaxPos || abs((int)m_Pos.x) + 1 >= MaxPos)
+	if(abs((int)m_StartPos.y) + 1 >= MaxPos || abs((int)m_StartPos.x) + 1 >= MaxPos) // Hunter
 	{
 		//If the modified data would be too large to fit in an integer, send normal data instead
 		return false;
@@ -349,8 +349,8 @@ bool CProjectile::FillExtraInfo(CNetObj_DDNetProjectile *pProj)
 	// if(m_Freeze)
 	// 	Data |= PROJECTILEFLAG_FREEZE;
 
-	pProj->m_X = (int)(m_Pos.x * 100.0f);
-	pProj->m_Y = (int)(m_Pos.y * 100.0f);
+	pProj->m_X = (int)(m_StartPos.x * 100.0f); // Hunter
+	pProj->m_Y = (int)(m_StartPos.y * 100.0f); // Hunter
 	pProj->m_Angle = (int)(Angle * 1000000.0f);
 	pProj->m_Data = Data;
 	pProj->m_StartTick = m_StartTick;

@@ -35,6 +35,8 @@ public:
 		NUM_ENTTYPES
 	};
 
+	CEntity *m_apFirstEntityTypes[NUM_ENTTYPES]; // Hunter
+
 private:
 	int m_ResponsibleTeam;
 	CEventHandler m_Events;
@@ -42,7 +44,7 @@ private:
 	void RemoveEntities();
 
 	CEntity *m_pNextTraverseEntity;
-	CEntity *m_apFirstEntityTypes[NUM_ENTTYPES];
+	// Hunter CEntity *m_apFirstEntityTypes[NUM_ENTTYPES];
 
 	class CGameContext *m_pGameServer;
 	class IGameController *m_pController;

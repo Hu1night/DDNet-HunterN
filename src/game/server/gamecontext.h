@@ -128,6 +128,9 @@ class CGameContext : public IGameServer
 	static void ConAddMapName(IConsole::IResult *pResult, void *pUserData);
 	static void ConRoomSetting(IConsole::IResult *pResult, void *pUserData);
 
+	// HunterN commands
+	static void ConSetClass(IConsole::IResult *pResult, void *pUserData);
+
 	CGameContext(int Resetting);
 	void Construct(int Resetting);
 	void AddVote(const char *pDescription, const char *pCommand);
@@ -196,6 +199,7 @@ public:
 
 	enum
 	{
+		CHAT_DEAD = -3,
 		CHAT_ALL = -2,
 		CHAT_SPEC = -1,
 		CHAT_RED = 0,

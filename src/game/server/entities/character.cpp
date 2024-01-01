@@ -24,6 +24,8 @@ CCharacter::CCharacter(CGameWorld *pWorld) :
 {
 	m_Health = 0;
 	m_Armor = 0;
+	m_MaxHealth = 10; // Hunter
+	m_MaxArmor = 10; // Hunter
 	m_WeaponTimerType = WEAPON_TIMER_GLOBAL;
 	m_FreezeWeaponSwitch = false;
 	m_ProtectTick = 0;
@@ -592,17 +594,17 @@ void CCharacter::TickPaused()
 
 bool CCharacter::IncreaseHealth(int Amount)
 {
-	if(m_Health >= 10)
+	if(m_Health >= m_MaxHealth)
 		return false;
-	m_Health = clamp(m_Health + Amount, 0, 10);
+	m_Health = clamp(m_Health + Amount, 0, m_MaxHealth);
 	return true;
 }
 
 bool CCharacter::IncreaseArmor(int Amount)
 {
-	if(m_Armor >= 10)
+	if(m_Armor >= m_MaxArmor)
 		return false;
-	m_Armor = clamp(m_Armor + Amount, 0, 10);
+	m_Armor = clamp(m_Armor + Amount, 0, m_MaxArmor);
 	return true;
 }
 
@@ -630,7 +632,36 @@ void CCharacter::Die(int Killer, int Weapon)
 	int ModeSpecial = DeathFlag & (DEATH_KILLER_HAS_FLAG | DEATH_VICTIM_HAS_FLAG);
 
 	if(!(DeathFlag & DEATH_NO_KILL_MSG))
-		Controller()->SendKillMsg(Killer, m_pPlayer->GetCID(), Weapon, ModeSpecial);
+	{
+		/* Hunter Start */
+		CNetMsg_Sv_KillMsg Msg;
+		Msg.m_Killer = Killer;
+		Msg.m_Victim = m_pPlayer->GetCID();
+		Msg.m_Weapon = Weapon;
+		Msg.m_ModeSpecial = ModeSpecial;
+
+		if(DeathFlag & DEATH_NO_REASON)
+		{
+			CNetMsg_Sv_KillMsg PlayerMsg(Msg);
+			PlayerMsg.m_Killer = m_pPlayer->GetCID();  // This makes the killer Anonymous
+			PlayerMsg.m_Weapon = WEAPON_WORLD;
+
+			for(int i = 0; i < MAX_CLIENTS; ++i)
+			{
+				if(GameServer()->PlayerExists(i) && GameServer()->GetPlayerDDRTeam(i) == GameWorld()->Team())
+					Server()->SendPackMsg((GameServer()->m_apPlayers[i]->GetTeam() != TEAM_SPECTATORS) ? &PlayerMsg : &Msg, MSGFLAG_VITAL, i);
+			}
+		}
+		else
+		{
+			for(int i = 0; i < MAX_CLIENTS; ++i)
+			{
+				if(GameServer()->PlayerExists(i) && GameServer()->GetPlayerDDRTeam(i) == GameWorld()->Team())
+					Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, i);
+			}
+		}
+		/* Hunter End */
+	}
 
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "kill killer='%d:%s' victim='%d:%s' weapon=%d special=%d",
@@ -829,8 +860,8 @@ void CCharacter::SnapCharacter(int SnappingClient, int MappedID)
 	if(m_pPlayer->GetCID() == SnappingClient || SnappingClient == -1 ||
 		(!g_Config.m_SvStrictSpectateMode && m_pPlayer->GetCID() == GameServer()->m_apPlayers[SnappingClient]->GetSpectatorID()))
 	{
-		Health = m_Health;
-		Armor = m_Armor;
+		Health = (m_Health * 10) / m_MaxHealth;
+		Armor = (m_Armor * 10) / m_MaxArmor;
 		if(pCurrentWeapon && pCurrentWeapon->NumAmmoIcons() > 0)
 			AmmoCount = (!m_FreezeTime) ? pCurrentWeapon->NumAmmoIcons() : 0;
 	}

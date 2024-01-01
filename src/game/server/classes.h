@@ -1,0 +1,12 @@
+#ifndef GAME_SERVER_CLASSES_H
+#define GAME_SERVER_CLASSES_H
+
+enum HUNTERN_CLASSES
+{
+	CLASS_NONE = 0,
+	CLASS_CIVIC = 1,
+	CLASS_HUNTER = 2,
+	CLASS_JUG = 3,
+};
+
+#endif

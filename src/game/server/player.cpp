@@ -148,6 +148,10 @@ void CPlayer::GameReset()
 	m_Score = 0;
 	m_SpecMode = ESpecMode::FREEVIEW;
 	SetSpectatorID(SPEC_FREEVIEW);
+
+	m_Class = 0; // Hunter
+	m_CanHunter = false; // Hunter
+	m_HiddenScore = 0; // Hunter
 }
 static int PlayerFlags_SevenToSix(int Flags)
 {
@@ -1152,3 +1156,25 @@ void CPlayer::SpectatePlayerName(const char *pName)
 		}
 	}
 }
+
+/* Hunter Start */
+void CPlayer::SetClass(int Class)
+{
+	m_Class = Class;
+}
+
+void CPlayer::SetCanHunter(bool CanHunter)
+{
+	m_CanHunter = CanHunter;
+}
+
+void CPlayer::SetHiddenScore(int HiddenScore)
+{
+	m_HiddenScore = HiddenScore;
+}
+
+void CPlayer::SetTeamDiractly(int Team)
+{
+	m_Team = Team;
+}
+/* Hunter End */

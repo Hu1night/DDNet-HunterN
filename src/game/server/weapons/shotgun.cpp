@@ -18,7 +18,8 @@ bool CShotgun::BulletCollide(CProjectile *pProj, vec2 Pos, CCharacter *pHit, boo
 		if(pHit->GetPlayer()->GetCID() == pProj->GetOwner())
 			return false;
 
-		pHit->TakeDamage(vec2(0, 0), g_pData->m_Weapons.m_Shotgun.m_pBase->m_Damage, pProj->GetOwner(), WEAPON_SHOTGUN, pProj->GetWeaponID(), false);
+		pHit->TakeDamage(vec2(0, 0), (pProj->GameServer()->m_apPlayers[pProj->GetOwner()]->GetClass() & CLASS_HUNTER) ? 2 : g_pData->m_Weapons.m_Shotgun.m_pBase->m_Damage, // Hunter
+			pProj->GetOwner(), WEAPON_SHOTGUN, pProj->GetWeaponID(), false);
 	}
 
 	return true;

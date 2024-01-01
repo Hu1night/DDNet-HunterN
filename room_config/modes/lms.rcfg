@@ -21,4 +21,4 @@ add_vote "Rule: 3min 50points" "scorelimit 50;timelimit 3"
 add_vote "Rule: 5min 75points" "scorelimit 75;timelimit 5"
 
 # add map votes
-exec "room_config/maps/all.rcfg"
+exec "room_config/maps/huntern.rcfg"

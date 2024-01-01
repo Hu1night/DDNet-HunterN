@@ -601,9 +601,12 @@ set(EXPECTED_DATA
   languages/traditional_chinese.txt
   languages/turkish.txt
   languages/ukrainian.txt
+  maps/huntern_msc.map
+  maps/huntern_msc.map.cfg
   maps/license.txt
   maps/mega_std_collection.map
   maps/mega_std_collection.map.cfg
+  maps7/huntern_msc.map
   maps7/license.txt
   maps7/mega_std_collection.map
   wordlist.txt
@@ -932,6 +935,7 @@ set_src(ENGINE_SERVER GLOB_RECURSE src/engine/server
 )
 set_src(GAME_SERVER GLOB_RECURSE src/game/server
   alloc.h
+  classes.h
   ddracechat.cpp
   ddracecommands.cpp
   entities/character.cpp
@@ -973,6 +977,8 @@ set_src(GAME_SERVER GLOB_RECURSE src/game/server
   gamemodes/ctf.h
   gamemodes/dm.cpp
   gamemodes/dm.h
+  gamemodes/huntern.cpp
+  gamemodes/huntern.h
   gamemodes/instagib.cpp
   gamemodes/instagib.h
   gamemodes/lms.cpp
@@ -998,6 +1004,8 @@ set_src(GAME_SERVER GLOB_RECURSE src/game/server
   weapons/grenade.h
   weapons/hammer.cpp
   weapons/hammer.h
+  weapons/jughammer.cpp
+  weapons/jughammer.h
   weapons/lasergun.cpp
   weapons/lasergun.h
   weapons/ninja.cpp

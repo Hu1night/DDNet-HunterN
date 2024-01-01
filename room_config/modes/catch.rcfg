@@ -17,4 +17,4 @@ add_vote "Restart" "restart"
 exec "room_config/modes.rcfg"
 
 # add map votes
-exec "room_config/maps/all.rcfg"
+exec "room_config/maps/huntern.rcfg"

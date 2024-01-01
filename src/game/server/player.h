@@ -257,6 +257,22 @@ public:
 
 	class CFlag *m_pSpecFlag;
 	bool m_ActiveSpecSwitch;
+	
+	/* Hunter Start */
+	int m_Class;
+	int GetClass() const { return m_Class; }
+	void SetClass(int Class);
+	
+	bool m_CanHunter;
+	bool GetCanHunter() const { return m_CanHunter; }
+	void SetCanHunter(bool CanHunter);
+
+	int m_HiddenScore;
+	int GetHiddenScore() const { return m_HiddenScore; }
+	void SetHiddenScore(int HiddenScore);
+
+	void SetTeamDiractly(int Team);
+	/* Hunter End */
 };
 
 #endif

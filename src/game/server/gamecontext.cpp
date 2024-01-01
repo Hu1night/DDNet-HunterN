@@ -270,6 +270,7 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, in
 	}
 	else
 		str_format(aBuf, sizeof(aBuf), "*** %s", aText);
+
 	Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, Team != CHAT_ALL ? "teamchat" : "chat", aBuf);
 
 	if(Team == CHAT_ALL)
@@ -325,6 +326,13 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, in
 				if(Team == CHAT_SPEC)
 				{
 					if(m_apPlayers[i]->GetTeam() == CHAT_SPEC)
+					{
+						Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, i);
+					}
+				}
+				else if(Team == CHAT_DEAD)
+				{
+					if(m_apPlayers[i]->m_RespawnDisabled && !(m_apPlayers[i]->GetCharacter() && m_apPlayers[i]->GetCharacter()->IsAlive()))
 					{
 						Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, i);
 					}
@@ -1629,13 +1637,16 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			else
 			{
 				SGameInstance Instance = PlayerGameInstance(pPlayer->GetCID());
-				if(Instance.m_IsCreated && !Instance.m_pController->IsTeamplay() && g_Config.m_SvTournamentChat == 2)
+				if(Instance.m_IsCreated && !Instance.m_pController->IsTeamplay() && Instance.m_pController->m_TournamentChat == 2)
 					return;
 
-				if(g_Config.m_SvTournamentChat == 2 || (g_Config.m_SvTournamentChat == 1 && pPlayer->GetTeam() == TEAM_SPECTATORS))
-					IsTeam = true;
+				if(Instance.m_pController->m_TournamentChat == 2 || (Instance.m_pController->m_TournamentChat == 1 &&
+					((pPlayer->GetTeam() == TEAM_SPECTATORS) || (pPlayer->m_RespawnDisabled && !(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive()))))) // Hunter crazyif
+						IsTeam = true;
 
-				int ChatTeam = IsTeam ? pPlayer->GetTeam() : CHAT_ALL;
+				int ChatTeam = IsTeam ?
+					((Instance.m_pController->IsSurvival() && Instance.m_pController->IsGameRunning()) ? CHAT_DEAD : pPlayer->GetTeam()) // Hunter crazyif
+						: CHAT_ALL; // Hunter crazyif
 
 				char aCensoredMessage[256];
 				CensorMessage(aCensoredMessage, pMsg->m_pMessage, sizeof(aCensoredMessage));
@@ -3486,14 +3497,14 @@ void CGameContext::WhisperID(int ClientID, int VictimID, const char *pMessage)
 		return;
 
 	SGameInstance Instance = PlayerGameInstance(ClientID);
-	if(Instance.m_IsCreated && !Instance.m_pController->IsTeamplay() && g_Config.m_SvTournamentChat == 2)
+	if(Instance.m_IsCreated && !Instance.m_pController->IsTeamplay() && Instance.m_pController->m_TournamentChat == 2)
 		return;
 
-	if(g_Config.m_SvTournamentChat > 0)
+	if(Instance.m_pController->m_TournamentChat > 0)
 	{
 		if(m_apPlayers[ClientID]->GetTeam() == TEAM_SPECTATORS || m_apPlayers[VictimID]->GetTeam() == TEAM_SPECTATORS)
 			return;
-		if(g_Config.m_SvTournamentChat == 2 && m_apPlayers[ClientID]->GetTeam() != m_apPlayers[VictimID]->GetTeam())
+		if(Instance.m_pController->m_TournamentChat == 2 && m_apPlayers[ClientID]->GetTeam() != m_apPlayers[VictimID]->GetTeam())
 			return;
 		if(m_apPlayers[ClientID]->GetTeam() != TEAM_SPECTATORS && GetPlayerDDRTeam(ClientID) != GetPlayerDDRTeam(VictimID))
 			return;

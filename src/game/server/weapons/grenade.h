@@ -13,6 +13,7 @@ public:
 
 	// callback
 	static bool GrenadeCollide(class CProjectile *pProj, vec2 Pos, CCharacter *pHit, bool EndOfLife);
+	static bool FragCollide(CProjectile *pProj, vec2 Pos, CCharacter *pHit, bool EndOfLife);
 };
 
 #endif // GAME_SERVER_WEAPONS_GRENATE_H

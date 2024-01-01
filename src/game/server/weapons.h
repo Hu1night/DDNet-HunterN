@@ -9,6 +9,8 @@ REGISTER_WEAPON(WEAPON_ID_NINJA, CNinja)
 
 REGISTER_WEAPON(WEAPON_ID_EXPLODINGLASER, CExplodingLaser)
 
+REGISTER_WEAPON(WEAPON_ID_JUGHAMMER, CJugHammer) // Hunter
+
 #else
 
 #ifndef GAME_SERVER_WEAPONS_H
@@ -22,6 +24,8 @@ REGISTER_WEAPON(WEAPON_ID_EXPLODINGLASER, CExplodingLaser)
 #include "weapons/shotgun.h"
 
 #include "weapons/explodinglaser.h"
+
+#include "weapons/jughammer.h" // Hunter
 
 enum
 {

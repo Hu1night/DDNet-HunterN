@@ -53,7 +53,7 @@ void CHammer::Fire(vec2 Direction)
 		Temp = ClampVel(pTarget->m_MoveRestrictions, Temp);
 		Temp -= pTarget->Core()->m_Vel;
 
-		pTarget->TakeDamage((vec2(0.f, -1.0f) + Temp) * Strength, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage,
+		pTarget->TakeDamage((vec2(0.f, -1.0f) + Temp) * Strength, (GetPlayerClass(ClientID) == CLASS_HUNTER) ? 20 : g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage, // Hunter
 			ClientID, WEAPON_HAMMER, GetWeaponID(), false);
 
 		GameServer()->Antibot()->OnHammerHit(ClientID);

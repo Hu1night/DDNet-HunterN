@@ -38,12 +38,12 @@ public:
 
 private:
 	vec2 m_Direction;
-	int m_TotalLifeSpan;
 	int m_Owner;
 	int m_StartTick;
 	int m_WeaponID;
 	FProjectileImpactCallback m_Callback;
 	int m_ID;
+	vec2 m_StartPos; // Hunter
 
 	// DDRace
 	int m_TuneZone; //TODO: make curvature and property
@@ -66,6 +66,12 @@ public:
 	int m_Bouncing;
 	int GetOwner() { return m_Owner; }
 	int GetWeaponID() { return m_WeaponID; }
+	/* Hunter Start */
+	void SetOwner(int Owner) { m_Owner = Owner; }
+	void SetStartTick(int Tick) { m_StartTick = Tick; }
+	void SetStartPos(vec2 Pos) { m_StartPos = Pos; }
+	void SetDir(vec2 Direction) { m_Direction = Direction; }
+	/* Hunter End */
 	void SetBouncing(int Value);
 	bool FillExtraInfo(CNetObj_DDNetProjectile *pProj);
 

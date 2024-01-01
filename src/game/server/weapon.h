@@ -4,6 +4,8 @@
 #include <game/server/entities/character.h>
 #include <game/server/player.h>
 
+#include <game/server/classes.h> // Hunter
+
 class CWeapon
 {
 private:
@@ -82,6 +84,8 @@ public:
 
 	void SetTypeID(int Type) { m_WeaponTypeID = Type; }
 	int GetWeaponID() { return m_WeaponTypeID; }
+
+	int GetPlayerClass(int ClientID) { return GameServer()->m_apPlayers[ClientID]->GetClass(); }; // Hunter
 
 	// called when equip, you can allocate snap ids here
 	virtual void OnEquip(){};

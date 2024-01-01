@@ -52,6 +52,9 @@ enum
 
 	// Do not generate kill message
 	DEATH_NO_KILL_MSG = 32,
+
+	// Do not generate reason message
+	DEATH_NO_REASON = 64,
 };
 
 // for OnCharacterTakeDamage
@@ -253,6 +256,10 @@ protected:
 		// ideal for controlling your own gameplay
 		// while letting clients show player count
 		IGF_MARK_SURVIVAL = 128,
+
+		// mark the game as teamplay even if it isn't
+		// ideal for controlling your own gameplay
+		IGF_MARK_TEAMS = 256, // Hunter
 	};
 	int m_GameFlags;
 	const char *m_pGameType;
@@ -269,6 +276,8 @@ protected:
 	// default to: 0
 	int m_DDNetInfoFlag2;
 
+	bool m_ResetScoreOnEndMatch; // Hunter
+
 public:
 	IGameController();
 	virtual ~IGameController();
@@ -280,6 +289,7 @@ public:
 	IConsole *InstanceConsole() const { return m_pInstanceConsole; }
 
 	// common config
+	int m_TournamentChat;
 	int m_Warmup;
 	int m_Countdown;
 	int m_Teamdamage;
@@ -295,6 +305,7 @@ public:
 	int m_ResetOnMatchEnd;
 	int m_PausePerMatch;
 	int m_MinimumPlayers;
+	int m_HuntFragsNum; // Hunter
 
 	// mega map stuff
 	char m_aMap[128];
@@ -315,7 +326,7 @@ public:
 	enum
 	{
 		TIMER_INFINITE = -1,
-		TIMER_END = 10,
+		TIMER_END = 7,
 	};
 
 	void TryStartWarmup(bool FallbackToWarmup = false);
@@ -413,7 +424,7 @@ public:
 	// Instance Space Ops
 	void SendChatTarget(int To, const char *pText, int Flags = 3) const;
 	void SendBroadcast(const char *pText, int ClientID, bool IsImportant = true) const;
-	void SendKillMsg(int Killer, int Victim, int Weapon, int ModeSpecial = 0) const;
+	//void SendKillMsg(int Killer, int Victim, int Weapon, int ModeSpecial = 0) const;
 
 	// helpers
 	bool IsDDNetEntity(int Index) const;
@@ -553,6 +564,19 @@ public:
 
 	*/
 	virtual bool CanDeadPlayerFollow(const class CPlayer *pSpectator, const class CPlayer *pTarget);
+
+	/*
+		Function: CanDeadPlayerFreeView
+			Whether a dead spec player is allowed to freeview
+
+		Arguments:
+			Spec - the spectating player
+		
+		Return:
+			bool - true if can freeview
+
+	*/
+	virtual bool CanDeadPlayerFreeView(const class CPlayer *pSpectator) { return false; }
 
 	/*
 		Function: CanPause

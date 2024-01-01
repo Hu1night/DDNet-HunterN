@@ -341,7 +341,7 @@ static void ConChangeGameType(IConsole::IResult *pResult, void *pUserData)
 int IGameController::MakeGameFlag(int GameFlag)
 {
 	int Flags = 0;
-	if(GameFlag & IGF_TEAMS)
+	if(GameFlag & (IGF_TEAMS | IGF_MARK_TEAMS)) // Hunter
 		Flags |= GAMEFLAG_TEAMS;
 	if(GameFlag & IGF_FLAGS)
 		Flags |= GAMEFLAG_FLAGS;
@@ -414,11 +414,16 @@ IGameController::IGameController()
 	m_ResendVotes = false;
 	m_NumPlayerNotReady = 0;
 
+	m_HuntFragsNum = 18; // Hunter
+	m_ResetScoreOnEndMatch = true; // Hunter
+
 	// fake client broadcast
 	mem_zero(m_aFakeClientBroadcast, sizeof(m_aFakeClientBroadcast));
 
 	m_pInstanceConsole->RegisterPrintCallback(IConsole::OUTPUT_LEVEL_STANDARD, InstanceConsolePrint, this);
 
+	
+	INSTANCE_CONFIG_INT(&m_TournamentChat, "tournament_chat", 0, 0, 2, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "Tournament chat mode, 0 = disabled, 1 = spectator can't send global chat, 2 = all players can only send team chat") // Hunter
 	INSTANCE_CONFIG_INT(&m_Warmup, "warmup", 10, 0, 1000, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "Number of seconds to do warmup before match starts");
 	INSTANCE_CONFIG_INT(&m_Countdown, "countdown", 0, -1000, 1000, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "Number of seconds to freeze the game in a countdown before match starts, (-: for survival, +: for all")
 	INSTANCE_CONFIG_INT(&m_Teamdamage, "teamdamage", 0, 0, 2, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "Team damage (1 = half damage, 2 = full damage)")
@@ -760,7 +765,7 @@ void IGameController::OnInternalEntity(int Index, vec2 Pos, int Layer, int Flags
 	}
 	else if(Index == ENTITY_CRAZY_SHOTGUN_EX)
 	{
-		int Dir;
+		/*int Dir;
 		if(!Flags)
 			Dir = 0;
 		else if(Flags == ROTATION_90)
@@ -770,7 +775,8 @@ void IGameController::OnInternalEntity(int Index, vec2 Pos, int Layer, int Flags
 		else
 			Dir = 3;
 		float Deg = Dir * (pi / 2);
-		// MYTODO: add back ddnet freeze bullet
+		*/
+		// MYTODO: add back ddnet freeze bulletz	
 		// CProjectile *bullet = new CProjectile(
 		// 	GameWorld(),
 		// 	WEAPON_SHOTGUN, //Type
@@ -789,7 +795,7 @@ void IGameController::OnInternalEntity(int Index, vec2 Pos, int Layer, int Flags
 	}
 	else if(Index == ENTITY_CRAZY_SHOTGUN)
 	{
-		int Dir;
+		/*int Dir;
 		if(!Flags)
 			Dir = 0;
 		else if(Flags == (TILEFLAG_ROTATE))
@@ -798,7 +804,7 @@ void IGameController::OnInternalEntity(int Index, vec2 Pos, int Layer, int Flags
 			Dir = 2;
 		else
 			Dir = 3;
-		float Deg = Dir * (pi / 2);
+		float Deg = Dir * (pi / 2);*/
 		// CProjectile *bullet = new CProjectile(
 		// 	GameWorld(),
 		// 	WEAPON_SHOTGUN, //Type
@@ -1185,7 +1191,7 @@ void IGameController::OnReset()
 			pPlayer->m_RespawnDisabled = false;
 			pPlayer->Respawn();
 			pPlayer->m_RespawnTick = Server()->Tick() + Server()->TickSpeed() / 2;
-			if(m_RoundCount == 0)
+			if(m_RoundCount == 0 && m_ResetScoreOnEndMatch) // Hunter
 			{
 				pPlayer->m_Score = 0;
 				pPlayer->m_ScoreStartTick = Server()->Tick();
@@ -1671,7 +1677,7 @@ void IGameController::FakeClientBroadcast(int SnappingClient)
 	if(IsPlayerReadyMode() && m_NumPlayerNotReady > 0)
 	{
 		char aBuf[128];
-		bool PlayerNeedToReady = pPlayer->GetTeam() != TEAM_SPECTATORS && pPlayer->m_IsReadyToPlay;
+		// bool PlayerNeedToReady = pPlayer->GetTeam() != TEAM_SPECTATORS && pPlayer->m_IsReadyToPlay;
 		if(m_NumPlayerNotReady == 1)
 			str_format(aBuf, sizeof(aBuf), "%s\n\n\n%d player not ready", pPlayer->m_IsReadyToPlay ? "" : "Say '/r' to ready", m_NumPlayerNotReady);
 		else
@@ -2872,7 +2878,7 @@ void IGameController::SendBroadcast(const char *pText, int ClientID, bool IsImpo
 			GameServer()->SendBroadcast(pText, i, IsImportant);
 }
 
-void IGameController::SendKillMsg(int Killer, int Victim, int Weapon, int ModeSpecial) const
+/*void IGameController::SendKillMsg(int Killer, int Victim, int Weapon, int ModeSpecial) const
 {
 	// send the kill message
 	CNetMsg_Sv_KillMsg Msg;
@@ -2886,7 +2892,7 @@ void IGameController::SendKillMsg(int Killer, int Victim, int Weapon, int ModeSp
 		if(GetPlayerIfInRoom(i))
 			Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, i);
 	}
-}
+}*/
 
 void IGameController::InstanceConsolePrint(const char *pStr, void *pUser)
 {
