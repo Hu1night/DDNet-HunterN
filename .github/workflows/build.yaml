@@ -34,8 +34,8 @@ jobs:
 
     - name: Build in release mode
       run: |
-        cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=./
-        cmake --build ./ --config Release
+        cmake -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=./ .
+        make -j8
 
     - name: Move release
       if: contains(matrix.os, 'windows')

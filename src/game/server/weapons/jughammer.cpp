@@ -1,15 +1,39 @@
 #include "jughammer.h"
 #include <game/generated/server_data.h>
 #include <game/server/entities/projectile.h>
-#include <game/server/entities/laser.h>
 
 CJugHammer::CJugHammer(CCharacter *pOwnerChar) :
 	CWeapon(pOwnerChar)
 {
 	m_MaxAmmo = g_pData->m_Weapons.m_aId[WEAPON_HAMMER].m_Maxammo;
 	m_AmmoRegenTime = g_pData->m_Weapons.m_aId[WEAPON_HAMMER].m_Ammoregentime;
-	m_FireDelay = g_pData->m_Weapons.m_aId[WEAPON_HAMMER].m_Firedelay;
+	m_FireDelay = 250;
 	m_FullAuto = true;
+
+	pIndFirst = new CLaserIndicator(
+		GameWorld(),
+		Character()->GetPlayer()->GetCID(),
+		Pos() + Character()->GetDirection() * GetProximityRadius() * 7.25f,
+		Pos() + Character()->GetDirection() * GetProximityRadius(), /* 1.f*/
+		3);
+
+	pIndSecond = new CLaserIndicator(
+		GameWorld(),
+		Character()->GetPlayer()->GetCID(),
+		Pos() - Character()->GetDirection() * GetProximityRadius() * 1.75f, // negative
+		Pos() + Character()->GetDirection() * GetProximityRadius() * 4.5f,
+		2);
+}
+
+void CJugHammer::Tick() // laser indicator snap
+{
+	CWeapon::Tick();
+
+	pIndFirst->m_From = Pos() + Character()->GetDirection() * GetProximityRadius() * 6.75f;
+	pIndFirst->m_Pos = Pos() + Character()->GetDirection() * GetProximityRadius() /* 1.f*/;
+
+	pIndSecond->m_From = Pos() - Character()->GetDirection() * GetProximityRadius() * 1.25f; // negative
+	pIndSecond->m_Pos = Pos() + Character()->GetDirection() * GetProximityRadius() * 4.5f;
 }
 
 void CJugHammer::Fire(vec2 Direction)
@@ -24,41 +48,24 @@ void CJugHammer::Fire(vec2 Direction)
 
 	vec2 HammerHitPos = Pos() + Direction * GetProximityRadius() * 2.75f;
 
-	new CLaser(
-		GameWorld(),
-		WEAPON_GUN, //Type
-		GetWeaponID(), //WeaponID
-		ClientID, //Owner
-		Pos() + Direction * GetProximityRadius() * 4.5f, //Pos
-		-(Direction), //Dir
-		105); // StartEnergy
-
-	new CLaser(
-		GameWorld(),
-		WEAPON_GUN, //Type
-		GetWeaponID(), //WeaponID
-		ClientID, //Owner
-		Pos() + Direction * GetProximityRadius() * 6.75f, //Pos
-		-(Direction), //Dir
-		67); // StartEnergy
-
 	int Hits = 0;
 	CProjectile *apEntsProj[16];
-	int Num = GameWorld()->FindEntities(HammerHitPos, GetProximityRadius() * 4.0f, (CEntity **)apEntsProj,
+	int ProjNum = GameWorld()->FindEntities(HammerHitPos, GetProximityRadius() * 4.5f, (CEntity **)apEntsProj,
 		16, CGameWorld::ENTTYPE_PROJECTILE);
 
-	for(int i = 0; i < Num; ++i)
+	for(int i = 0; i < ProjNum; ++i)
 	{
 		CProjectile *pTargetProj = apEntsProj[i];
 
-		if((pTargetProj->m_Type != WEAPON_GRENADE) || (distance(pTargetProj->m_Pos, HammerHitPos) < 52.5f))
+		if((pTargetProj->m_Type != WEAPON_GRENADE) ||
+			(distance(pTargetProj->m_Pos, HammerHitPos) < GetProximityRadius() * 1.8f))
 		{
 			GameWorld()->CreateHammerHit(pTargetProj->m_Pos);
 
 			pTargetProj->SetStartPos(pTargetProj->m_Pos);
 			pTargetProj->SetStartTick(Server()->Tick());
 			pTargetProj->SetOwner(Character()->GetPlayer()->GetCID());
-			pTargetProj->SetDir(normalize(pTargetProj->m_Pos - Character()->m_Pos) * 0.5f);
+			pTargetProj->SetDir(normalize(pTargetProj->m_Pos - Character()->m_Pos) * 0.6f);
 			pTargetProj->m_LifeSpan = 2 * Server()->TickSpeed();
 
 			Hits++;
@@ -66,7 +73,7 @@ void CJugHammer::Fire(vec2 Direction)
 	}
 
 	CCharacter *apEnts[MAX_CLIENTS];
-	Num = GameWorld()->FindEntities(HammerHitPos, GetProximityRadius() * 0.75f, (CEntity **)apEnts,
+	int Num = GameWorld()->FindEntities(HammerHitPos, GetProximityRadius() * 0.75f, (CEntity **)apEnts,
 		MAX_CLIENTS, CGameWorld::ENTTYPE_CHARACTER);
 
 	for(int i = 0; i < Num; ++i)
@@ -97,7 +104,7 @@ void CJugHammer::Fire(vec2 Direction)
 		else
 			GameWorld()->CreateHammerHit(pTarget->m_Pos - Direction);
 
-		pTarget->TakeDamage((vec2(0.f, -1.0f) + Temp) * Strength, (!Hits) ? 20 : 6, // Hunter
+		pTarget->TakeDamage((vec2(0.f, -1.0f) + Temp) * Strength, (!(ProjNum || Hits) && (Character()->GetCore().m_HookedPlayer == pTarget->GetPlayer()->GetCID())) ? 20 : 4,
 			ClientID, WEAPON_HAMMER, GetWeaponID(), false);
 
 		GameServer()->Antibot()->OnHammerHit(ClientID);
@@ -107,13 +114,5 @@ void CJugHammer::Fire(vec2 Direction)
 
 	// if we Hit anything, we have to wait for the reload
 	if(Hits)
-	{
-		float FireDelay;
-		int TuneZone = Character()->m_TuneZone;
-		if(!TuneZone)
-			FireDelay = GameServer()->Tuning()->m_HammerHitFireDelay;
-		else
-			FireDelay = GameServer()->TuningList()[TuneZone].m_HammerHitFireDelay;
-		m_ReloadTimer = FireDelay * Server()->TickSpeed() / 1000;
-	}
+		m_ReloadTimer = Server()->TickSpeed() * 120 / 1000;
 }

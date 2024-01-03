@@ -163,7 +163,6 @@ private:
 	int m_LastBroadcast;
 	void DDRaceInit();
 	void HandleSkippableTiles(int Index);
-	void SetRescue();
 	void DDRaceTick();
 	void DDRacePostCoreTick();
 	void HandleBroadcast();
@@ -234,7 +233,6 @@ public:
 	int m_MoveRestrictions;
 
 	int64 m_LastStartWarning;
-	int64 m_LastRescue;
 	bool m_LastRefillJumps;
 	bool m_LastPenalty;
 	bool m_LastBonus;
@@ -289,6 +287,8 @@ public:
 
 	int m_MaxHealth; // Hunter
 	int m_MaxArmor; // Hunter
+
+	vec2 GetDirection() { return normalize(vec2(m_LatestInput.m_TargetX, m_LatestInput.m_TargetY)); } // Hunter
 };
 
 enum
