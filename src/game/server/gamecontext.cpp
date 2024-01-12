@@ -755,7 +755,7 @@ void CGameContext::OnTick()
 
 					if((IsKickVote() || IsSpecVote()) && (m_apPlayers[i]->GetTeam() == TEAM_SPECTATORS ||
 										     (GetPlayerChar(m_VoteCreator) && GetPlayerChar(i) &&
-											     GetPlayerChar(m_VoteCreator)->Team() != GetPlayerChar(i)->Team())))
+												GetPlayerChar(m_VoteCreator)->Team() != GetPlayerChar(i)->Team())))
 						continue;
 
 					if(m_apPlayers[i]->m_Afk && i != m_VoteCreator)
@@ -2871,6 +2871,7 @@ void CGameContext::OnConsoleInit()
 	Console()->Register("add_gametype", "s[name] ?s[gametype] ?r[settings]", CFGFLAG_SERVER, ConAddGameType, this, "Register an gametype for rooms. First register will be the default for room 0");
 	Console()->Register("add_gametypefile", "s[name] s[gametype] r[filename]", CFGFLAG_SERVER, ConAddGameTypeFile, this, "Register an gametype for rooms. First register will be the default for room 0");
 	Console()->Register("mega_add_mapname", "r[name]", CFGFLAG_SERVER, ConAddMapName, this, "Mega map sub map names. Add it in order of map indexes, starting from map 1.");
+	Console()->Register("mega_add_map", "r[name] i[tag]", CFGFLAG_SERVER, ConAddMapWithTag, this, "Mega map sub map names. Add it in order of map indexes, starting from map 1."); // Hunter
 	Console()->Register("room_setting", "i[room] ?r[settings]", CFGFLAG_SERVER, ConRoomSetting, this, "Invoke a command in a specified room");
 
 	Console()->Chain("sv_motd", ConchainSpecialMotdupdate, this);

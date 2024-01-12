@@ -1,8 +1,8 @@
-#include "hammer.h"
+#include "hunthammer.h"
 #include <game/generated/server_data.h>
 #include <game/server/entities/projectile.h>
 
-CHammer::CHammer(CCharacter *pOwnerChar) :
+CHuntHammer::CHuntHammer(CCharacter *pOwnerChar) :
 	CWeapon(pOwnerChar)
 {
 	m_MaxAmmo = g_pData->m_Weapons.m_aId[WEAPON_HAMMER].m_Maxammo;
@@ -10,7 +10,43 @@ CHammer::CHammer(CCharacter *pOwnerChar) :
 	m_FireDelay = g_pData->m_Weapons.m_aId[WEAPON_HAMMER].m_Firedelay;
 }
 
-void CHammer::Fire(vec2 Direction)
+void CHuntHammer::Snap(int SnappingClient, int OtherMode)
+{
+	if(!IndicatorSnapID)
+		return;
+
+	CEntity *IndCharacter = GameWorld()->ClosestEntity(Pos(), 10240, CGameWorld::ENTTYPE_CHARACTER, Character());
+	if(!IndCharacter)
+		return;
+	vec2 IndicatorFrom = Pos();
+	vec2 IndicatorTo = IndicatorFrom + normalize(IndCharacter->m_Pos - IndicatorFrom) * 120;
+
+	CNetObj_Laser *pObj = static_cast<CNetObj_Laser *>(Server()->SnapNewItem(NETOBJTYPE_LASER, IndicatorSnapID, sizeof(CNetObj_Laser)));
+	if(!pObj)
+		return;
+
+	pObj->m_X = (int)IndicatorTo.x;
+	pObj->m_Y = (int)IndicatorTo.y;
+	pObj->m_FromX = (int)IndicatorFrom.x;
+	pObj->m_FromY = (int)IndicatorFrom.y;
+	pObj->m_StartTick = Server()->Tick();
+}
+
+void CHuntHammer::Tick()
+{
+	if(Character()->m_IsFiring && IsReloading())
+		if(IndicatorSnapID)
+		{
+			Server()->SnapFreeID(IndicatorSnapID);
+			IndicatorSnapID = 0;
+		}
+	else if(!IndicatorSnapID)
+	{
+		IndicatorSnapID = Server()->SnapNewID();
+	}
+}
+
+void CHuntHammer::Fire(vec2 Direction)
 {
 	int ClientID = Character()->GetPlayer()->GetCID();
 	GameWorld()->CreateSound(Pos(), SOUND_HAMMER_FIRE);
@@ -53,7 +89,7 @@ void CHammer::Fire(vec2 Direction)
 		Temp = ClampVel(pTarget->m_MoveRestrictions, Temp);
 		Temp -= pTarget->Core()->m_Vel;
 
-		pTarget->TakeDamage((vec2(0.f, -1.0f) + Temp) * Strength, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage, ClientID, WEAPON_HAMMER, GetWeaponID(), false);
+		pTarget->TakeDamage((vec2(0.f, -1.0f) + Temp) * Strength, 20, ClientID, WEAPON_HAMMER, GetWeaponID(), false);
 
 		GameServer()->Antibot()->OnHammerHit(ClientID);
 

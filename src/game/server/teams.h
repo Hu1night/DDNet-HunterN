@@ -65,6 +65,7 @@ class CGameTeams
 	static char m_aGameTypeName[17];
 	static char m_aMapNames[64][128];
 	static int m_NumMaps;
+	static int m_MapsTag[64]; // Hunter
 	static SGameType m_DefaultGameType;
 	static char m_aGameTypeList[512];
 
@@ -144,6 +145,8 @@ public:
 
 	static void ClearMaps();
 	static void AddMap(const char *pMapName);
+	static void AddMapWithTag(const char *pMapName, int Tag); // Hunter
+	static void AddTaggedMapVote(IGameController *Controller, int Tag); // Hunter
 	static int GetMapIndex(const char *pMapName);
 
 	void UpdateGameTypeName();

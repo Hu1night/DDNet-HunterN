@@ -952,8 +952,6 @@ set_src(GAME_SERVER GLOB_RECURSE src/game/server
   entities/gun.h
   entities/laser.cpp
   entities/laser.h
-  entities/laserindicator.cpp
-  entities/laserindicator.h
   entities/light.cpp
   entities/light.h
   entities/pickup.cpp
@@ -1006,8 +1004,6 @@ set_src(GAME_SERVER GLOB_RECURSE src/game/server
   weapons/grenade.h
   weapons/hammer.cpp
   weapons/hammer.h
-  weapons/jughammer.cpp
-  weapons/jughammer.h
   weapons/lasergun.cpp
   weapons/lasergun.h
   weapons/ninja.cpp

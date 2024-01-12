@@ -605,6 +605,7 @@ std::vector<SGameType> CGameTeams::m_GameTypes;
 SGameType CGameTeams::m_DefaultGameType = {nullptr, nullptr, nullptr, false};
 char CGameTeams::m_aMapNames[64][128];
 int CGameTeams::m_NumMaps;
+int CGameTeams::m_MapsTag[64] = {0}; // Hunter
 char CGameTeams::m_aGameTypeName[17] = {0};
 
 void CGameTeams::SetDefaultGameType(const char *pGameType, const char *pSettings, bool IsFile)
@@ -836,6 +837,29 @@ void CGameTeams::AddMap(const char *pMapName)
 		return;
 	str_copy(m_aMapNames[m_NumMaps++], pMapName, 128);
 }
+
+/* Hunter Start */
+void CGameTeams::AddMapWithTag(const char *pMapName, int Tag)
+{
+	if(m_NumMaps >= 64)
+		return;
+	str_copy(m_aMapNames[m_NumMaps++], pMapName, 128);
+	m_MapsTag[m_NumMaps] = Tag;
+}
+
+void CGameTeams::AddTaggedMapVote(IGameController *Controller, int Tag)
+{
+	for(int i = 0; i < m_NumMaps; i++)
+		if(m_MapsTag[i] & Tag)
+		{
+			char aBuf[VOTE_DESC_LENGTH];
+			char aBufCom[133]; // "map "-> 5 + 128
+			str_format(aBuf, sizeof(aBuf), "Change Map: %s", m_aMapNames[i]);
+			str_format(aBufCom, sizeof(aBufCom), "map: %s", m_aMapNames[i]);
+			Controller->AddVote(Controller, aBuf, aBufCom);
+		}
+}
+/* Hunter End */
 
 int CGameTeams::GetMapIndex(const char *pMapName)
 {

@@ -106,8 +106,8 @@ class IGameController
 	bool GetPlayersReadyState(int WithoutID = -1);
 	void SetPlayersReadyState(bool ReadyState);
 	void CheckReadyStates(int WithoutID = -1);
-	int MakeGameFlag(int GameFlag);
-	int MakeGameFlagSixUp(int GameFlag);
+	int MakeGameFlag(int GameFlag, int SnappingClient); // Hunter
+	int MakeGameFlagSixUp(int GameFlag, int SnappingClient); // Hunter
 
 	struct SBroadcastState
 	{
@@ -257,9 +257,19 @@ protected:
 		// while letting clients show player count
 		IGF_MARK_SURVIVAL = 128,
 
+		/* Hunter Start */
 		// mark the game as teamplay even if it isn't
 		// ideal for controlling your own gameplay
 		IGF_MARK_TEAMS = 256, // Hunter
+
+		// snap the game as teamplay if GameOver and (Dead)Spec
+		// SUS
+		IGF_MARK_AMONGUS = 512,
+
+		// mark the game as matchplay even if it isn't
+		// ideal for controlling your own gameplay
+		IGF_MARK_MATCH = 1024,
+		/* Hunter End */
 	};
 	int m_GameFlags;
 	const char *m_pGameType;
@@ -275,8 +285,6 @@ protected:
 	int m_DDNetInfoFlag;
 	// default to: 0
 	int m_DDNetInfoFlag2;
-
-	bool m_ResetScoreOnEndMatch; // Hunter
 
 public:
 	IGameController();
@@ -326,7 +334,7 @@ public:
 	enum
 	{
 		TIMER_INFINITE = -1,
-		TIMER_END = 7,
+		TIMER_END = 10,
 	};
 
 	void TryStartWarmup(bool FallbackToWarmup = false);
@@ -363,6 +371,7 @@ public:
 	bool IsSurvival() const { return m_GameFlags & IGF_SURVIVAL; }
 	bool IsRoundBased() const { return m_GameFlags & (IGF_ROUND_TIMER_ROUND | IGF_MATCH_TIMER_ROUND); }
 	bool IsRoundTimer() const { return m_GameFlags & IGF_ROUND_TIMER_ROUND; }
+	bool IsAmongUs() const { return m_GameFlags & IGF_MARK_AMONGUS; } // Hunter
 	bool UseSuddenDeath() const { return m_GameFlags & IGF_SUDDENDEATH; }
 
 	void SendGameMsg(int GameMsgID, int ClientID, int *i1 = nullptr, int *i2 = nullptr, int *i3 = nullptr);
@@ -408,6 +417,8 @@ public:
 	inline bool IsKickVote() const { return m_VoteType == VOTE_TYPE_KICK; };
 	inline bool IsSpecVote() const { return m_VoteType == VOTE_TYPE_SPECTATE; };
 
+	static void AddVote(IGameController *pSelf, const char *pDescription, const char *pCommand); // Hunter
+	
 	void CallVote(int ClientID, const char *pDesc, const char *pCmd, const char *pReason, const char *pChatmsg, const char *pSixupDesc);
 	void StartVote(const char *pDesc, const char *pCommand, const char *pReason, const char *pSixupDesc);
 	void EndVote(bool SendInfo);

@@ -126,10 +126,8 @@ class CGameContext : public IGameServer
 	static void ConAddGameType(IConsole::IResult *pResult, void *pUserData);
 	static void ConAddGameTypeFile(IConsole::IResult *pResult, void *pUserData);
 	static void ConAddMapName(IConsole::IResult *pResult, void *pUserData);
+	static void ConAddMapWithTag(IConsole::IResult *pResult, void *pUserData); // Hunter
 	static void ConRoomSetting(IConsole::IResult *pResult, void *pUserData);
-
-	// HunterN commands
-	static void ConSetClass(IConsole::IResult *pResult, void *pUserData);
 
 	CGameContext(int Resetting);
 	void Construct(int Resetting);
