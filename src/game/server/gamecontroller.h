@@ -280,6 +280,7 @@ public:
 	IConsole *InstanceConsole() const { return m_pInstanceConsole; }
 
 	// common config
+	int m_TournamentChat;
 	int m_Warmup;
 	int m_Countdown;
 	int m_Teamdamage;

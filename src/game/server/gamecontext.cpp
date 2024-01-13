@@ -324,7 +324,8 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, in
 			{
 				if(Team == CHAT_SPEC)
 				{
-					if(m_apPlayers[i]->GetTeam() == CHAT_SPEC)
+					if(Room == GetPlayerDDRTeam(i) &&
+						m_apPlayers[i]->GetTeam() == CHAT_SPEC || m_apPlayers[i]->m_DeadSpecMode)
 					{
 						Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, i);
 					}
@@ -745,9 +746,9 @@ void CGameContext::OnTick()
 
 					// MYTODO: get rid of kick vote checks, no gonna happen here
 
-					if((IsKickVote() || IsSpecVote()) && (m_apPlayers[i]->GetTeam() == TEAM_SPECTATORS ||
-										     (GetPlayerChar(m_VoteCreator) && GetPlayerChar(i) &&
-											     GetPlayerChar(m_VoteCreator)->Team() != GetPlayerChar(i)->Team())))
+					if((IsKickVote() || IsSpecVote()) && !m_apPlayers[i]->m_DeadSpecMode && (m_apPlayers[i]->GetTeam() == TEAM_SPECTATORS ||
+						(GetPlayerChar(m_VoteCreator) && GetPlayerChar(i) &&
+							GetPlayerChar(m_VoteCreator)->Team() != GetPlayerChar(i)->Team())))
 						continue;
 
 					if(m_apPlayers[i]->m_Afk && i != m_VoteCreator)
@@ -1629,13 +1630,15 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			else
 			{
 				SGameInstance Instance = PlayerGameInstance(pPlayer->GetCID());
-				if(Instance.m_IsCreated && !Instance.m_pController->IsTeamplay() && g_Config.m_SvTournamentChat == 2)
+				if(!Instance.m_IsCreated)
 					return;
 
-				if(g_Config.m_SvTournamentChat == 2 || (g_Config.m_SvTournamentChat == 1 && pPlayer->GetTeam() == TEAM_SPECTATORS))
+				if(Instance.m_pController->m_TournamentChat == 2)
 					IsTeam = true;
 
-				int ChatTeam = IsTeam ? pPlayer->GetTeam() : CHAT_ALL;
+				int ChatTeam = ((Instance.m_pController->m_TournamentChat == 1 && (pPlayer->GetTeam() == TEAM_SPECTATORS || pPlayer->m_DeadSpecMode)) ?
+					CHAT_SPEC : IsTeam ?
+						pPlayer->GetTeam() : CHAT_ALL);
 
 				char aCensoredMessage[256];
 				CensorMessage(aCensoredMessage, pMsg->m_pMessage, sizeof(aCensoredMessage));
@@ -1948,6 +1951,11 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 							IConsole::OUTPUT_LEVEL_STANDARD,
 							"instancevote",
 							"The room does not exist");
+					}
+					else if(m_apPlayers[ClientID]->m_DeadSpecMode ||
+						(g_Config.m_SvSpecVote && m_apPlayers[ClientID]->GetTeam() == TEAM_SPECTATORS))
+					{
+						return;
 					}
 					else
 					{
@@ -3486,17 +3494,17 @@ void CGameContext::WhisperID(int ClientID, int VictimID, const char *pMessage)
 		return;
 
 	SGameInstance Instance = PlayerGameInstance(ClientID);
-	if(Instance.m_IsCreated && !Instance.m_pController->IsTeamplay() && g_Config.m_SvTournamentChat == 2)
+	if(!Instance.m_IsCreated)
 		return;
 
-	if(g_Config.m_SvTournamentChat > 0)
+	if(Instance.m_pController->m_TournamentChat > 0)
 	{
-		if(m_apPlayers[ClientID]->GetTeam() == TEAM_SPECTATORS || m_apPlayers[VictimID]->GetTeam() == TEAM_SPECTATORS)
+		if(Instance.m_pController->m_TournamentChat == 2 && m_apPlayers[ClientID]->GetTeam() != m_apPlayers[VictimID]->GetTeam())
 			return;
-		if(g_Config.m_SvTournamentChat == 2 && m_apPlayers[ClientID]->GetTeam() != m_apPlayers[VictimID]->GetTeam())
-			return;
-		if(m_apPlayers[ClientID]->GetTeam() != TEAM_SPECTATORS && GetPlayerDDRTeam(ClientID) != GetPlayerDDRTeam(VictimID))
-			return;
+		if((m_apPlayers[ClientID]->GetTeam() == TEAM_SPECTATORS || m_apPlayers[ClientID]->m_DeadSpecMode) &&
+			(GetPlayerDDRTeam(ClientID) != GetPlayerDDRTeam(VictimID) ||
+				(m_apPlayers[VictimID]->GetTeam() != TEAM_SPECTATORS || !m_apPlayers[VictimID]->m_DeadSpecMode)))
+					return;
 	}
 
 	if(m_apPlayers[ClientID])
