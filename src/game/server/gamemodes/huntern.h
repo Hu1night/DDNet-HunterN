@@ -18,38 +18,36 @@ private: // config
 public:
 	CGameControllerHunterN();
 
-	static void OnClassSpawn(CCharacter *pChr);
-	static void ResetPlayerClass(CCharacter *pChr);
-
+	static void OnResetClass(CCharacter *pChr);
 	void SendChatRoom(const char *pText, int Flags = 3);
 
 	// event
-	virtual void OnCharacterSpawn(class CCharacter *pChr) override;
-	virtual void OnWorldReset() override;
-	virtual void OnPlayerJoin(class CPlayer *pPlayer) override;
-	virtual int OnCharacterTakeDamage(class CCharacter *pChr, vec2 &Force, int &Dmg, int From, int WeaponType, int WeaponID, bool IsExplosion) override;
-	virtual int OnPickup(CPickup *pPickup, CCharacter *pChar, SPickupSound *pSound) override;
-	virtual bool CanDeadPlayerFreeView(const class CPlayer *pSpectator) override { return true; }
-	virtual void DoWincheckMatch() override;
-	virtual int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon) override;
+	void OnCharacterSpawn(class CCharacter *pChr) override;
+	void OnWorldReset() override;
+	void OnPlayerJoin(class CPlayer *pPlayer) override;
+	int OnCharacterTakeDamage(class CCharacter *pChr, vec2 &Force, int &Dmg, int From, int WeaponType, int WeaponID, bool IsExplosion) override;
+	//bool CanDeadPlayerFreeView(const class CPlayer *pSpectator) override { return true; }
+	//bool CanDeadPlayerFollow(const CPlayer *pSpectator, const CPlayer *pTarget) override { return true; }
+	bool CanChangeTeam(CPlayer *pPlayer, int JoinTeam) const override;
+	void DoWincheckRound() override;
+	int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon) override;
 
 private: // Intelnal function and value
-	void SelectClass();
-	void ClassWin(int Flag);
-	void DoWincheckClass();
+	static void OnClassSpawn(CCharacter *pChr);
+	void EndRoundClass(int Flag);
 
 	int nHunter; // 有多少个猎人
 	int DoWinchenkClassTick; // 终局判断延迟的Tick
 	char HunterList[256]; // 猎人列表
-	int MatchFlag = -1;
+	//int TeamClass[1];
+	//int MatchFlag = -1;
 
 	enum HUNTERN_WINFLAG
 	{
 		FLAG_WIN_NONE = 0,
-		FLAG_WIN_CIVIC = 1,
-		FLAG_WIN_HUNTER = 2,
-		FLAG_WIN_JUG = 4,
-		FLAG_WIN_JUG_DEFEAT = 8,
+		FLAG_WIN_NO_ONE = 1,
+		FLAG_WIN_TEAMRED = 2,
+		FLAG_WIN_TEAMBLUE = 4,
 	};
 };
 

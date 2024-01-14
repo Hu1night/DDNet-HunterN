@@ -85,8 +85,6 @@ public:
 	void SetTypeID(int Type) { m_WeaponTypeID = Type; }
 	int GetWeaponID() { return m_WeaponTypeID; }
 
-	int GetPlayerClass(int ClientID) { return GameServer()->m_apPlayers[ClientID]->GetClass(); }; // Hunter
-
 	// called when equip, you can allocate snap ids here
 	virtual void OnEquip(){};
 	// called when unequip, you can free snap ids here, but you should also free them in destructor

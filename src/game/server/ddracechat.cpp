@@ -854,6 +854,11 @@ void CGameContext::ConInstanceCommand(IConsole::IResult *pResult, void *pUserDat
 						aInstanceBuf,
 						"You can't execute command in lobby room / room 0"); // language
 				}
+				else if(pSelf->m_apPlayers[ClientID]->m_DeadSpecMode ||
+					(g_Config.m_SvSpecVote && pSelf->m_apPlayers[ClientID]->GetTeam() == TEAM_SPECTATORS))
+				{
+					return;
+				}
 				else
 				{
 					str_format(aBuf, sizeof(aBuf), "'%s' 发起投票以改变房间设置 '%s'", pSelf->Server()->ClientName(ClientID), pLine); // language

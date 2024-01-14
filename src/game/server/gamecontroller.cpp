@@ -131,62 +131,10 @@ static void ConAddVote(IConsole::IResult *pResult, void *pUserData)
 	const char *pDescription = pResult->GetString(0);
 	const char *pCommand = pResult->GetString(1);
 
-	if(pSelf->m_NumVoteOptions == MAX_VOTE_OPTIONS)
-	{
-		pSelf->GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", "maximum number of room vote options reached");
-		return;
-	}
-
-	// check for valid option
-	if(!pSelf->InstanceConsole()->LineIsValid(pCommand) || str_length(pCommand) >= VOTE_CMD_LENGTH)
-	{
-		char aBuf[256];
-		str_format(aBuf, sizeof(aBuf), "skipped invalid command '%s'", pCommand);
-		pSelf->GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
-		return;
-	}
-	while(*pDescription == ' ')
-		pDescription++;
-	if(str_length(pDescription) >= VOTE_DESC_LENGTH || *pDescription == 0)
-	{
-		char aBuf[256];
-		str_format(aBuf, sizeof(aBuf), "skipped invalid option '%s'", pDescription);
-		pSelf->GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
-		return;
-	}
-
-	// check for duplicate entry
-	CVoteOptionServer *pOption = pSelf->m_pVoteOptionFirst;
-	while(pOption)
-	{
-		if(str_comp_nocase(pDescription, pOption->m_aDescription + sizeof("☐ ")) == 0)
-		{
-			char aBuf[256];
-			str_format(aBuf, sizeof(aBuf), "option '%s' already exists", pDescription);
-			pSelf->GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
-			return;
-		}
-		pOption = pOption->m_pNext;
-	}
-
-	// add the option
-	++pSelf->m_NumVoteOptions;
-	int Len = str_length(pCommand);
-
-	pOption = (CVoteOptionServer *)pSelf->m_pVoteOptionHeap->Allocate(sizeof(CVoteOptionServer) + Len);
-	pOption->m_pNext = 0;
-	pOption->m_pPrev = pSelf->m_pVoteOptionLast;
-	if(pOption->m_pPrev)
-		pOption->m_pPrev->m_pNext = pOption;
-	pSelf->m_pVoteOptionLast = pOption;
-	if(!pSelf->m_pVoteOptionFirst)
-		pSelf->m_pVoteOptionFirst = pOption;
-
-	if(str_comp(pCommand, "info") == 0)
-		str_format(pOption->m_aDescription, sizeof(pOption->m_aDescription), "%s", pDescription);
-	else
-		str_format(pOption->m_aDescription, sizeof(pOption->m_aDescription), "☐ %s", pDescription);
-	mem_copy(pOption->m_aCommand, pCommand, Len + 1);
+	char aBuf[64];
+	str_format(aBuf, sizeof(aBuf), "Description'%s' Command'%s'", pDescription, pCommand);
+	pSelf->SendChatTarget(-1, aBuf);
+	pSelf->AddVote(pSelf, pDescription, pCommand); // Hunter
 }
 
 static void ConRemoveVote(IConsole::IResult *pResult, void *pUserData)
@@ -337,23 +285,118 @@ static void ConChangeGameType(IConsole::IResult *pResult, void *pUserData)
 			"Please provide a valid gametype.");
 	}
 }
+/* Hunter Start */
+void IGameController::AddVote(IGameController *pSelf, const char *pDescription, const char *pCommand)
+{
+	if(pSelf->m_NumVoteOptions == MAX_VOTE_OPTIONS)
+	{
+		pSelf->GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", "maximum number of room vote options reached");
+		return;
+	}
 
-int IGameController::MakeGameFlag(int GameFlag)
+	// check for valid option
+	if(!pSelf->InstanceConsole()->LineIsValid(pCommand) || str_length(pCommand) >= VOTE_CMD_LENGTH)
+	{
+		char aBuf[256];
+		str_format(aBuf, sizeof(aBuf), "skipped invalid command '%s'", pCommand);
+		pSelf->GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
+		return;
+	}
+	while(*pDescription == ' ')
+		pDescription++;
+	if(str_length(pDescription) >= VOTE_DESC_LENGTH || *pDescription == 0)
+	{
+		char aBuf[256];
+		str_format(aBuf, sizeof(aBuf), "skipped invalid option '%s'", pDescription);
+		pSelf->GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
+		return;
+	}
+
+	// check for duplicate entry
+	CVoteOptionServer *pOption = pSelf->m_pVoteOptionFirst;
+	while(pOption)
+	{
+		if(str_comp_nocase(pDescription, pOption->m_aDescription + sizeof("☐ ")) == 0)
+		{
+			char aBuf[256];
+			str_format(aBuf, sizeof(aBuf), "option '%s' already exists", pDescription);
+			pSelf->GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
+			return;
+		}
+		pOption = pOption->m_pNext;
+	}
+
+	// add the option
+	++pSelf->m_NumVoteOptions;
+	int Len = str_length(pCommand);
+
+	pOption = (CVoteOptionServer *)pSelf->m_pVoteOptionHeap->Allocate(sizeof(CVoteOptionServer) + Len);
+	pOption->m_pNext = 0;
+	pOption->m_pPrev = pSelf->m_pVoteOptionLast;
+	if(pOption->m_pPrev)
+		pOption->m_pPrev->m_pNext = pOption;
+	pSelf->m_pVoteOptionLast = pOption;
+	if(!pSelf->m_pVoteOptionFirst)
+		pSelf->m_pVoteOptionFirst = pOption;
+
+	if(str_comp(pCommand, "info") == 0)
+		str_format(pOption->m_aDescription, sizeof(pOption->m_aDescription), "%s", pDescription);
+	else
+		str_format(pOption->m_aDescription, sizeof(pOption->m_aDescription), "☐ %s", pDescription);
+	mem_copy(pOption->m_aCommand, pCommand, Len + 1);
+}
+
+static void ConAddTaggedMap(IConsole::IResult *pResult, void *pUserData)
+{
+	IGameController *pSelf = (IGameController *)pUserData;
+	pSelf->GameServer()->Teams()->AddTaggedMapVote(pSelf, pResult->GetInteger(0));
+}
+/* Hunter End */
+
+int IGameController::MakeGameFlag(int GameFlag, int SnappingClient)
 {
 	int Flags = 0;
+	/* Hunter Start */
 	if(GameFlag & (IGF_TEAMS | IGF_MARK_TEAMS)) // Hunter
 		Flags |= GAMEFLAG_TEAMS;
+	else if(m_GameFlags & IGF_MARK_AMONGUS)
+	{
+		if(m_GameState == IGS_END_MATCH || m_GameState == IGS_END_ROUND)
+			Flags |= GAMEFLAG_TEAMS;
+		else
+		{
+			CPlayer *pPlayer = GameServer()->m_apPlayers[SnappingClient];
+			if(pPlayer && (pPlayer->GetTeam() == TEAM_SPECTATORS ||
+				pPlayer->m_DeadSpecMode)) // if player is dead in survival
+					Flags |= GAMEFLAG_TEAMS;
+		}
+	}
+	/* Hunter End */
 	if(GameFlag & IGF_FLAGS)
 		Flags |= GAMEFLAG_FLAGS;
 	return Flags;
 }
 
-int IGameController::MakeGameFlagSixUp(int GameFlag)
+int IGameController::MakeGameFlagSixUp(int GameFlag, int SnappingClient)
 {
 	// TODO: add race support?
 	int Flags = 0;
-	if(GameFlag & IGF_TEAMS)
+	/* Hunter Start */
+	if(GameFlag & (IGF_TEAMS | IGF_MARK_TEAMS)) // Hunter
 		Flags |= protocol7::GAMEFLAG_TEAMS;
+	else if(m_GameFlags & IGF_MARK_AMONGUS)
+	{
+		if(m_GameState == IGS_END_MATCH || m_GameState == IGS_END_ROUND)
+			Flags |= protocol7::GAMEFLAG_TEAMS;
+		else
+		{
+			CPlayer *pPlayer = GameServer()->m_apPlayers[SnappingClient];
+			if(pPlayer && (pPlayer->GetTeam() == TEAM_SPECTATORS ||
+				pPlayer->m_DeadSpecMode)) // if player is dead in survival
+					Flags |= protocol7::GAMEFLAG_TEAMS;
+		}
+	}
+	/* Hunter End */
 	if(GameFlag & IGF_FLAGS)
 		Flags |= protocol7::GAMEFLAG_FLAGS;
 	if(GameFlag & (IGF_SURVIVAL | IGF_MARK_SURVIVAL))
@@ -415,15 +458,13 @@ IGameController::IGameController()
 	m_NumPlayerNotReady = 0;
 
 	m_HuntFragsNum = 18; // Hunter
-	m_ResetScoreOnEndMatch = true; // Hunter
 
 	// fake client broadcast
 	mem_zero(m_aFakeClientBroadcast, sizeof(m_aFakeClientBroadcast));
 
 	m_pInstanceConsole->RegisterPrintCallback(IConsole::OUTPUT_LEVEL_STANDARD, InstanceConsolePrint, this);
 
-	
-	INSTANCE_CONFIG_INT(&m_TournamentChat, "tournament_chat", 0, 0, 2, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "Tournament chat mode, 0 = disabled, 1 = spectator can't send global chat, 2 = all players can only send team chat") // Hunter
+	INSTANCE_CONFIG_INT(&m_TournamentChat, "tournament_chat", 0, 0, 2, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "Tournament chat mode, 0 = disabled, 1 = spectator can't send global chat, 2 = all players can only send team chat")
 	INSTANCE_CONFIG_INT(&m_Warmup, "warmup", 10, 0, 1000, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "Number of seconds to do warmup before match starts");
 	INSTANCE_CONFIG_INT(&m_Countdown, "countdown", 0, -1000, 1000, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "Number of seconds to freeze the game in a countdown before match starts, (-: for survival, +: for all")
 	INSTANCE_CONFIG_INT(&m_Teamdamage, "teamdamage", 0, 0, 2, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "Team damage (1 = half damage, 2 = full damage)")
@@ -453,6 +494,7 @@ IGameController::IGameController()
 	m_pInstanceConsole->Register("shuffle_teams", "", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConShuffleTeams, this, "Shuffle the current teams");
 	m_pInstanceConsole->Register("swap_teams", "", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConSwapTeams, this, "Swap the current teams");
 	m_pInstanceConsole->Register("map", "?r[name]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConChangeMap, this, "Change map");
+	m_pInstanceConsole->Register("add_tagged_map_vote", "i[maptag]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConAddTaggedMap, this, "Auto add map by map tag"); // Hunter
 	m_pInstanceConsole->Register("gametype", "?r[gametype]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConChangeGameType, this, "Change gametype");
 	m_pInstanceConsole->Register("pause", "?i[seconds]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConPause, this, "Pause/unpause game");
 	m_pInstanceConsole->Register("restart", "?i[seconds]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConRestart, this, "Restart in x seconds (0 = abort)");
@@ -1191,7 +1233,7 @@ void IGameController::OnReset()
 			pPlayer->m_RespawnDisabled = false;
 			pPlayer->Respawn();
 			pPlayer->m_RespawnTick = Server()->Tick() + Server()->TickSpeed() / 2;
-			if(m_RoundCount == 0 && m_ResetScoreOnEndMatch) // Hunter
+			if(m_RoundCount == 0)
 			{
 				pPlayer->m_Score = 0;
 				pPlayer->m_ScoreStartTick = Server()->Tick();
@@ -1764,6 +1806,8 @@ void IGameController::Snap(int SnappingClient)
 	case IGS_END_ROUND:
 		if(isSixUp)
 			GameStateFlags |= protocol7::GAMESTATEFLAG_ROUNDOVER;
+		else if(m_GameFlags & IGF_MARK_MATCH) // Hunter
+			GameStateFlags |= GAMESTATEFLAG_GAMEOVER | GAMESTATEFLAG_PAUSED; // Hunter
 		else
 			GameStateFlags |= 0;
 
@@ -1791,7 +1835,7 @@ void IGameController::Snap(int SnappingClient)
 		if(!pGameInfoObj)
 			return;
 
-		pGameInfoObj->m_GameFlags = MakeGameFlag(m_GameFlags);
+		pGameInfoObj->m_GameFlags = MakeGameFlag(m_GameFlags, SnappingClient); // Hunter
 		pGameInfoObj->m_GameStateFlags = GameStateFlags;
 		if(IsCountdown() && m_pWorld->m_Paused)
 			pGameInfoObj->m_RoundStartTick = m_GameStartTick - 2;
@@ -1900,7 +1944,7 @@ void IGameController::Snap(int SnappingClient)
 			if(!pGameInfo)
 				return;
 
-			pGameInfo->m_GameFlags = MakeGameFlagSixUp(m_GameFlags);
+			pGameInfo->m_GameFlags = MakeGameFlagSixUp(m_GameFlags, SnappingClient); // Hunter
 			pGameInfo->m_ScoreLimit = m_GameInfo.m_ScoreLimit;
 			pGameInfo->m_TimeLimit = m_GameInfo.m_TimeLimit;
 			pGameInfo->m_MatchNum = m_GameInfo.m_MatchNum;
@@ -1980,8 +2024,9 @@ void IGameController::Tick()
 					if(!pPlayer || aVoteChecked[i])
 						continue;
 
-					if(pPlayer->GetTeam() == TEAM_SPECTATORS)
-						continue;
+					if(pPlayer->m_DeadSpecMode ||
+						(g_Config.m_SvSpecVote && pPlayer->GetTeam() == TEAM_SPECTATORS))
+							continue;
 
 					if(pPlayer->m_Afk && i != m_VoteCreator)
 						continue;
@@ -2242,7 +2287,7 @@ void IGameController::UpdateGameInfo(int ClientID)
 	if(Server()->IsSixup(ClientID))
 	{
 		protocol7::CNetMsg_Sv_GameInfo GameInfoMsg;
-		GameInfoMsg.m_GameFlags = MakeGameFlagSixUp(m_GameFlags);
+		GameInfoMsg.m_GameFlags = MakeGameFlagSixUp(m_GameFlags, ClientID); // Hunter
 		GameInfoMsg.m_ScoreLimit = m_GameInfo.m_ScoreLimit;
 		GameInfoMsg.m_TimeLimit = m_GameInfo.m_TimeLimit;
 		GameInfoMsg.m_MatchNum = m_GameInfo.m_MatchNum;

@@ -34,12 +34,15 @@ bool CGrenade::GrenadeCollide(CProjectile *pProj, vec2 Pos, CCharacter *pHit, bo
 	pProj->GameWorld()->CreateExplosion(Pos, pProj->GetOwner(), WEAPON_GRENADE, pProj->GetWeaponID(), g_pData->m_Weapons.m_aId[WEAPON_GRENADE].m_Damage, pProj->GetOwner() < 0);
 
 	/* Hunter Start */
-	if(pProj->GameServer()->m_apPlayers[pProj->GetOwner()]->GetClass() & CLASS_HUNTER)
+	if(pProj->GameServer()->m_apPlayers[pProj->GetOwner()]->m_UseHunterWeapon)
 	{
-		pProj->GameWorld()->CreateExplosionParticle(Pos+vec2(50,50)); // Create Particle
-		pProj->GameWorld()->CreateExplosionParticle(Pos+vec2(-50,50));
-		pProj->GameWorld()->CreateExplosionParticle(Pos+vec2(50,-50));
-		pProj->GameWorld()->CreateExplosionParticle(Pos+vec2(-50,-50));
+		float a = (rand()%314)/5.0;
+		vec2 d = vec2(cosf(a), sinf(a)) * 80;
+
+		pProj->GameWorld()->CreateExplosionParticle(Pos + d); // Create Particle
+		pProj->GameWorld()->CreateExplosionParticle(Pos + vec2(d.y, -d.x));
+		pProj->GameWorld()->CreateExplosionParticle(Pos + vec2(-d.x, -d.y));
+		pProj->GameWorld()->CreateExplosionParticle(Pos + vec2(-d.y, d.x));
 
 		CMsgPacker Msg(NETMSGTYPE_SV_EXTRAPROJECTILE);
 		Msg.AddInt(pProj->Controller()->m_HuntFragsNum);
@@ -50,13 +53,13 @@ bool CGrenade::GrenadeCollide(CProjectile *pProj, vec2 Pos, CCharacter *pHit, bo
 			vec2 d = vec2(cosf(a), sinf(a));
 			CProjectile *pProjFrag = new CProjectile(
 				pProj->GameWorld(),
-				WEAPON_GRENADE, //Type
+				WEAPON_SHOTGUN, //Type
 				pProj->GetWeaponID(), //WeaponID
 				pProj->GetOwner(), //Owner
 				Pos + d, //Pos
-				d * 0.4f, //Dir
+				d * 0.5f, //Dir
 				6.0f, // Radius
-				0.33f * pProj->Server()->TickSpeed(), //Span
+				0.2f * pProj->Server()->TickSpeed(), //Span
 				FragCollide);
 			
 			// pack the Projectile and send it to the client Directly

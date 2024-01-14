@@ -613,6 +613,14 @@ void CGameContext::ConAddMapName(IConsole::IResult *pResult, void *pUserData)
 
 	pSelf->Teams()->AddMap(pResult->GetString(0));
 }
+/* Hunter Start */
+void CGameContext::ConAddMapWithTag(IConsole::IResult *pResult, void *pUserData)
+{
+	CGameContext *pSelf = (CGameContext *)pUserData;
+
+	pSelf->Teams()->AddMapWithTag(pResult->GetString(0), pResult->GetInteger(1));
+}
+/* Hunter End */
 
 void CGameContext::ConRoomSetting(IConsole::IResult *pResult, void *pUserData)
 {

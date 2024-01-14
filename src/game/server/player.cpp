@@ -150,8 +150,10 @@ void CPlayer::GameReset()
 	SetSpectatorID(SPEC_FREEVIEW);
 
 	m_Class = 0; // Hunter
-	m_CanHunter = false; // Hunter
+	m_Preselect = false; // Hunter
 	m_HiddenScore = 0; // Hunter
+	m_AmongUsTeam = TEAM_SPECTATORS; // Hunter
+	m_UseHunterWeapon = false; // Hunter
 }
 static int PlayerFlags_SevenToSix(int Flags)
 {
@@ -511,7 +513,8 @@ void CPlayer::Snap(int SnappingClient)
 		pPlayerInfo->m_Score = Score;
 		pPlayerInfo->m_ClientID = MappedID;
 		pPlayerInfo->m_Local = (int)(m_ClientID == SnappingClient);
-		pPlayerInfo->m_Team = m_Team;
+		pPlayerInfo->m_Team = (Controller() && Controller()->IsAmongUs() && (pSnappingPlayer->m_Team == TEAM_SPECTATORS || pSnappingPlayer->m_DeadSpecMode || IsEndRound || IsEndMatch)) ? // Hunter
+			m_AmongUsTeam : m_Team; // Hunter
 
 		bool DeadAndNoRespawn = m_RespawnDisabled && (!m_pCharacter || !m_pCharacter->IsAlive());
 		bool FakeSpectator = m_ClientID == SnappingClient && (m_Paused || (m_DeadSpecMode && !IsEndMatch) || ((!m_pCharacter || !m_pCharacter->IsAlive()) && IsEndRound));
@@ -1156,25 +1159,3 @@ void CPlayer::SpectatePlayerName(const char *pName)
 		}
 	}
 }
-
-/* Hunter Start */
-void CPlayer::SetClass(int Class)
-{
-	m_Class = Class;
-}
-
-void CPlayer::SetCanHunter(bool CanHunter)
-{
-	m_CanHunter = CanHunter;
-}
-
-void CPlayer::SetHiddenScore(int HiddenScore)
-{
-	m_HiddenScore = HiddenScore;
-}
-
-void CPlayer::SetTeamDiractly(int Team)
-{
-	m_Team = Team;
-}
-/* Hunter End */

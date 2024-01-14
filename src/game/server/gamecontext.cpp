@@ -330,13 +330,6 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, in
 						Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, i);
 					}
 				}
-				else if(Team == CHAT_DEAD)
-				{
-					if(m_apPlayers[i]->m_RespawnDisabled && !(m_apPlayers[i]->GetCharacter() && m_apPlayers[i]->GetCharacter()->IsAlive()))
-					{
-						Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, i);
-					}
-				}
 				else
 				{
 					if(Teams->Team(i) == Room && m_apPlayers[i]->GetTeam() == Team)
@@ -753,9 +746,9 @@ void CGameContext::OnTick()
 
 					// MYTODO: get rid of kick vote checks, no gonna happen here
 
-					if((IsKickVote() || IsSpecVote()) && (m_apPlayers[i]->GetTeam() == TEAM_SPECTATORS ||
-										     (GetPlayerChar(m_VoteCreator) && GetPlayerChar(i) &&
-											     GetPlayerChar(m_VoteCreator)->Team() != GetPlayerChar(i)->Team())))
+					if((IsKickVote() || IsSpecVote()) && !m_apPlayers[i]->m_DeadSpecMode && (m_apPlayers[i]->GetTeam() == TEAM_SPECTATORS ||
+						(GetPlayerChar(m_VoteCreator) && GetPlayerChar(i) &&
+							GetPlayerChar(m_VoteCreator)->Team() != GetPlayerChar(i)->Team())))
 						continue;
 
 					if(m_apPlayers[i]->m_Afk && i != m_VoteCreator)
@@ -1637,16 +1630,15 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			else
 			{
 				SGameInstance Instance = PlayerGameInstance(pPlayer->GetCID());
-				if(Instance.m_IsCreated && !Instance.m_pController->IsTeamplay() && Instance.m_pController->m_TournamentChat == 2)
+				if(!Instance.m_IsCreated)
 					return;
 
-				if(Instance.m_pController->m_TournamentChat == 2 || (Instance.m_pController->m_TournamentChat == 1 &&
-					((pPlayer->GetTeam() == TEAM_SPECTATORS) || (pPlayer->m_RespawnDisabled && !(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive()))))) // Hunter crazyif
-						IsTeam = true;
+				if(Instance.m_pController->m_TournamentChat == 2)
+					IsTeam = true;
 
-				int ChatTeam = IsTeam ?
-					((Instance.m_pController->IsSurvival() && Instance.m_pController->IsGameRunning()) ? CHAT_DEAD : pPlayer->GetTeam()) // Hunter crazyif
-						: CHAT_ALL; // Hunter crazyif
+				int ChatTeam = ((Instance.m_pController->m_TournamentChat == 1 && (pPlayer->GetTeam() == TEAM_SPECTATORS || pPlayer->m_DeadSpecMode)) ?
+					CHAT_SPEC : IsTeam ?
+						pPlayer->GetTeam() : CHAT_ALL);
 
 				char aCensoredMessage[256];
 				CensorMessage(aCensoredMessage, pMsg->m_pMessage, sizeof(aCensoredMessage));
@@ -1959,6 +1951,11 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 							IConsole::OUTPUT_LEVEL_STANDARD,
 							"instancevote",
 							"The room does not exist"); // language
+					}
+					else if(m_apPlayers[ClientID]->m_DeadSpecMode ||
+						(g_Config.m_SvSpecVote && m_apPlayers[ClientID]->GetTeam() == TEAM_SPECTATORS))
+					{
+						return;
 					}
 					else
 					{
@@ -2871,6 +2868,7 @@ void CGameContext::OnConsoleInit()
 	Console()->Register("add_gametype", "s[name] ?s[gametype] ?r[settings]", CFGFLAG_SERVER, ConAddGameType, this, "Register an gametype for rooms. First register will be the default for room 0");
 	Console()->Register("add_gametypefile", "s[name] s[gametype] r[filename]", CFGFLAG_SERVER, ConAddGameTypeFile, this, "Register an gametype for rooms. First register will be the default for room 0");
 	Console()->Register("mega_add_mapname", "r[name]", CFGFLAG_SERVER, ConAddMapName, this, "Mega map sub map names. Add it in order of map indexes, starting from map 1.");
+	Console()->Register("mega_add_map", "r[name] i[tag]", CFGFLAG_SERVER, ConAddMapWithTag, this, "Mega map sub map names. Add it in order of map indexes, starting from map 1."); // Hunter
 	Console()->Register("room_setting", "i[room] ?r[settings]", CFGFLAG_SERVER, ConRoomSetting, this, "Invoke a command in a specified room");
 
 	Console()->Chain("sv_motd", ConchainSpecialMotdupdate, this);
@@ -3497,17 +3495,17 @@ void CGameContext::WhisperID(int ClientID, int VictimID, const char *pMessage)
 		return;
 
 	SGameInstance Instance = PlayerGameInstance(ClientID);
-	if(Instance.m_IsCreated && !Instance.m_pController->IsTeamplay() && Instance.m_pController->m_TournamentChat == 2)
+	if(!Instance.m_IsCreated)
 		return;
 
 	if(Instance.m_pController->m_TournamentChat > 0)
 	{
-		if(m_apPlayers[ClientID]->GetTeam() == TEAM_SPECTATORS || m_apPlayers[VictimID]->GetTeam() == TEAM_SPECTATORS)
-			return;
 		if(Instance.m_pController->m_TournamentChat == 2 && m_apPlayers[ClientID]->GetTeam() != m_apPlayers[VictimID]->GetTeam())
 			return;
-		if(m_apPlayers[ClientID]->GetTeam() != TEAM_SPECTATORS && GetPlayerDDRTeam(ClientID) != GetPlayerDDRTeam(VictimID))
-			return;
+		if((m_apPlayers[ClientID]->GetTeam() == TEAM_SPECTATORS || m_apPlayers[ClientID]->m_DeadSpecMode) &&
+			(GetPlayerDDRTeam(ClientID) != GetPlayerDDRTeam(VictimID) ||
+				(m_apPlayers[VictimID]->GetTeam() != TEAM_SPECTATORS || !m_apPlayers[VictimID]->m_DeadSpecMode)))
+					return;
 	}
 
 	if(m_apPlayers[ClientID])

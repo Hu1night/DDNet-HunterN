@@ -1004,8 +1004,8 @@ set_src(GAME_SERVER GLOB_RECURSE src/game/server
   weapons/grenade.h
   weapons/hammer.cpp
   weapons/hammer.h
-  weapons/jughammer.cpp
-  weapons/jughammer.h
+  weapons/hunthammer.cpp
+  weapons/hunthammer.h
   weapons/lasergun.cpp
   weapons/lasergun.h
   weapons/ninja.cpp
