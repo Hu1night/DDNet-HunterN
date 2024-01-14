@@ -618,7 +618,7 @@ void CGameContext::ConAddMapWithTag(IConsole::IResult *pResult, void *pUserData)
 {
 	CGameContext *pSelf = (CGameContext *)pUserData;
 
-	pSelf->Teams()->AddMapWithTag(pResult->GetString(0), pResult->NumArguments() == 2 ? pResult->GetInteger(1) : 0);
+	pSelf->Teams()->AddMapWithTag(pResult->GetString(0), pResult->GetInteger(1));
 }
 /* Hunter End */
 

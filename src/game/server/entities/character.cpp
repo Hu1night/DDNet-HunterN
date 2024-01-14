@@ -1062,8 +1062,6 @@ void CCharacter::Snap(int SnappingClient, int OtherMode)
 			pDDNetCharacter->m_Flags |= CHARACTERFLAG_WEAPON_NINJA;
 	}
 
-	pWeapon->Snap(SnappingClient, OtherMode); // Hunter wtf
-
 	pDDNetCharacter->m_FreezeEnd = m_DeepFreeze ? -1 : m_FreezeTime == 0 ? 0 :
                                                                                Server()->Tick() + m_FreezeTime;
 	pDDNetCharacter->m_Jumps = m_Core.m_Jumps;

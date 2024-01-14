@@ -131,6 +131,9 @@ static void ConAddVote(IConsole::IResult *pResult, void *pUserData)
 	const char *pDescription = pResult->GetString(0);
 	const char *pCommand = pResult->GetString(1);
 
+	char aBuf[64];
+	str_format(aBuf, sizeof(aBuf), "Description'%s' Command'%s'", pDescription, pCommand);
+	pSelf->SendChatTarget(-1, aBuf);
 	pSelf->AddVote(pSelf, pDescription, pCommand); // Hunter
 }
 
@@ -358,13 +361,13 @@ int IGameController::MakeGameFlag(int GameFlag, int SnappingClient)
 		Flags |= GAMEFLAG_TEAMS;
 	else if(m_GameFlags & IGF_MARK_AMONGUS)
 	{
-		if(m_GameState & (IGS_END_MATCH | IGS_END_ROUND))
+		if(m_GameState == IGS_END_MATCH || m_GameState == IGS_END_ROUND)
 			Flags |= GAMEFLAG_TEAMS;
 		else
 		{
 			CPlayer *pPlayer = GameServer()->m_apPlayers[SnappingClient];
-			if(pPlayer->GetTeam() == TEAM_SPECTATORS || 
-				pPlayer->m_DeadSpecMode) // if player is dead in survival
+			if(pPlayer && (pPlayer->GetTeam() == TEAM_SPECTATORS ||
+				pPlayer->m_DeadSpecMode)) // if player is dead in survival
 					Flags |= GAMEFLAG_TEAMS;
 		}
 	}
@@ -383,13 +386,13 @@ int IGameController::MakeGameFlagSixUp(int GameFlag, int SnappingClient)
 		Flags |= protocol7::GAMEFLAG_TEAMS;
 	else if(m_GameFlags & IGF_MARK_AMONGUS)
 	{
-		if(m_GameState & (IGS_END_MATCH | IGS_END_ROUND))
+		if(m_GameState == IGS_END_MATCH || m_GameState == IGS_END_ROUND)
 			Flags |= protocol7::GAMEFLAG_TEAMS;
 		else
 		{
 			CPlayer *pPlayer = GameServer()->m_apPlayers[SnappingClient];
-			if(pPlayer->GetTeam() == TEAM_SPECTATORS || 
-				pPlayer->m_DeadSpecMode) // if player is dead in survival
+			if(pPlayer && (pPlayer->GetTeam() == TEAM_SPECTATORS ||
+				pPlayer->m_DeadSpecMode)) // if player is dead in survival
 					Flags |= protocol7::GAMEFLAG_TEAMS;
 		}
 	}
@@ -460,8 +463,6 @@ IGameController::IGameController()
 	mem_zero(m_aFakeClientBroadcast, sizeof(m_aFakeClientBroadcast));
 
 	m_pInstanceConsole->RegisterPrintCallback(IConsole::OUTPUT_LEVEL_STANDARD, InstanceConsolePrint, this);
-
-	
 
 	INSTANCE_CONFIG_INT(&m_TournamentChat, "tournament_chat", 0, 0, 2, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "Tournament chat mode, 0 = disabled, 1 = spectator can't send global chat, 2 = all players can only send team chat")
 	INSTANCE_CONFIG_INT(&m_Warmup, "warmup", 10, 0, 1000, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "Number of seconds to do warmup before match starts");
@@ -2286,7 +2287,7 @@ void IGameController::UpdateGameInfo(int ClientID)
 	if(Server()->IsSixup(ClientID))
 	{
 		protocol7::CNetMsg_Sv_GameInfo GameInfoMsg;
-		GameInfoMsg.m_GameFlags = MakeGameFlagSixUp(m_GameFlags);
+		GameInfoMsg.m_GameFlags = MakeGameFlagSixUp(m_GameFlags, ClientID); // Hunter
 		GameInfoMsg.m_ScoreLimit = m_GameInfo.m_ScoreLimit;
 		GameInfoMsg.m_TimeLimit = m_GameInfo.m_TimeLimit;
 		GameInfoMsg.m_MatchNum = m_GameInfo.m_MatchNum;

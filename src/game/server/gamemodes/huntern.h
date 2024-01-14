@@ -26,8 +26,8 @@ public:
 	void OnWorldReset() override;
 	void OnPlayerJoin(class CPlayer *pPlayer) override;
 	int OnCharacterTakeDamage(class CCharacter *pChr, vec2 &Force, int &Dmg, int From, int WeaponType, int WeaponID, bool IsExplosion) override;
-	bool CanDeadPlayerFreeView(const class CPlayer *pSpectator) override { return true; }
-	bool CanDeadPlayerFollow(const CPlayer *pSpectator, const CPlayer *pTarget) override { return true; }
+	//bool CanDeadPlayerFreeView(const class CPlayer *pSpectator) override { return true; }
+	//bool CanDeadPlayerFollow(const CPlayer *pSpectator, const CPlayer *pTarget) override { return true; }
 	bool CanChangeTeam(CPlayer *pPlayer, int JoinTeam) const override;
 	void DoWincheckRound() override;
 	int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon) override;
@@ -39,7 +39,7 @@ private: // Intelnal function and value
 	int nHunter; // 有多少个猎人
 	int DoWinchenkClassTick; // 终局判断延迟的Tick
 	char HunterList[256]; // 猎人列表
-	int TeamClass[1];
+	//int TeamClass[1];
 	//int MatchFlag = -1;
 
 	enum HUNTERN_WINFLAG

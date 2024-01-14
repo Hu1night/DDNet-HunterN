@@ -15,15 +15,16 @@ void CHuntHammer::Snap(int SnappingClient, int OtherMode)
 	if(!IndicatorSnapID)
 		return;
 
-	CEntity *IndCharacter = GameWorld()->ClosestEntity(Pos(), 10240, CGameWorld::ENTTYPE_CHARACTER, Character());
+	CEntity *IndCharacter = GameWorld()->ClosestEntity(Pos(), 8192, CGameWorld::ENTTYPE_CHARACTER, Character());
 	if(!IndCharacter)
 		return;
-	vec2 IndicatorFrom = Pos();
-	vec2 IndicatorTo = IndicatorFrom + normalize(IndCharacter->m_Pos - IndicatorFrom) * 120;
-
+	
 	CNetObj_Laser *pObj = static_cast<CNetObj_Laser *>(Server()->SnapNewItem(NETOBJTYPE_LASER, IndicatorSnapID, sizeof(CNetObj_Laser)));
 	if(!pObj)
 		return;
+
+	vec2 IndicatorFrom = Pos();
+	vec2 IndicatorTo = IndicatorFrom + normalize(IndCharacter->m_Pos - IndicatorFrom) * 120;
 
 	pObj->m_X = (int)IndicatorTo.x;
 	pObj->m_Y = (int)IndicatorTo.y;
@@ -34,15 +35,15 @@ void CHuntHammer::Snap(int SnappingClient, int OtherMode)
 
 void CHuntHammer::Tick()
 {
-	if(Character()->m_IsFiring && IsReloading())
-		if(IndicatorSnapID)
-		{
-			Server()->SnapFreeID(IndicatorSnapID);
-			IndicatorSnapID = 0;
-		}
-	else if(!IndicatorSnapID)
+	CWeapon::Tick();
+	if(Character()->m_IsFiring && !IsReloading() && !IndicatorSnapID)
 	{
 		IndicatorSnapID = Server()->SnapNewID();
+	}
+	else if(IndicatorSnapID)
+	{
+		Server()->SnapFreeID(IndicatorSnapID);
+		IndicatorSnapID = 0;
 	}
 }
 

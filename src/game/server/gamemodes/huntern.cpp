@@ -54,7 +54,7 @@ void CGameControllerHunterN::OnClassSpawn(CCharacter *pChr) // 给予武器和�
 	}
 	else if(pChr->GetPlayer()->m_Class == CLASS_HUNTER)
 	{
-		pChr->GiveWeapon(WEAPON_HAMMER, WEAPON_ID_HAMMER, -1);
+		pChr->GiveWeapon(WEAPON_HAMMER, WEAPON_ID_HUNTHAMMER, -1);
 		pChr->GiveWeapon(WEAPON_GUN, WEAPON_ID_PISTOL, 10);
 
 		pChr->GameWorld()->CreateSoundGlobal(SOUND_CTF_GRAB_EN, CmaskOne(pChr->GetPlayer()->GetCID()));
@@ -110,8 +110,8 @@ void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 {
 	m_GameFlags = IGF_SURVIVAL | IGF_ROUND_TIMER_ROUND | IGF_SUDDENDEATH | IGF_MARK_MATCH | IGF_MARK_AMONGUS;
 	DoWinchenkClassTick = -1;
-	TeamClass[0] = CLASS_CIVIC; // TEAM_RED
-	TeamClass[1] = CLASS_HUNTER; // TEAM_BLUE
+	//TeamClass[0] = CLASS_CIVIC; // TEAM_RED
+	//TeamClass[1] = CLASS_HUNTER; // TEAM_BLUE
 
 	int PlayerCount = 0; // 玩家计数
 	int PreselectPlayerCount = 0; // 最近没当过猎人的玩家的计数
@@ -216,7 +216,7 @@ void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 				if(pPlayer->GetTeam() == TEAM_SPECTATORS &&
 					!(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive()))
 				{
-					GameServer()->SendChatTarget(pPlayer->GetCID(), HunterList); // 给膀胱者发
+					SendChatTarget(pPlayer->GetCID(), HunterList); // 给膀胱者发
 				}
 			}
 		}
@@ -241,7 +241,7 @@ void CGameControllerHunterN::OnPlayerJoin(class CPlayer *pPlayer) // 使新进�
 {
 	if(m_GameState == IGS_GAME_RUNNING && pPlayer->m_RespawnDisabled) // 死人
 	{
-		GameServer()->SendChatTarget(pPlayer->GetCID(), HunterList);
+		SendChatTarget(pPlayer->GetCID(), HunterList);
 	}
 }
 
@@ -257,12 +257,16 @@ bool CGameControllerHunterN::CanChangeTeam(CPlayer *pPlayer, int JoinTeam) const
 	if(JoinTeam == TEAM_SPECTATORS)
 	{
 		pPlayer->m_Class = CLASS_NONE; // 设置成没有职业
-		return true;
+		pPlayer->m_AmongUsTeam = TEAM_SPECTATORS; // 设置成没有职业
 	}
+	return true;
 }
 
 void CGameControllerHunterN::EndRoundClass(int Flag) // 游戏结束
 {
+	m_aTeamscore[TEAM_RED] = 0;
+	m_aTeamscore[TEAM_BLUE] = 0;
+
 	for(int i = 0; i < MAX_CLIENTS; ++i) // 进行玩家分数和隐藏分操作 和选择Jug
 	{
 		CPlayer *pPlayer = GetPlayerIfInRoom(i);
@@ -389,7 +393,7 @@ int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CP
 						if((m_BroadcastHunterDeath != -1 && pPlayer->m_Class == CLASS_HUNTER) || // 猎
 							pPlayer->GetTeam() == TEAM_SPECTATORS || pPlayer->m_DeadSpecMode) // 观察者 和 死人
 						{
-							GameServer()->SendChatTarget(pPlayer->GetCID(), aBuf); // 给所有猎人广播他们"队友"的死亡消息
+							SendChatTarget(pPlayer->GetCID(), aBuf); // 给所有猎人广播他们"队友"的死亡消息
 							GameWorld()->CreateSoundGlobal(SOUND_CTF_CAPTURE, CmaskOne(pPlayer->GetCID()));
 						}
 						else
@@ -419,7 +423,7 @@ int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CP
 		}
 
 		if(nHunter) // 如果没有猎人 就不要发猎人列表 等EndMatch
-			GameServer()->SendChatTarget(pVictim->GetPlayer()->GetCID(), HunterList); // 给被弄死的人发
+			SendChatTarget(pVictim->GetPlayer()->GetCID(), HunterList); // 给被弄死的人发
 
 		DoWinchenkClassTick = (Server()->TickSpeed() * m_Wincheckdeley / 1000); // 延时终局
 	}

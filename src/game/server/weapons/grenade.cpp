@@ -34,8 +34,7 @@ bool CGrenade::GrenadeCollide(CProjectile *pProj, vec2 Pos, CCharacter *pHit, bo
 	pProj->GameWorld()->CreateExplosion(Pos, pProj->GetOwner(), WEAPON_GRENADE, pProj->GetWeaponID(), g_pData->m_Weapons.m_aId[WEAPON_GRENADE].m_Damage, pProj->GetOwner() < 0);
 
 	/* Hunter Start */
-	if(pProj->GameServer()->m_apPlayers[pProj->GetOwner()]->m_UseHunterWeapon &&
-		!(pHit->GetPlayer()->m_Class & CLASS_HUNTER)) // 猎人'免疫'破片
+	if(pProj->GameServer()->m_apPlayers[pProj->GetOwner()]->m_UseHunterWeapon)
 	{
 		float a = (rand()%314)/5.0;
 		vec2 d = vec2(cosf(a), sinf(a)) * 80;

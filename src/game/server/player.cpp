@@ -152,7 +152,7 @@ void CPlayer::GameReset()
 	m_Class = 0; // Hunter
 	m_Preselect = false; // Hunter
 	m_HiddenScore = 0; // Hunter
-	m_AmongUsTeam = -1; // Hunter
+	m_AmongUsTeam = TEAM_SPECTATORS; // Hunter
 	m_UseHunterWeapon = false; // Hunter
 }
 static int PlayerFlags_SevenToSix(int Flags)
@@ -513,7 +513,7 @@ void CPlayer::Snap(int SnappingClient)
 		pPlayerInfo->m_Score = Score;
 		pPlayerInfo->m_ClientID = MappedID;
 		pPlayerInfo->m_Local = (int)(m_ClientID == SnappingClient);
-		pPlayerInfo->m_Team = (Controller()->IsAmongUs() && (m_Team == TEAM_SPECTATORS || m_DeadSpecMode || IsEndRound || IsEndMatch)) ? // Hunter
+		pPlayerInfo->m_Team = (Controller() && Controller()->IsAmongUs() && (pSnappingPlayer->m_Team == TEAM_SPECTATORS || pSnappingPlayer->m_DeadSpecMode || IsEndRound || IsEndMatch)) ? // Hunter
 			m_AmongUsTeam : m_Team; // Hunter
 
 		bool DeadAndNoRespawn = m_RespawnDisabled && (!m_pCharacter || !m_pCharacter->IsAlive());

@@ -835,7 +835,8 @@ void CGameTeams::AddMap(const char *pMapName)
 {
 	if(m_NumMaps >= 64)
 		return;
-	str_copy(m_aMapNames[m_NumMaps++], pMapName, 128);
+	str_copy(m_aMapNames[m_NumMaps], pMapName, 128);
+	m_NumMaps++;
 }
 
 /* Hunter Start */
@@ -843,8 +844,9 @@ void CGameTeams::AddMapWithTag(const char *pMapName, int Tag)
 {
 	if(m_NumMaps >= 64)
 		return;
-	str_copy(m_aMapNames[m_NumMaps++], pMapName, 128);
+	str_copy(m_aMapNames[m_NumMaps], pMapName, 128);
 	m_MapsTag[m_NumMaps] = Tag;
+	m_NumMaps++;
 }
 
 void CGameTeams::AddTaggedMapVote(IGameController *Controller, int Tag)
@@ -855,7 +857,7 @@ void CGameTeams::AddTaggedMapVote(IGameController *Controller, int Tag)
 			char aBuf[VOTE_DESC_LENGTH];
 			char aBufCom[133]; // "map "-> 5 + 128
 			str_format(aBuf, sizeof(aBuf), "Change Map: %s", m_aMapNames[i]);
-			str_format(aBufCom, sizeof(aBufCom), "map: %s", m_aMapNames[i]);
+			str_format(aBufCom, sizeof(aBufCom), "map %s", m_aMapNames[i]);
 			Controller->AddVote(Controller, aBuf, aBufCom);
 		}
 }

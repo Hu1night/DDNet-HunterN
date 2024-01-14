@@ -325,15 +325,7 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, in
 			{
 				if(Team == CHAT_SPEC)
 				{
-					if(Room == GetPlayerDDRTeam(i) &&
-						(m_apPlayers[i]->GetTeam() == CHAT_SPEC || m_apPlayers[i]->m_DeadSpecMode))
-					{
-						Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, i);
-					}
-				}
-				else if(Team == CHAT_DEAD)
-				{
-					if(m_apPlayers[i]->m_RespawnDisabled && !(m_apPlayers[i]->GetCharacter() && m_apPlayers[i]->GetCharacter()->IsAlive()))
+					if(m_apPlayers[i]->GetTeam() == CHAT_SPEC)
 					{
 						Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, i);
 					}
