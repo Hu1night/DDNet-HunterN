@@ -325,7 +325,7 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, in
 				if(Team == CHAT_SPEC)
 				{
 					if(Room == GetPlayerDDRTeam(i) &&
-						m_apPlayers[i]->GetTeam() == CHAT_SPEC || m_apPlayers[i]->m_DeadSpecMode)
+						(m_apPlayers[i]->GetTeam() == CHAT_SPEC || m_apPlayers[i]->m_DeadSpecMode))
 					{
 						Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, i);
 					}
