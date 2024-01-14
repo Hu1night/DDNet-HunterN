@@ -1052,10 +1052,15 @@ void CCharacter::Snap(int SnappingClient, int OtherMode)
 	if(m_Core.m_HasTelegunLaser)
 		pDDNetCharacter->m_Flags |= CHARACTERFLAG_TELEGUN_LASER;
 
-	// we need this to make ninja behave normally
 	CWeapon *pWeapon = CurrentWeapon();
-	if(pWeapon && pWeapon->GetType() == WEAPON_NINJA)
-		pDDNetCharacter->m_Flags |= CHARACTERFLAG_WEAPON_NINJA;
+	if(pWeapon)
+	{
+		// snap weapons
+		pWeapon->Snap(SnappingClient, OtherMode);
+
+		if(pWeapon->GetType() == WEAPON_NINJA)// we need this to make ninja behave normally
+			pDDNetCharacter->m_Flags |= CHARACTERFLAG_WEAPON_NINJA;
+	}
 
 	pWeapon->Snap(SnappingClient, OtherMode); // Hunter wtf
 

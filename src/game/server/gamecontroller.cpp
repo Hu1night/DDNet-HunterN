@@ -463,6 +463,7 @@ IGameController::IGameController()
 
 	
 
+	INSTANCE_CONFIG_INT(&m_TournamentChat, "tournament_chat", 0, 0, 2, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "Tournament chat mode, 0 = disabled, 1 = spectator can't send global chat, 2 = all players can only send team chat")
 	INSTANCE_CONFIG_INT(&m_Warmup, "warmup", 10, 0, 1000, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "Number of seconds to do warmup before match starts");
 	INSTANCE_CONFIG_INT(&m_Countdown, "countdown", 0, -1000, 1000, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "Number of seconds to freeze the game in a countdown before match starts, (-: for survival, +: for all")
 	INSTANCE_CONFIG_INT(&m_Teamdamage, "teamdamage", 0, 0, 2, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "Team damage (1 = half damage, 2 = full damage)")
@@ -2022,8 +2023,8 @@ void IGameController::Tick()
 					if(!pPlayer || aVoteChecked[i])
 						continue;
 
-					if(pPlayer->GetTeam() == TEAM_SPECTATORS ||
-						pPlayer->m_DeadSpecMode) // Hunter 为什么生存模式死人可以投票
+					if(pPlayer->m_DeadSpecMode ||
+						(g_Config.m_SvSpecVote && pPlayer->GetTeam() == TEAM_SPECTATORS))
 							continue;
 
 					if(pPlayer->m_Afk && i != m_VoteCreator)
