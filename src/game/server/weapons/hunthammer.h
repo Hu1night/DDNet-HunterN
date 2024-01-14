@@ -7,12 +7,13 @@ class CHuntHammer : public CWeapon
 {
 public:
 	CHuntHammer(CCharacter *pOwnerChar);
-	~CHuntHammer(){ Server()->SnapFreeID(IndicatorSnapID); }
+	~CHuntHammer() {};
 
 	void Fire(vec2 Direction) override;
-	void Tick() override;
 	void Snap(int SnappingClient, int OtherMode) override;
 	int GetType() override { return WEAPON_HAMMER; }
+	void OnEquip() { IndicatorSnapID = Server()->SnapNewID(); }
+	void OnUnequip() { Server()->SnapFreeID(IndicatorSnapID); }
 
 private:
 	int IndicatorSnapID;

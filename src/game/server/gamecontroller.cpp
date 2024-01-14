@@ -131,9 +131,6 @@ static void ConAddVote(IConsole::IResult *pResult, void *pUserData)
 	const char *pDescription = pResult->GetString(0);
 	const char *pCommand = pResult->GetString(1);
 
-	char aBuf[64];
-	str_format(aBuf, sizeof(aBuf), "Description'%s' Command'%s'", pDescription, pCommand);
-	pSelf->SendChatTarget(-1, aBuf);
 	pSelf->AddVote(pSelf, pDescription, pCommand); // Hunter
 }
 
