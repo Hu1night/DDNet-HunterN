@@ -14,10 +14,7 @@ CHuntHammer::CHuntHammer(CCharacter *pOwnerChar) :
 
 void CHuntHammer::Snap(int SnappingClient, int OtherMode)
 {
-	if(!IndicatorSnapID)
-		return;
-
-	if(!Character()->m_IsFiring && IsReloading())
+	if(!Character()->m_IsFiring || IsReloading())
 		return;
 
 	CEntity *IndCharacter = GameWorld()->ClosestEntity(Pos(), 8192, CGameWorld::ENTTYPE_CHARACTER, Character());
