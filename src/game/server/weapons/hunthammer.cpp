@@ -8,6 +8,8 @@ CHuntHammer::CHuntHammer(CCharacter *pOwnerChar) :
 	m_MaxAmmo = g_pData->m_Weapons.m_aId[WEAPON_HAMMER].m_Maxammo;
 	m_AmmoRegenTime = g_pData->m_Weapons.m_aId[WEAPON_HAMMER].m_Ammoregentime;
 	m_FireDelay = g_pData->m_Weapons.m_aId[WEAPON_HAMMER].m_Firedelay;
+
+	IndicatorSnapID = Server()->SnapNewID();
 }
 
 void CHuntHammer::Snap(int SnappingClient, int OtherMode)
