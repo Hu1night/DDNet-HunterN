@@ -355,9 +355,9 @@ void CGameControllerHunterN::DoWincheckRound() // check for time based win
 
 			if(!PlayerCount)
 				EndRoundClass(FLAG_WIN_NO_ONE);
-			if(!TeamBlueCount) // no blue
+			else if(!TeamBlueCount) // no blue
 				EndRoundClass(FLAG_WIN_TEAMRED);
-			if(!TeamRedCount) // no red
+			else if(!TeamRedCount) // no red
 				EndRoundClass(FLAG_WIN_TEAMBLUE);
 		}
 		--DoWinchenkClassTick; // 计数
