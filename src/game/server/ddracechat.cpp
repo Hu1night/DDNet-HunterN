@@ -54,17 +54,17 @@ void CGameContext::ConInfo(IConsole::IResult *pResult, void *pUserData)
 {
 	CGameContext *pSelf = (CGameContext *)pUserData;
 	pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info",
-		"DDNet PvP Mod. Version: " GAME_VERSION);
+		"DDNet PvP 模组 版本: " GAME_VERSION); // language
 	if(GIT_SHORTREV_HASH)
 	{
 		char aBuf[64];
-		str_format(aBuf, sizeof(aBuf), "Git revision hash: %s", GIT_SHORTREV_HASH);
+		str_format(aBuf, sizeof(aBuf), "Git revision hash: %s", GIT_SHORTREV_HASH); // language
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info", aBuf);
 	}
 	pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info",
-		"Official site: DDNet.tw");
+		"DDNet官方网站: DDNet.org"); // language
 	pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info",
-		"For more info: /cmdlist");
+		"For more info: /cmdlist"); // language
 }
 
 void CGameContext::ConList(IConsole::IResult *pResult, void *pUserData)
@@ -272,7 +272,7 @@ void CGameContext::ConLockTeam(IConsole::IResult *pResult, void *pUserData)
 	if(g_Config.m_SvRoom == 0)
 	{
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "lock",
-			"Rooms are disabled");
+			"房间指令已被禁用"); // language
 		return;
 	}
 
@@ -282,7 +282,7 @@ void CGameContext::ConLockTeam(IConsole::IResult *pResult, void *pUserData)
 	if(pPlayer->m_LastRoomInfoChange + (int64)pSelf->Server()->TickSpeed() * g_Config.m_SvRoomChangeDelay > pSelf->Server()->Tick())
 	{
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "join",
-			"You can\'t modify your room that fast!");
+			"You can\'t modify your room that fast!"); // language
 		return;
 	}
 
@@ -298,7 +298,7 @@ void CGameContext::ConLockTeam(IConsole::IResult *pResult, void *pUserData)
 		pSelf->Console()->Print(
 			IConsole::OUTPUT_LEVEL_STANDARD,
 			"print",
-			"This room can't be locked");
+			"房间指令已被禁用"); // language
 		return;
 	}
 
@@ -316,13 +316,13 @@ void CGameContext::ConLockTeam(IConsole::IResult *pResult, void *pUserData)
 		if(g_Config.m_SvLock == 0)
 		{
 			pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "lock",
-				"Lock is disabled");
+				"上锁指令已被禁用"); // language
 			return;
 		}
 
 		pSelf->Teams()->SetTeamLock(Team, true);
 
-		str_format(aBuf, sizeof(aBuf), "'%s' locked your room.", pSelf->Server()->ClientName(pResult->m_ClientID));
+		str_format(aBuf, sizeof(aBuf), "'%s'上锁了你所在的房间", pSelf->Server()->ClientName(pResult->m_ClientID)); // language
 
 		for(int i = 0; i < MAX_CLIENTS; i++)
 			if(pSelf->GetPlayerDDRTeam(i) == Team)
@@ -339,7 +339,7 @@ void CGameContext::ConUnlockTeam(IConsole::IResult *pResult, void *pUserData)
 	if(g_Config.m_SvRoom == 0)
 	{
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "unlock",
-			"Rooms are disabled");
+			"房间指令已被禁用"); // language
 		return;
 	}
 
@@ -369,7 +369,7 @@ void CGameContext::UnlockTeam(int ClientID, int Team)
 	Teams()->SetTeamLock(Team, false);
 
 	char aBuf[512];
-	str_format(aBuf, sizeof(aBuf), "'%s' unlocked your team.", Server()->ClientName(ClientID));
+	str_format(aBuf, sizeof(aBuf), "'%s'解锁了你所在的队伍", Server()->ClientName(ClientID)); // language
 
 	for(int i = 0; i < MAX_CLIENTS; i++)
 		if(GetPlayerDDRTeam(i) == Team)
@@ -385,13 +385,13 @@ void CGameContext::ConInviteTeam(IConsole::IResult *pResult, void *pUserData)
 	if(g_Config.m_SvRoom == 0)
 	{
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "join",
-			"Rooms are disabled");
+			"房间指令已被禁用"); // language
 		return;
 	}
 
 	if(!g_Config.m_SvInvite)
 	{
-		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "invite", "Invites are disabled");
+		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "invite", "邀请指令已被禁用"); // language
 		return;
 	}
 
@@ -410,19 +410,19 @@ void CGameContext::ConInviteTeam(IConsole::IResult *pResult, void *pUserData)
 
 		if(Target < 0)
 		{
-			pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "invite", "Player not found");
+			pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "invite", "未找到玩家"); // language
 			return;
 		}
 
 		if(pSelf->Teams()->IsInvited(Team, Target))
 		{
-			pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "invite", "Player already invited");
+			pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "invite", "玩家已被邀请"); // language
 			return;
 		}
 
 		if(pSelf->m_apPlayers[pResult->m_ClientID] && pSelf->m_apPlayers[pResult->m_ClientID]->m_LastInvited + g_Config.m_SvInviteFrequency * pSelf->Server()->TickSpeed() > pSelf->Server()->Tick())
 		{
-			pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "invite", "Can't invite this quickly");
+			pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "invite", "Can't invite this quickly"); // language
 			return;
 		}
 
@@ -430,17 +430,17 @@ void CGameContext::ConInviteTeam(IConsole::IResult *pResult, void *pUserData)
 		pSelf->m_apPlayers[pResult->m_ClientID]->m_LastInvited = pSelf->Server()->Tick();
 
 		char aBuf[512];
-		str_format(aBuf, sizeof aBuf, "'%s' invited you to team %d.", pSelf->Server()->ClientName(pResult->m_ClientID), Team);
+		str_format(aBuf, sizeof aBuf, "'%s'邀请你到房间 %d", pSelf->Server()->ClientName(pResult->m_ClientID), Team); // language
 		pSelf->SendChatTarget(Target, aBuf);
 
-		str_format(aBuf, sizeof aBuf, "'%s' invited '%s' to your team.", pSelf->Server()->ClientName(pResult->m_ClientID), pSelf->Server()->ClientName(Target));
+		str_format(aBuf, sizeof aBuf, "'%s'邀请了'%s'到你的房间", pSelf->Server()->ClientName(pResult->m_ClientID), pSelf->Server()->ClientName(Target)); // language
 		;
 		for(int i = 0; i < MAX_CLIENTS; i++)
 			if(pSelf->GetPlayerDDRTeam(i) == Team)
 				pSelf->SendChatTarget(i, aBuf);
 	}
 	else
-		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "invite", "Can't invite players to this team");
+		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "invite", "你不能邀请玩家到此房间"); // language
 }
 
 void CGameContext::ConReady(IConsole::IResult *pResult, void *pUserData)
@@ -470,19 +470,19 @@ void CGameContext::ConJoinTeam(IConsole::IResult *pResult, void *pUserData)
 		pSelf->Console()->Print(
 			IConsole::OUTPUT_LEVEL_STANDARD,
 			"join",
-			"You are running a vote please try again after the vote is done!");
+			"你在此房间发起的投票结束后才能切换房间"); // language
 		return;
 	}
 	else if(g_Config.m_SvRoom == 0)
 	{
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "join",
-			"Rooms are disabled");
+			"房间指令已被禁用"); // language
 		return;
 	}
 	else if(g_Config.m_SvRoomCommands == 0)
 	{
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "join",
-			"Room commands are disabled");
+			"房间命令已被禁用"); // language
 		return;
 	}
 
@@ -494,7 +494,7 @@ void CGameContext::ConJoinTeam(IConsole::IResult *pResult, void *pUserData)
 		str_format(
 			aBuf,
 			sizeof(aBuf),
-			"You are in room %d",
+			"你现在在房间 %d", // language
 			pSelf->GetPlayerDDRTeam(pResult->m_ClientID));
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "join",
 			aBuf);
@@ -508,21 +508,21 @@ void CGameContext::ConJoinTeam(IConsole::IResult *pResult, void *pUserData)
 	{
 		pSelf->m_ChatResponseTargetID = RespondingID;
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "join",
-			"You can't change rooms that fast!");
+			"You can't change rooms that fast!"); // language
 	}
 	else if(!pSelf->Teams()->CanSwitchTeam(pPlayer->GetCID()))
 	{
 		pSelf->m_ChatResponseTargetID = RespondingID;
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "join",
-			"You can't change rooms at this time.");
+			"你现在不能切换房间"); // language
 	}
 	else if(Team > 0 && Team < MAX_CLIENTS && pSelf->Teams()->TeamLocked(Team) && !pSelf->Teams()->IsInvited(Team, pResult->m_ClientID))
 	{
 		pSelf->m_ChatResponseTargetID = RespondingID;
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "join",
 			g_Config.m_SvInvite ?
-                                "This room is locked using /lock. Only members of the room can unlock it using /lock." :
-                                "This room is locked using /lock. Only members of the room can invite you or unlock it using /lock.");
+                                "这个房间已用/lock上锁指令上锁 只有房间成员能用/lock指令解锁房间" : // language
+                                "这个房间已用/lock上锁指令上锁 房间成员能邀请你进入房间或用/lock指令解锁房间"); // language
 	}
 	else if(const char *pError = pSelf->Teams()->SetPlayerTeam(pPlayer->GetCID(), Team, nullptr))
 	{
@@ -553,19 +553,19 @@ void CGameContext::ConCreateTeam(IConsole::IResult *pResult, void *pUserData)
 		pSelf->Console()->Print(
 			IConsole::OUTPUT_LEVEL_STANDARD,
 			"join",
-			"You are running a vote please try again after the vote is done!");
+			"你在此房间发起的投票结束后才能创建房间"); // language
 		return;
 	}
 	else if(g_Config.m_SvRoom == 0)
 	{
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "join",
-			"Rooms are disabled");
+			"房间指令已被禁用"); // language
 		return;
 	}
 	else if(g_Config.m_SvRoomCommands == 0)
 	{
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "join",
-			"Room commands are disabled");
+			"房间命令已被禁用"); // language
 		return;
 	}
 
@@ -573,7 +573,7 @@ void CGameContext::ConCreateTeam(IConsole::IResult *pResult, void *pUserData)
 	if(Team < 0)
 	{
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "join",
-			"There aren't any rooms available!");
+			"There aren't any rooms available!"); // language
 	}
 	const char *pGameType = pResult->NumArguments() > 0 ? pResult->GetString(0) : nullptr;
 	int RespondingID = pSelf->m_ChatResponseTargetID;
@@ -583,28 +583,28 @@ void CGameContext::ConCreateTeam(IConsole::IResult *pResult, void *pUserData)
 	{
 		pSelf->m_ChatResponseTargetID = RespondingID;
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "join",
-			"You can't change rooms that fast!");
+			"You can't change rooms that fast!"); // language
 	}
 	else if(!pSelf->Teams()->CanSwitchTeam(pPlayer->GetCID()))
 	{
 		pSelf->m_ChatResponseTargetID = RespondingID;
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "join",
-			"You can't change rooms at this time.");
+			"你现在不能创建房间"); // language
 	}
 	else if(Team > 0 && Team < MAX_CLIENTS && pSelf->Teams()->TeamLocked(Team) && !pSelf->Teams()->IsInvited(Team, pResult->m_ClientID))
 	{
 		pSelf->m_ChatResponseTargetID = RespondingID;
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "join",
 			g_Config.m_SvInvite ?
-                                "This room is locked using /lock. Only members of the room can unlock it using /lock." :
-                                "This room is locked using /lock. Only members of the room can invite you or unlock it using /lock.");
+                                "这个房间已用/lock上锁指令上锁 只有房间成员能用/lock指令解锁房间" : // language
+                                "这个房间已用/lock上锁指令上锁 房间成员能邀请你进入房间或用/lock指令解锁房间"); // language
 	}
 	else if(pPlayer->m_LastRoomCreation + (int64)pSelf->Server()->TickSpeed() * g_Config.m_SvRoomCreateDelay > pSelf->Server()->Tick())
 	{
 		pSelf->m_ChatResponseTargetID = RespondingID;
 		char aBuf[128];
 		int Seconds = ((pPlayer->m_LastRoomCreation + (int64)pSelf->Server()->TickSpeed() * g_Config.m_SvRoomCreateDelay) - pSelf->Server()->Tick()) / pSelf->Server()->TickSpeed();
-		str_format(aBuf, sizeof(aBuf), "You have to wait %d seconds before creating a new room.", Seconds + 1);
+		str_format(aBuf, sizeof(aBuf), "等待 %d 秒后你才能创建房间", Seconds + 1); // language
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "join", aBuf);
 	}
 	else if(const char *pError = pSelf->Teams()->SetPlayerTeam(pPlayer->GetCID(), Team, pGameType))
@@ -636,7 +636,7 @@ void CGameContext::ConMe(IConsole::IResult *pResult, void *pUserData)
 		pSelf->Console()->Print(
 			IConsole::OUTPUT_LEVEL_STANDARD,
 			"me",
-			"/me is disabled on this server");
+			"/me指令已被禁用"); // language
 }
 
 void CGameContext::ConConverse(IConsole::IResult *pResult, void *pUserData)
@@ -679,8 +679,8 @@ void CGameContext::ConSetEyeEmote(IConsole::IResult *pResult,
 		IConsole::OUTPUT_LEVEL_STANDARD,
 		"emote",
 		(pPlayer->m_EyeEmoteEnabled) ?
-                        "You can now use the preset eye emotes." :
-                        "You don't have any eye emotes, remember to bind some. (until you die)");
+                        "You can now use the preset eye emotes." : // language
+                        "You don't have any eye emotes, remember to bind some. (until you die)"); // language
 }
 
 void CGameContext::ConEyeEmote(IConsole::IResult *pResult, void *pUserData)
@@ -689,7 +689,7 @@ void CGameContext::ConEyeEmote(IConsole::IResult *pResult, void *pUserData)
 	if(g_Config.m_SvEmotionalTees == -1)
 	{
 		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "emote",
-			"Emotes are disabled.");
+			"表情指令已被禁用"); // language
 		return;
 	}
 
@@ -705,11 +705,11 @@ void CGameContext::ConEyeEmote(IConsole::IResult *pResult, void *pUserData)
 		pSelf->Console()->Print(
 			IConsole::OUTPUT_LEVEL_STANDARD,
 			"emote",
-			"Emote commands are: /emote surprise /emote blink /emote close /emote angry /emote happy /emote pain");
+			"Emote commands are: /emote surprise /emote blink /emote close /emote angry /emote happy /emote pain"); // language
 		pSelf->Console()->Print(
 			IConsole::OUTPUT_LEVEL_STANDARD,
 			"emote",
-			"Example: /emote surprise 10 for 10 seconds or /emote surprise (default 1 second)");
+			"Example: /emote surprise 10 for 10 seconds or /emote surprise (default 1 second)"); // language
 	}
 	else
 	{
@@ -734,7 +734,7 @@ void CGameContext::ConEyeEmote(IConsole::IResult *pResult, void *pUserData)
 		else
 		{
 			pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD,
-				"emote", "Unknown emote... Say /emote");
+				"emote", "Unknown emote... Say /emote"); // language
 			return;
 		}
 
@@ -773,7 +773,7 @@ void CGameContext::ConShowOthers(IConsole::IResult *pResult, void *pUserData)
 		pSelf->Console()->Print(
 			IConsole::OUTPUT_LEVEL_STANDARD,
 			"showotherschat",
-			"Showing players from other teams is disabled");
+			"Showing players from other teams is disabled"); // language
 }
 
 void CGameContext::ConInstanceCommand(IConsole::IResult *pResult, void *pUserData)
@@ -794,7 +794,7 @@ void CGameContext::ConInstanceCommand(IConsole::IResult *pResult, void *pUserDat
 		pSelf->Console()->Print(
 			IConsole::OUTPUT_LEVEL_STANDARD,
 			aInstanceBuf,
-			"/setting is disabled");
+			"/setting房间设置指令已被禁用"); // language
 		return;
 	}
 
@@ -804,7 +804,7 @@ void CGameContext::ConInstanceCommand(IConsole::IResult *pResult, void *pUserDat
 		pSelf->Console()->Print(
 			IConsole::OUTPUT_LEVEL_STANDARD,
 			aInstanceBuf,
-			"The room is not ready");
+			"房间未初始化"); // language
 		return;
 	}
 
@@ -813,7 +813,7 @@ void CGameContext::ConInstanceCommand(IConsole::IResult *pResult, void *pUserDat
 		pSelf->Console()->Print(
 			IConsole::OUTPUT_LEVEL_STANDARD,
 			aInstanceBuf,
-			"You can't execute command in lobby room / room 0");
+			"You can't execute command in lobby room / room 0"); // language
 		return;
 	}
 
@@ -835,7 +835,7 @@ void CGameContext::ConInstanceCommand(IConsole::IResult *pResult, void *pUserDat
 
 		if(!pCmdInfo)
 		{
-			str_format(aBuf, sizeof(aBuf), "The command '%s' does not exist", aCommand);
+			str_format(aBuf, sizeof(aBuf), "指令 '%s' 不存在", aCommand); // language
 			Instance.m_pController->SendChatTarget(ClientID, aBuf);
 			return;
 		}
@@ -848,26 +848,21 @@ void CGameContext::ConInstanceCommand(IConsole::IResult *pResult, void *pUserDat
 			{
 				if(pSelf->m_VoteCloseTime > 0)
 				{
-					str_format(aBuf, sizeof(aBuf), "You can't call a setting vote now, because a server vote is in progress.");
+					str_format(aBuf, sizeof(aBuf), "服务器投票期间不能发起房间设置投票"); // language
 					pSelf->Console()->Print(
 						IConsole::OUTPUT_LEVEL_STANDARD,
 						aInstanceBuf,
-						"You can't execute command in lobby room / room 0");
-				}
-				else if(pSelf->m_apPlayers[ClientID]->m_DeadSpecMode ||
-					(g_Config.m_SvSpecVote && pSelf->m_apPlayers[ClientID]->GetTeam() == TEAM_SPECTATORS))
-				{
-					return;
+						"You can't execute command in lobby room / room 0"); // language
 				}
 				else
 				{
-					str_format(aBuf, sizeof(aBuf), "'%s' called vote to change room setting '%s'", pSelf->Server()->ClientName(ClientID), pLine);
+					str_format(aBuf, sizeof(aBuf), "'%s'发起投票以改变房间设置 '%s'", pSelf->Server()->ClientName(ClientID), pLine); // language
 					Instance.m_pController->CallVote(ClientID, pLine, pLine, "/setting", aBuf, pLine);
 				}
 			}
 			else
 			{
-				str_format(aBuf, sizeof(aBuf), "'%s' called '%s'", pSelf->Server()->ClientName(ClientID), pLine);
+				str_format(aBuf, sizeof(aBuf), "'%s'调用了 '%s'", pSelf->Server()->ClientName(ClientID), pLine); // language
 				Instance.m_pController->SendChatTarget(-1, aBuf);
 				Instance.m_pController->InstanceConsole()->ExecuteLine(pLine, ClientID, false);
 			}
