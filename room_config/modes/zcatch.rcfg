@@ -1,7 +1,7 @@
 # catch room config
 
 # extra maps
-add_tagged_map_vote 24
+add_tagged_map_vote 192
 # lms + lts maps
 
 # inherit catch config

@@ -22,8 +22,8 @@ add_vote "Rule: 2min 10wins" "scorelimit 10;timelimit 2"
 add_vote "Rule: 3min 15wins" "scorelimit 15;timelimit 3"
 add_vote "Rule: 5min 25wins" "scorelimit 25;timelimit 5"
 
-add_tagged_map_vote 22
-# tDM + ctf + lts maps
+add_tagged_map_vote 156
+# ctf + lts maps (no huge maps)
 
 # add map votes
 #exec "room_config/maps/huntern.rcfg"

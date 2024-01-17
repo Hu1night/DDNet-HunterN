@@ -28,7 +28,7 @@ add_vote "Rule: 3 Player Per Hunter" "htn_hunt_ratio 3"
 add_vote "Rule: 4 Player Per Hunter" "htn_hunt_ratio 4"
 add_vote "Rule: 5 Player Per Hunter" "htn_hunt_ratio 5"
 
-add_tagged_map_vote 7
+add_tagged_map_vote 63
 # DM + tDM + ctf maps
 
 # add map votes

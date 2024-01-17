@@ -16,8 +16,8 @@ add_vote "Restart" "restart"
 # add mode switch votes
 exec "room_config/modes.rcfg"
 
-add_tagged_map_vote 7
-# DM + tDM + ctf maps
+add_tagged_map_vote 31
+# DM + ctf maps (no huge map)
 
 # add map votes
 #exec "room_config/maps/huntern.rcfg"
