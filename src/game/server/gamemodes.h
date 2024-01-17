@@ -10,6 +10,8 @@
 #include "gamemodes/catch.h"
 #include "gamemodes/instagib.h"
 
+#include "gamemodes/multibomb.h"
+
 #endif
 
 #ifdef REGISTER_GAME_TYPE
@@ -23,4 +25,5 @@ REGISTER_GAME_TYPE(itdm, CGameControllerITDM)
 REGISTER_GAME_TYPE(ictf, CGameControllerICTF)
 REGISTER_GAME_TYPE(catch, CGameControllerCatch)
 REGISTER_GAME_TYPE(zcatch, CGameControllerZCatch)
+REGISTER_GAME_TYPE(multibomb, CGameControllerMultiBomb)
 #endif
