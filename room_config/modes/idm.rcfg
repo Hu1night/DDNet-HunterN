@@ -1,11 +1,11 @@
-# idm room config
+# idm 激光瞬杀死斗 房间配置
 
-# inherit vanilla config
+# 调用dm房间设置
 exec "room_config/modes/dm.rcfg"
 
 # instagib settings
 add_vote "Setting: Laser jump ON" "laser_jump 1"
 add_vote "Setting: Laser jump OFF" "laser_jump 0"
 
-grenade 0
+# 激光榴弹跳
 laser_jump 1

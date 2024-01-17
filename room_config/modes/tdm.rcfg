@@ -1,6 +1,6 @@
-# tdm room config
+# tdm 团队死斗 房间配置
 
-# game settings
+# 游戏设置
 map ctf1
 scorelimit 20
 timelimit 10
@@ -13,14 +13,15 @@ match_swap 2
 # room votes
 add_vote " " "info"
 add_vote "=== ROOM SETTINGS ===" "info"
-add_vote "Restart" "restart"
+add_vote "重开" "restart"
 
 # add mode switch votes
 exec "room_config/modes.rcfg"
 
-add_vote "Rule: 10min 20points" "scorelimit 20;timelimit 10"
-add_vote "Rule: 15min 50points" "scorelimit 50;timelimit 15"
-add_vote "Rule: 20min 75points" "scorelimit 75;timelimit 20"
+add_vote "规则: 10分钟 20分结束对局" "scorelimit 20;timelimit 10"
+add_vote "规则: 15分钟 50分结束对局" "scorelimit 50;timelimit 15"
+add_vote "规则: 20分钟 75分结束对局" "scorelimit 75;timelimit 20"
 
-# add map votes
-exec "room_config/maps/all.rcfg"
+add_tagged_map_vote 28
+# ctf maps (no huge maps)
+
