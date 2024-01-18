@@ -9,7 +9,7 @@ CGameControllerMultiBomb::CGameControllerMultiBomb() :
 	IGameController()
 {
 	m_pGameType = "bombS"; // len limited :(
-	m_GameFlags = IGF_SURVIVAL | IGF_MARK_TEAMS | IGF_SUDDENDEATH;
+	m_GameFlags = IGF_SURVIVAL | IGF_SUDDENDEATH;
 }
 
 void CGameControllerMultiBomb::OnCharacterSpawn(CCharacter *pChr)
