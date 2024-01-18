@@ -10,12 +10,11 @@ minimum_players 5
 
 # room votes
 add_vote " " "info"
-add_vote "=== ROOM SETTINGS ===" "info"
+add_vote "=== 房间配置 ===" "info"
 add_vote "重开" "restart"
 
 # add mode switch votes
 exec "room_config/modes.rcfg"
 
-add_tagged_map_vote 31
-# DM + ctf maps (no huge map)
-
+# add map votes
+exec "room_config/maps/all.rcfg"

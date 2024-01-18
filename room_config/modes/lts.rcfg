@@ -11,7 +11,7 @@ teambalance_time 1
 
 # room votes
 add_vote " " "info"
-add_vote "=== ROOM SETTINGS ===" "info"
+add_vote "=== 房间配置 ===" "info"
 add_vote "重开" "restart"
 
 # add mode switch votes
@@ -22,7 +22,6 @@ add_vote "规则: 2分钟 10次胜利结束对局" "scorelimit 10;timelimit 2"
 add_vote "规则: 3分钟 15次胜利结束对局" "scorelimit 15;timelimit 3"
 add_vote "规则: 5分钟 25次胜利结束对局" "scorelimit 25;timelimit 5"
 
-add_tagged_map_vote 156
-# ctf + lts maps (no huge maps)
-
+# add map votes
+exec "room_config/maps/all.rcfg"
 

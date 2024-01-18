@@ -4,8 +4,8 @@
 exec "room_config/modes/tdm.rcfg"
 
 # instagib settings
-add_vote "Setting: Laser Jump ON" "laser_jump 1"
-add_vote "Setting: Laser Jump OFF" "laser_jump 0"
+add_vote "设置: 打开激光榴弹跳" "laser_jump 1"
+add_vote "设置: 关闭激光榴弹跳" "laser_jump 0"
 
 # 激光榴弹跳
 laser_jump 1

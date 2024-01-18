@@ -9,7 +9,7 @@ powerups 1
 
 # room votes
 add_vote " " "info"
-add_vote "=== ROOM SETTINGS ===" "info"
+add_vote "=== 房间配置 ===" "info"
 add_vote "重开" "restart"
 
 # add mode switch votes
@@ -20,6 +20,5 @@ add_vote "规则: 2分钟 20分结束对局" "scorelimit 20;timelimit 2"
 add_vote "规则: 3分钟 50分结束对局" "scorelimit 50;timelimit 3"
 add_vote "规则: 5分钟 75分结束对局" "scorelimit 75;timelimit 5"
 
-add_tagged_map_vote 223
-# DM + ctf + lms + lts maps (no huge maps)
-
+# add map votes
+exec "room_config/maps/all.rcfg"
