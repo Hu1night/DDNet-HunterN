@@ -32,34 +32,15 @@ CGameControllerHunterN::CGameControllerHunterN() :
 	// 生存模式，回合模式，SUDDENDEATH，回合终局显示游戏结束，游戏结束/旁观Snap队伍模式
 
 	INSTANCE_CONFIG_INT(&m_HunterRatio, "htn_hunt_ratio", 4, 2, MAX_CLIENTS, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "几个玩家里选取一个猎人（整数,默认4,限制2~64）");
-	INSTANCE_CONFIG_INT(&m_BroadcastHunterList, "htn_hunt_broadcast_list", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "是否全体广播猎人列表（整数,默认0,限制0~1）");
-	INSTANCE_CONFIG_INT(&m_BroadcastHunterDeath, "htn_hunt_broadcast_death", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "是否全体广播猎人死亡（整数,默认0,限制0~1）");
-	INSTANCE_CONFIG_INT(&m_EffectHunterDeath, "htn_hunt_effert_death", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "猎人死亡是否使用出生烟（整数,默认0,限制0~1）");
+	INSTANCE_CONFIG_INT(&m_BroadcastHunterList, "htn_hunt_broadcast_list", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "是否全体广播猎人列表（开关,默认0,限制0~1）");
+	INSTANCE_CONFIG_INT(&m_BroadcastHunterDeath, "htn_hunt_broadcast_death", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "是否全体广播猎人死亡（开关,默认0,限制0~1）");
+	INSTANCE_CONFIG_INT(&m_EffectHunterDeath, "htn_hunt_effert_death", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "猎人死亡是否使用出生烟（开关,默认0,限制0~1）");
 	INSTANCE_CONFIG_INT(&m_HuntFragsNum, "htn_hunt_frags_num", 18, 0, 0xFFFFFFF, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "猎人榴弹产生的破片数量（整数,默认18,限制0~268435455）");
-	INSTANCE_CONFIG_INT(&m_Wincheckdeley, "htn_wincheck_deley", 100, 0, 0xFFFFFFF, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "终局判断延时毫秒（整数,默认0,限制0~268435455）");
+	INSTANCE_CONFIG_INT(&m_Wincheckdeley, "htn_wincheck_deley", 100, 0, 0xFFFFFFF, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "终局判断延时毫秒（整数,默认100,限制0~268435455）");
 	INSTANCE_CONFIG_INT(&m_GameoverTime, "htn_gameover_time", 7, 0, 0xFFFFFFF, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "结算界面时长秒数（整数,默认0,限制0~268435455）");
 	//INSTANCE_CONFIG_INT(&m_RoundMode, "htn_round_mode", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "回合模式 正常0 娱乐1（整数,默认0,限制0~1）");
 
 	InstanceConsole()->Register("htn_setclass", "i[CID] i[class-id]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConSetClass, this, "给玩家设置职业（1平民,2猎人,3剑圣）");
-}
-
-void CGameControllerHunterN::OnClassSpawn(CCharacter *pChr) // 给予武器和职业提示
-{
-	if(pChr->GetPlayer()->m_Class == CLASS_CIVIC)
-	{
-		pChr->GiveWeapon(WEAPON_GUN, WEAPON_ID_PISTOL, 10);
-
-		pChr->GameWorld()->CreateSoundGlobal(SOUND_CTF_GRAB_PL, CmaskOne(pChr->GetPlayer()->GetCID()));
-		pChr->GameServer()->SendBroadcast("这局你是平民Civic! 消灭敌方队伍胜利!     \n猎人双倍伤害 有瞬杀锤子和破片榴弹", pChr->GetPlayer()->GetCID(), true);
-	}
-	else if(pChr->GetPlayer()->m_Class == CLASS_HUNTER)
-	{
-		pChr->GiveWeapon(WEAPON_HAMMER, WEAPON_ID_HUNTHAMMER, -1);
-		pChr->GiveWeapon(WEAPON_GUN, WEAPON_ID_PISTOL, 10);
-
-		pChr->GameWorld()->CreateSoundGlobal(SOUND_CTF_GRAB_EN, CmaskOne(pChr->GetPlayer()->GetCID()));
-		pChr->GameServer()->SendBroadcast("     这回合你被选择为猎人Hunter!\n     猎人双倍伤害 有瞬杀锤子和破片榴弹\n     分辨出你的队友 消灭敌方队伍胜利!", pChr->GetPlayer()->GetCID(), true);
-	}
 }
 
 void CGameControllerHunterN::OnResetClass(CCharacter *pChr) // 职业重置（出生后）
@@ -67,25 +48,11 @@ void CGameControllerHunterN::OnResetClass(CCharacter *pChr) // 职业重置（�
 	pChr->m_MaxHealth = 10;
 	pChr->m_MaxArmor = 10;
 
+	pChr->RemoveWeapon(WEAPON_HAMMER); // OnClassSpawn给武器
 	pChr->RemoveWeapon(WEAPON_GUN); // OnClassSpawn给手枪
-	
-	/*if(pChr->GetPlayer()->m_Class == CLASS_CIVIC)
-	{
-		pChr->RemoveWeapon(WEAPON_GUN); // OnClassSpawn给手枪
+	pChr->RemovePowerUpWeapon();
 
-		pChr->m_MaxHealth = 10;
-		pChr->m_MaxArmor = 10;
-	}
-	else */if(pChr->GetPlayer()->m_Class == CLASS_HUNTER)
-	{
-		pChr->RemoveWeapon(WEAPON_HAMMER); // OnClassSpawn给武器
-		//pChr->RemoveWeapon(WEAPON_GUN);
-
-		//pChr->m_MaxHealth = 10;
-		//pChr->m_MaxArmor = 10;
-	}
-
-	OnClassSpawn(pChr);
+	pChr->Controller()->OnCharacterSpawn(pChr);
 }
 
 void CGameControllerHunterN::SendChatRoom(const char *pText, int Flags) // 为什么没有内置的函数让我在Room里面BB
@@ -136,7 +103,10 @@ void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 	}
 
 	if(PlayerCount < 2)
+	{
+		m_aTeamSize[TEAM_RED] = PlayerCount; // 你猜猜正常情况下没指令是怎么触发这个函数的
 		return;
+	}
 
 	nHunter = (PlayerCount - 2) / m_HunterRatio + 1;// 我们要多少个猎人
 	str_format(HunterList, sizeof(HunterList), "本回合的 %d 个Hunter是: ", nHunter); // Generate Hunter info message 生成猎人列表消息头
@@ -228,12 +198,41 @@ void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 
 void CGameControllerHunterN::OnCharacterSpawn(CCharacter *pChr) // 给予生命值和武器
 {
-	pChr->IncreaseHealth(10);
-	pChr->GiveWeapon(WEAPON_GUN, WEAPON_ID_PISTOL, 10);
-
-	if(m_GameState == IGS_GAME_RUNNING) // 如果游戏在正常运行
+	if(m_GameState != IGS_GAME_RUNNING) // 如果游戏未开始
 	{
-		OnClassSpawn(pChr); // 职业特有的
+		pChr->IncreaseHealth(10);
+		pChr->GiveWeapon(WEAPON_GUN, WEAPON_ID_PISTOL, 10);
+	}
+	else // 如果游戏在正常运行
+	{
+		if(pChr->GetPlayer()->m_Class == CLASS_CIVIC)
+		{
+			pChr->IncreaseHealth(10);
+			pChr->GiveWeapon(WEAPON_GUN, WEAPON_ID_PISTOL, 10);
+
+			pChr->GameWorld()->CreateSoundGlobal(SOUND_CTF_GRAB_PL, CmaskOne(pChr->GetPlayer()->GetCID()));
+			pChr->GameServer()->SendBroadcast("这局你是平民Civic! 消灭敌方队伍胜利!     \n猎人双倍伤害 有瞬杀锤子和破片榴弹", pChr->GetPlayer()->GetCID(), true);
+		}
+		else if(pChr->GetPlayer()->m_Class == CLASS_HUNTER)
+		{
+			pChr->IncreaseHealth(10);
+			pChr->GiveWeapon(WEAPON_HAMMER, WEAPON_ID_HUNTHAMMER, -1);
+			pChr->GiveWeapon(WEAPON_GUN, WEAPON_ID_PISTOL, 10);
+
+			pChr->GameWorld()->CreateSoundGlobal(SOUND_CTF_GRAB_EN, CmaskOne(pChr->GetPlayer()->GetCID()));
+			pChr->GameServer()->SendBroadcast("     这回合你被选择为猎人Hunter!\n     猎人双倍伤害 有瞬杀锤子和破片榴弹\n     分辨出你的队友 消灭敌方队伍胜利!", pChr->GetPlayer()->GetCID(), true);
+		}
+		/*else if(pChr->GetPlayer()->m_Class == CLASS_JUGGERNAUT)
+		{
+			pChr->m_MaxHealth = 40;
+			pChr->IncreaseHealth(40);
+			pChr->m_MaxArmor = 20;
+			pChr->IncreaseArmor(20);
+			//pChr->SetPowerUpWeapon(WEAPON_ID_JUGHAMMER, -1);
+
+			pChr->GameWorld()->CreateSoundGlobal(SOUND_NINJA_FIRE, CmaskOne(pChr->GetPlayer()->GetCID()));
+			pChr->GameServer()->SendBroadcast("     这局你是剑圣Juggernaut！噶了所有人胜利!\n     剑圣40心20盾 有盾反锤子且能斩杀", pChr->GetPlayer()->GetCID(), true);
+		}*/
 	}
 }
 
@@ -245,7 +244,8 @@ void CGameControllerHunterN::OnPlayerJoin(class CPlayer *pPlayer) // 使新进�
 	}
 }
 
-int CGameControllerHunterN::OnCharacterTakeDamage(class CCharacter *pChr, vec2 &Force, int &Dmg, int From, int WeaponType, int WeaponID, bool IsExplosion) // 使Hunter不受到自己的伤害
+int CGameControllerHunterN::OnCharacterTakeDamage(class CCharacter *pChr, vec2 &Force, int &Dmg, int From, int WeaponType, int WeaponID, bool IsExplosion)
+// 使Hunter不受到自己的伤害
 {
 	if(pChr->GetPlayer()->GetCID() == From && pChr->GetPlayer()->m_Class == CLASS_HUNTER) // Hunter不能受到来自自己的伤害（这样就不会被逆天榴弹自爆）
 		return DAMAGE_NO_DAMAGE | DAMAGE_NO_INDICATOR;
@@ -421,6 +421,19 @@ int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CP
 
 			GameWorld()->CreateSoundGlobal(SOUND_CTF_DROP);
 		}
+		/*else if(pVictim->GetPlayer()->m_Class == CLASS_JUGGERNAUT)
+		{
+			if(pKiller && pKiller != pVictim->GetPlayer())
+			{
+				if(pKiller->m_Class != CLASS_JUG) // 隐藏分添加
+					pKiller->m_HiddenScore += 8;
+				else // :P
+					pKiller->m_HiddenScore -= 114514; // Teamkill
+			}
+
+			SendChatRoom("Juggernaut was defeated!");
+			GameWorld()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
+		}*/
 
 		if(nHunter) // 如果没有猎人 就不要发猎人列表 等EndMatch
 			SendChatTarget(pVictim->GetPlayer()->GetCID(), HunterList); // 给被弄死的人发

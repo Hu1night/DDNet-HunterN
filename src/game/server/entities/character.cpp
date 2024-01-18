@@ -2007,6 +2007,18 @@ bool CCharacter::RemoveWeapon(int Slot)
 
 	return Removed;
 }
+/* Hunter Start */
+void CCharacter::RemovePowerUpWeapon()
+{
+	if(m_pPowerupWeapon)
+	{
+		m_pPowerupWeapon->OnUnequip();
+		delete m_pPowerupWeapon;
+	}
+	m_pPowerupWeapon = nullptr;
+	SetWeaponSlot(WEAPON_GAME, false);
+}
+/* Hunter End */
 
 bool CCharacter::GiveWeapon(int Slot, int Type, int Ammo)
 {

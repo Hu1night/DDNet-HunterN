@@ -89,6 +89,7 @@ public:
 	bool IncreaseArmor(int Amount);
 
 	bool RemoveWeapon(int Slot);
+	void RemovePowerUpWeapon(); // Hunter
 	bool GiveWeapon(int Slot, int Type, int Ammo = -1);
 	void ForceSetWeapon(int Slot, int Type, int Ammo = -1);
 	void SetOverrideWeapon(int Slot, int Type, int Ammo = -1);

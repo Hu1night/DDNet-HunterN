@@ -33,7 +33,6 @@ public:
 	int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon) override;
 
 private: // Intelnal function and value
-	static void OnClassSpawn(CCharacter *pChr);
 	void EndRoundClass(int Flag);
 
 	int nHunter; // 有多少个猎人
