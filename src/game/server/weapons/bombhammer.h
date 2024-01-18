@@ -11,6 +11,7 @@ public:
 	void Fire(vec2 Direction) override;
 	void Tick() override;
 	int GetType() override { return WEAPON_HAMMER; }
+	bool IsPowerupOver() override { return false; }
 	int m_Roundleft;
 	int m_nextRoundtick;
 	bool m_IsActive;
