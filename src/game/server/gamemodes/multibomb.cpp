@@ -65,6 +65,12 @@ void CGameControllerMultiBomb::OnWorldReset()
 	}
 }
 
+void CGameControllerMultiBomb::DoWincheckMatch()
+{
+	if(!m_SuddenDeath && m_GameInfo.m_TimeLimit > 0 && (Server()->Tick() - m_GameStartTick) >= m_GameInfo.m_TimeLimit * Server()->TickSpeed() * 60)
+		EndMatch();
+}
+
 int CGameControllerMultiBomb::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon)
 {
 	CWeapon *pWeapon = pVictim->GetPowerupWeapon();

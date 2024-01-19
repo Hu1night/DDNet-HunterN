@@ -14,7 +14,7 @@ public:
 	void OnWorldReset() override;
 	bool OnEntity(int Index, vec2 Pos, int Layer, int Flags, int Number) override;
 	int OnCharacterTakeDamage(class CCharacter *pChr, vec2 &Force, int &Dmg, int From, int WeaponType, int WeaponID, bool IsExplosion) override { return DAMAGE_NO_DAMAGE | DAMAGE_NO_INDICATOR; }
-	void DoWincheckMatch() override { if(!m_SuddenDeath && m_GameInfo.m_TimeLimit > 0 && (Server()->Tick() - m_GameStartTick) >= m_GameInfo.m_TimeLimit * Server()->TickSpeed() * 60) EndMatch(); }
+	void DoWincheckMatch() override;
 	int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon) override;
 private:
 	int m_BoomerNum;
