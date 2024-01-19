@@ -324,8 +324,9 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, in
 			{
 				if(Team == CHAT_SPEC)
 				{
-					if(Room == GetPlayerDDRTeam(i) &&
-						(m_apPlayers[i]->GetTeam() == CHAT_SPEC || m_apPlayers[i]->m_DeadSpecMode))
+					if(Teams->Team(i) == Room &&
+						(m_apPlayers[i]->GetTeam() == TEAM_SPECTATORS ||
+							m_apPlayers[i]->IsDeadAndNoRespawn()))
 					{
 						Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, i);
 					}
@@ -746,7 +747,7 @@ void CGameContext::OnTick()
 
 					// MYTODO: get rid of kick vote checks, no gonna happen here
 
-					if((IsKickVote() || IsSpecVote()) && !m_apPlayers[i]->m_DeadSpecMode && (m_apPlayers[i]->GetTeam() == TEAM_SPECTATORS ||
+					if((IsKickVote() || IsSpecVote()) && ((!g_Config.m_SvSpecVote && m_apPlayers[i]->GetTeam() == TEAM_SPECTATORS) ||
 						(GetPlayerChar(m_VoteCreator) && GetPlayerChar(i) &&
 							GetPlayerChar(m_VoteCreator)->Team() != GetPlayerChar(i)->Team())))
 						continue;
@@ -1636,9 +1637,9 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				if(Instance.m_pController->m_TournamentChat == 2)
 						IsTeam = true;
 
-				int ChatTeam = ((Instance.m_pController->m_TournamentChat == 1 && (pPlayer->GetTeam() == TEAM_SPECTATORS || pPlayer->m_DeadSpecMode)) ?
-					CHAT_SPEC : IsTeam ?
-						pPlayer->GetTeam() : CHAT_ALL);
+				int ChatTeam = ((Instance.m_pController->m_TournamentChat == 1 && (pPlayer->GetTeam() == TEAM_SPECTATORS || pPlayer->IsDeadAndNoRespawn())) ?
+					CHAT_SPEC : (IsTeam ?
+						pPlayer->GetTeam() : CHAT_ALL));
 
 				char aCensoredMessage[256];
 				CensorMessage(aCensoredMessage, pMsg->m_pMessage, sizeof(aCensoredMessage));
@@ -1950,7 +1951,12 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 						Console()->Print(
 							IConsole::OUTPUT_LEVEL_STANDARD,
 							"instancevote",
-							"The room does not exist"); // language
+							"The room does not exist");
+					}
+					else if(m_apPlayers[ClientID]->IsDeadAndNoRespawn() ||
+						(g_Config.m_SvSpecVote && m_apPlayers[ClientID]->GetTeam() == TEAM_SPECTATORS))
+					{
+						return;
 					}
 					else
 					{
@@ -3496,10 +3502,10 @@ void CGameContext::WhisperID(int ClientID, int VictimID, const char *pMessage)
 	{
 		if(Instance.m_pController->m_TournamentChat == 2 && m_apPlayers[ClientID]->GetTeam() != m_apPlayers[VictimID]->GetTeam())
 			return;
-		if((m_apPlayers[ClientID]->GetTeam() == TEAM_SPECTATORS || m_apPlayers[ClientID]->m_DeadSpecMode) &&
+		if((m_apPlayers[ClientID]->GetTeam() == TEAM_SPECTATORS || m_apPlayers[ClientID]->IsDeadAndNoRespawn()) &&
 			(GetPlayerDDRTeam(ClientID) != GetPlayerDDRTeam(VictimID) ||
-				(m_apPlayers[VictimID]->GetTeam() != TEAM_SPECTATORS || !m_apPlayers[VictimID]->m_DeadSpecMode)))
-			return;
+				(m_apPlayers[VictimID]->GetTeam() != TEAM_SPECTATORS || !m_apPlayers[VictimID]->IsDeadAndNoRespawn())))
+					return;
 	}
 
 	if(m_apPlayers[ClientID])

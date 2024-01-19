@@ -91,6 +91,7 @@ public:
 	bool m_DeadSpecMode;
 	bool DeadCanFollow(CPlayer *pPlayer) const;
 	void UpdateDeadSpecMode();
+	bool IsDeadAndNoRespawn() { return m_RespawnDisabled || !GetCharacter() || !GetCharacter()->IsAlive(); }
 
 	bool m_IsReadyToEnter;
 	bool m_IsReadyToPlay;
