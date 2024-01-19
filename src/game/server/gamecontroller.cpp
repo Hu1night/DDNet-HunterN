@@ -2021,8 +2021,8 @@ void IGameController::Tick()
 					if(!pPlayer || aVoteChecked[i])
 						continue;
 
-					if(pPlayer->m_DeadSpecMode ||
-						(g_Config.m_SvSpecVote && pPlayer->GetTeam() == TEAM_SPECTATORS))
+					if(pPlayer->IsDeadAndNoRespawn() ||
+						(!g_Config.m_SvSpecVote && pPlayer->GetTeam() == TEAM_SPECTATORS))
 							continue;
 
 					if(pPlayer->m_Afk && i != m_VoteCreator)
