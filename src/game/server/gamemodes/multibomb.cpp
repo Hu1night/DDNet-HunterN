@@ -9,7 +9,9 @@ CGameControllerMultiBomb::CGameControllerMultiBomb() :
 	IGameController()
 {
 	m_pGameType = "bombS"; // len limited :(
-	m_GameFlags = IGF_SURVIVAL | IGF_SUDDENDEATH;
+	m_GameFlags = IGF_SURVIVAL | IGF_SUDDENDEATH | IGF_ROUND_TIMER_ROUND;
+
+	m_MinimumPlayers = 2;
 }
 
 void CGameControllerMultiBomb::OnCharacterSpawn(CCharacter *pChr)
@@ -25,6 +27,8 @@ void CGameControllerMultiBomb::OnCharacterSpawn(CCharacter *pChr)
 	{
 		if(m_BoomerCID[i] == pChr->GetPlayer()->GetCID())
 		{
+			pChr->SetArmor(10);
+
 			((CBombHammer *)pChr->GetPowerupWeapon())->m_nextRoundtick = (rand() % Server()->TickSpeed()) + 1;
 			((CBombHammer *)pChr->GetPowerupWeapon())->m_IsActive = true; // 启动炸弹
 		}
@@ -58,25 +62,22 @@ void CGameControllerMultiBomb::OnWorldReset()
 				(!pPlayer->m_RespawnDisabled ||
 					(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive())))
 			{
-				if(!rBoomer--)
+				if(!rBoomer)
 					m_BoomerCID[j] = pPlayer->GetCID(); // 缓存CID 只用在OnCharaSpawn上
+				--rBoomer;
 			}
 		}
 	}
 }
 
-void CGameControllerMultiBomb::DoWincheckMatch()
+void CGameControllerMultiBomb::DoWincheckRound()
 {
 	if(!m_SuddenDeath && m_GameInfo.m_TimeLimit > 0 && (Server()->Tick() - m_GameStartTick) >= m_GameInfo.m_TimeLimit * Server()->TickSpeed() * 60)
-		EndMatch();
+		EndRound();
 }
 
 int CGameControllerMultiBomb::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon)
 {
-	CWeapon *pWeapon = pVictim->GetPowerupWeapon();
-	if(!pWeapon || pWeapon->GetWeaponID() != WEAPON_ID_BOMBHAMMER || !((CBombHammer *)pWeapon)->m_IsActive) // 是炸弹人爆了吗
-		return DEATH_SKIP_SCORE; // 跳过内置分数逻辑
-
 	int AlivePlayerCount = 0;
 	for(int i = 0; i < MAX_CLIENTS; ++i)
 	{
@@ -90,12 +91,16 @@ int CGameControllerMultiBomb::OnCharacterDeath(class CCharacter *pVictim, class 
 		}
 	}
 
-	if(AlivePlayerCount <= m_BoomerNum * 2) // 人数不够的话 就不选炸弹人了
+	if(AlivePlayerCount < m_BoomerNum * 2) // 人数不够的话 就不选炸弹人了
 	{
 		if(AlivePlayerCount <= m_BoomerNum) // 炸弹人炸光了
-			EndMatch();
+			EndRound();
 		return DEATH_SKIP_SCORE;
 	}
+
+	CWeapon *pWeapon = pVictim->GetPowerupWeapon();
+	if(!pWeapon || pWeapon->GetWeaponID() != WEAPON_ID_BOMBHAMMER || !((CBombHammer *)pWeapon)->m_IsActive) // 是炸弹人爆了吗
+		return DEATH_SKIP_SCORE; // 跳过内置分数逻辑
 
 	int rBoomer = (rand() % AlivePlayerCount) + 1; // 选择新的炸弹人
 	for(int i = 0; i < MAX_CLIENTS; ++i)
@@ -107,7 +112,7 @@ int CGameControllerMultiBomb::OnCharacterDeath(class CCharacter *pVictim, class 
 		{
 			if(!rBoomer--)
 			{
-				((CBombHammer *)pPlayer->GetCharacter()->GetPowerupWeapon())->m_Roundleft = 21; // 重置
+				((CBombHammer *)pPlayer->GetCharacter()->GetPowerupWeapon())->m_Roundleft = 20; // 重置
 				((CBombHammer *)pPlayer->GetCharacter()->GetPowerupWeapon())->m_nextRoundtick = (rand() % Server()->TickSpeed()) + 1;
 				((CBombHammer *)pPlayer->GetCharacter()->GetPowerupWeapon())->m_IsActive = true; // 启动他的炸弹
 			}

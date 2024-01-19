@@ -11,7 +11,7 @@ CBombHammer::CBombHammer(CCharacter *pOwnerChar) :
 	m_FireDelay = g_pData->m_Weapons.m_aId[WEAPON_HAMMER].m_Firedelay;
 	m_AmmoRegenDelay = 380;
 
-	m_Roundleft = 21; // 还有多少圈引线
+	m_Roundleft = 20; // 还有多少圈引线
 	m_nextRoundtick = 1; // 下一圈引线要的tick
 	m_IsActive = false;
 	//m_PerRoundms = 1000;
@@ -24,9 +24,9 @@ void CBombHammer::Tick()
 	if(!m_IsActive)
 		return;
 	
-	if(!m_nextRoundtick--) // 是否下一圈引线
+	if(!m_nextRoundtick) // 是否下一圈引线
 	{
-		if(!m_Roundleft--) // 如果引线没了
+		if(!m_Roundleft) // 如果引线没了
 		{
 			GameWorld()->CreateExplosionParticle(Pos());
 			GameWorld()->CreateSoundGlobal(SOUND_GRENADE_EXPLODE);
@@ -39,9 +39,12 @@ void CBombHammer::Tick()
 			GameWorld()->CreateSound(Pos(), SOUND_HOOK_NOATTACH);
 			GameWorld()->CreateDamageInd(Pos(), 0, m_Roundleft);
 
+			--m_Roundleft;
 			m_nextRoundtick = Server()->TickSpeed() * m_PerRoundms / 1000; // 下一次计时
 		}
 	}
+	else
+		--m_nextRoundtick;
 }
 
 void CBombHammer::Fire(vec2 Direction)
@@ -59,7 +62,7 @@ void CBombHammer::Fire(vec2 Direction)
 	CCharacter *pChr = (CCharacter *)GameWorld()->ClosestEntity(HammerHitPos, GetProximityRadius() * 0.5f, CGameWorld::ENTTYPE_CHARACTER, Character());
 
 	//if ((pChr == this) || GameServer()->Collision()->IntersectLine(ProjStartPos, pChr->m_Pos, NULL, NULL))
-	if(!pChr && pChr->IsAlive() && pChr->IsSolo())
+	if(!pChr || (pChr->IsAlive() && pChr->IsSolo()))
 		return;
 
 	// set his velocity to fast upward (for now)
@@ -93,8 +96,9 @@ void CBombHammer::Fire(vec2 Direction)
 	m_ReloadTimer = FireDelay * Server()->TickSpeed() / 1000;
 
 	CWeapon *pWeapon = pChr->GetPowerupWeapon();
-	if(!pWeapon || pWeapon->GetWeaponID() != WEAPON_ID_BOMBHAMMER || !((CBombHammer *)pWeapon)->m_IsActive);
-		return;
+	if(!pWeapon || pWeapon->GetWeaponID() != WEAPON_ID_BOMBHAMMER ||
+		!(((CBombHammer *)Character()->GetPowerupWeapon())->m_IsActive) || ((CBombHammer *)pWeapon)->m_IsActive);
+			return;
 		
 	pChr->SetHealth(m_Roundleft);
 	pChr->SetArmor(m_Roundleft - 10);
