@@ -2023,7 +2023,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				char aTime[32];
 				str_time((int64)TimeLeft * 100, TIME_HOURS, aTime, sizeof(aTime));
 				char aBuf[128];
-				str_format(aBuf, sizeof(aBuf), "等待 %s 后你才能切换队伍 %s", aTime); // language
+				str_format(aBuf, sizeof(aBuf), "等待 %s 后你才能切换队伍", aTime); // language
 				SendBroadcast(aBuf, ClientID);
 				return;
 			}
