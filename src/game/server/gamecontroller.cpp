@@ -360,7 +360,7 @@ int IGameController::MakeGameFlag(int GameFlag, int SnappingClient)
 	{
 		if(m_GameState == IGS_END_MATCH || m_GameState == IGS_END_ROUND)
 			Flags |= GAMEFLAG_TEAMS;
-		else
+		else if(SnappingClient > -1)
 		{
 			CPlayer *pPlayer = GameServer()->m_apPlayers[SnappingClient];
 			if(pPlayer && (pPlayer->GetTeam() == TEAM_SPECTATORS ||
@@ -385,7 +385,7 @@ int IGameController::MakeGameFlagSixUp(int GameFlag, int SnappingClient)
 	{
 		if(m_GameState == IGS_END_MATCH || m_GameState == IGS_END_ROUND)
 			Flags |= protocol7::GAMEFLAG_TEAMS;
-		else
+		else if(SnappingClient > -1)
 		{
 			CPlayer *pPlayer = GameServer()->m_apPlayers[SnappingClient];
 			if(pPlayer && (pPlayer->GetTeam() == TEAM_SPECTATORS ||
