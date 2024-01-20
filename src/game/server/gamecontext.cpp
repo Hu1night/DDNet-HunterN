@@ -1637,7 +1637,8 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				if(Instance.m_pController->m_TournamentChat == 2)
 					IsTeam = true;
 
-				int ChatTeam = ((Instance.m_pController->m_TournamentChat == 1 && (pPlayer->GetTeam() == TEAM_SPECTATORS || (pPlayer->m_RespawnDisabled && (!pPlayer->GetCharacter() || !pPlayer->GetCharacter()->IsAlive())))) ?
+				int ChatTeam = ((Instance.m_pController->m_TournamentChat == 1 && Instance.m_pController->IsGameRunning() &&
+				(pPlayer->GetTeam() == TEAM_SPECTATORS || (pPlayer->m_RespawnDisabled && (!pPlayer->GetCharacter() || !pPlayer->GetCharacter()->IsAlive())))) ?
 					CHAT_SPEC : (IsTeam ?
 						pPlayer->GetTeam() : CHAT_ALL));
 
