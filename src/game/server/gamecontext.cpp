@@ -326,7 +326,7 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, in
 				{
 					if(Teams->Team(i) == Room &&
 						(m_apPlayers[i]->GetTeam() == TEAM_SPECTATORS ||
-							m_apPlayers[i]->IsDeadAndNoRespawn()))
+							m_apPlayers[i]->m_RespawnDisabled || !m_apPlayers[i]->GetCharacter() || !m_apPlayers[i]->GetCharacter()->IsAlive()))
 					{
 						Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, i);
 					}
@@ -1637,7 +1637,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				if(Instance.m_pController->m_TournamentChat == 2)
 					IsTeam = true;
 
-				int ChatTeam = ((Instance.m_pController->m_TournamentChat == 1 && (pPlayer->GetTeam() == TEAM_SPECTATORS || pPlayer->IsDeadAndNoRespawn())) ?
+				int ChatTeam = ((Instance.m_pController->m_TournamentChat == 1 && (pPlayer->GetTeam() == TEAM_SPECTATORS || pPlayer->m_RespawnDisabled || !pPlayer->GetCharacter() || !pPlayer->GetCharacter()->IsAlive())) ?
 					CHAT_SPEC : (IsTeam ?
 						pPlayer->GetTeam() : CHAT_ALL));
 
@@ -1953,7 +1953,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 							"instancevote",
 							"The room does not exist");
 					}
-					else if(m_apPlayers[ClientID]->IsDeadAndNoRespawn() ||
+					else if(m_apPlayers[ClientID]->m_RespawnDisabled || !m_apPlayers[ClientID]->GetCharacter() || !m_apPlayers[ClientID]->GetCharacter()->IsAlive() ||
 						(g_Config.m_SvSpecVote && m_apPlayers[ClientID]->GetTeam() == TEAM_SPECTATORS))
 					{
 						return;
@@ -3502,9 +3502,9 @@ void CGameContext::WhisperID(int ClientID, int VictimID, const char *pMessage)
 	{
 		if(Instance.m_pController->m_TournamentChat == 2 && m_apPlayers[ClientID]->GetTeam() != m_apPlayers[VictimID]->GetTeam())
 			return;
-		if((m_apPlayers[ClientID]->GetTeam() == TEAM_SPECTATORS || m_apPlayers[ClientID]->IsDeadAndNoRespawn()) &&
+		if((m_apPlayers[ClientID]->GetTeam() == TEAM_SPECTATORS || m_apPlayers[ClientID]->m_RespawnDisabled || !m_apPlayers[ClientID]->GetCharacter() || !m_apPlayers[ClientID]->GetCharacter()->IsAlive()) &&
 			(GetPlayerDDRTeam(ClientID) != GetPlayerDDRTeam(VictimID) ||
-				(m_apPlayers[VictimID]->GetTeam() != TEAM_SPECTATORS || !m_apPlayers[VictimID]->IsDeadAndNoRespawn())))
+				(m_apPlayers[VictimID]->GetTeam() != TEAM_SPECTATORS || !m_apPlayers[VictimID]->m_RespawnDisabled || !m_apPlayers[VictimID]->GetCharacter() || !m_apPlayers[VictimID]->GetCharacter()->IsAlive())))
 					return;
 	}
 

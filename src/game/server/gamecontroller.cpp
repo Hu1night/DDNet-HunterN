@@ -1975,7 +1975,7 @@ void IGameController::Tick()
 					if(!pPlayer || aVoteChecked[i])
 						continue;
 
-					if(pPlayer->IsDeadAndNoRespawn() ||
+					if(pPlayer->m_RespawnDisabled || !pPlayer->GetCharacter() || !pPlayer->GetCharacter()->IsAlive() ||
 						(!g_Config.m_SvSpecVote && pPlayer->GetTeam() == TEAM_SPECTATORS))
 							continue;
 
