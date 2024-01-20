@@ -29,7 +29,7 @@ void CBombHammer::Tick()
 		if(!m_Roundleft) // 如果引线没了
 		{
 			GameWorld()->CreateExplosionParticle(Pos());
-			GameWorld()->CreateSoundGlobal(SOUND_GRENADE_EXPLODE);
+			GameWorld()->CreateSound(Pos(), SOUND_GRENADE_EXPLODE);
 			Character()->Die(Character()->GetPlayer()->GetCID(), WEAPON_WORLD);
 		}
 		else // 还有引线
@@ -97,7 +97,7 @@ void CBombHammer::Fire(vec2 Direction)
 
 	CWeapon *pWeapon = pChr->GetPowerupWeapon();
 	if(!pWeapon || pWeapon->GetWeaponID() != WEAPON_ID_BOMBHAMMER ||
-		!(((CBombHammer *)Character()->GetPowerupWeapon())->m_IsActive) || ((CBombHammer *)pWeapon)->m_IsActive);
+		!(((CBombHammer *)Character()->GetPowerupWeapon())->m_IsActive) || ((CBombHammer *)pWeapon)->m_IsActive)
 			return;
 		
 	pChr->SetHealth(m_Roundleft);

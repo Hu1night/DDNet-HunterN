@@ -14,7 +14,7 @@ public:
 	void OnWorldReset() override;
 	bool OnEntity(int Index, vec2 Pos, int Layer, int Flags, int Number) override;
 	int OnCharacterTakeDamage(class CCharacter *pChr, vec2 &Force, int &Dmg, int From, int WeaponType, int WeaponID, bool IsExplosion) override { return DAMAGE_NO_DAMAGE | DAMAGE_NO_INDICATOR; }
-	void DoWincheckRound() override;
+	void DoWincheckMatch() override;
 	int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon) override;
 private:
 	int m_BoomerNum;

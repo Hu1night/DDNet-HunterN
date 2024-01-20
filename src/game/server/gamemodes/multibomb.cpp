@@ -9,7 +9,7 @@ CGameControllerMultiBomb::CGameControllerMultiBomb() :
 	IGameController()
 {
 	m_pGameType = "bombS"; // len limited :(
-	m_GameFlags = IGF_SURVIVAL | IGF_SUDDENDEATH | IGF_ROUND_TIMER_ROUND;
+	m_GameFlags = IGF_SURVIVAL | IGF_SUDDENDEATH;
 
 	m_MinimumPlayers = 2;
 }
@@ -20,7 +20,7 @@ void CGameControllerMultiBomb::OnCharacterSpawn(CCharacter *pChr)
 
 	pChr->SetPowerUpWeapon(WEAPON_ID_BOMBHAMMER, 0);
 
-	if(!IsGameRunning() && !m_BoomerNum)
+	if(!IsGameRunning() && !m_BoomerNum && m_aTeamSize[TEAM_RED] < 2)
 		return;
 
 	for(int i = 0; i < m_BoomerNum; i++)
@@ -53,7 +53,7 @@ void CGameControllerMultiBomb::OnWorldReset()
 
 	for(int j = 0; j < m_BoomerNum; ++j)
 	{
-		int rBoomer = (rand() % m_BoomerNum) + 1;
+		int rBoomer = rand() % m_BoomerNum;
 
 		for(int i = 0; i < MAX_CLIENTS; ++i)
 		{
@@ -70,10 +70,10 @@ void CGameControllerMultiBomb::OnWorldReset()
 	}
 }
 
-void CGameControllerMultiBomb::DoWincheckRound()
+void CGameControllerMultiBomb::DoWincheckMatch()
 {
 	if(!m_SuddenDeath && m_GameInfo.m_TimeLimit > 0 && (Server()->Tick() - m_GameStartTick) >= m_GameInfo.m_TimeLimit * Server()->TickSpeed() * 60)
-		EndRound();
+		SetGameState(IGS_END_MATCH, 5);
 }
 
 int CGameControllerMultiBomb::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon)
@@ -94,7 +94,7 @@ int CGameControllerMultiBomb::OnCharacterDeath(class CCharacter *pVictim, class 
 	if(AlivePlayerCount < m_BoomerNum * 2) // 人数不够的话 就不选炸弹人了
 	{
 		if(AlivePlayerCount <= m_BoomerNum) // 炸弹人炸光了
-			EndRound();
+			SetGameState(IGS_END_MATCH, 5);
 		return DEATH_SKIP_SCORE;
 	}
 
@@ -102,7 +102,7 @@ int CGameControllerMultiBomb::OnCharacterDeath(class CCharacter *pVictim, class 
 	if(!pWeapon || pWeapon->GetWeaponID() != WEAPON_ID_BOMBHAMMER || !((CBombHammer *)pWeapon)->m_IsActive) // 是炸弹人爆了吗
 		return DEATH_SKIP_SCORE; // 跳过内置分数逻辑
 
-	int rBoomer = (rand() % AlivePlayerCount) + 1; // 选择新的炸弹人
+	int rBoomer = rand() % AlivePlayerCount; // 选择新的炸弹人
 	for(int i = 0; i < MAX_CLIENTS; ++i)
 	{
 		CPlayer *pPlayer = GetPlayerIfInRoom(i);
