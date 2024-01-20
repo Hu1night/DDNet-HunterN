@@ -1,5 +1,5 @@
-#ifndef GAME_SERVER_WEAPONS_NINJA_H
-#define GAME_SERVER_WEAPONS_NINJA_H
+#ifndef GAME_SERVER_WEAPONS_JUGNINJA_H
+#define GAME_SERVER_WEAPONS_JUGNINJA_H
 
 #include <game/server/weapon.h>
 
