@@ -85,6 +85,30 @@ void CJugNinja::Tick()
 					Character()->GetPlayer()->GetCID(), WEAPON_NINJA, GetWeaponID(), false);
 			}
 		}
+		{
+			CProjectile *aEnts[16];
+			int Num = GameWorld()->FindEntities(Pos() + (Character()->GetDirection() * GetProximityRadius() * 2.f), GetProximityRadius() * 2.0f, (CEntity **)aEnts, 16, CGameWorld::ENTTYPE_PROJECTILE);
+
+			for(int i = 0; i < Num; ++i)
+			{
+				if(aEnts[i]->GetOwner() == Character()->GetPlayer()->GetCID())
+					continue;
+
+				CCharacter *pChr = ((CCharacter *)GameWorld()->ClosestEntity((Pos() * 2) - OldPos, 384.f, CGameWorld::ENTTYPE_CHARACTER, Character()));
+				if(pChr)
+					vec2 Dir = normalize(pChr->m_Pos - aEnts[i]->m_Pos) * 0.5f;
+				else
+					vec2 Dir = normalize(aEnts[i]->m_Pos - Character()->m_Pos) * 0.5f;
+
+				aEnts[i]->SetDir(normalize(pChr->m_Pos - aEnts[i]->m_Pos) * 0.5f);
+				aEnts[i]->SetStartPos(aEnts[i]->m_Pos);
+				aEnts[i]->SetStartTick(Server()->Tick());
+				aEnts[i]->SetOwner(Character()->GetPlayer()->GetCID());
+				aEnts[i]->m_LifeSpan = 2 * Server()->TickSpeed();
+
+				GameWorld()->CreateHammerHit(aEnts[i]->m_Pos);
+			}
+		}
 	}
 }
 
