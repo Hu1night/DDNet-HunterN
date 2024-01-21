@@ -879,6 +879,8 @@ public:
 			Team name
 	*/
 	virtual const char *GetTeamName(int Team);
+
+	//virtual bool IsEntityNetworkClipped(int SnappingClient){};
 };
 
 #endif

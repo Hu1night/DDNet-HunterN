@@ -8,7 +8,7 @@ class CGameControllerHunterN : public IGameController
 {
 private: // config
 	int m_HunterRatio;
-	int m_BroadcastHunterList;
+	//int m_BroadcastHunterList;
 	int m_BroadcastHunterDeath;
 	int m_EffectHunterDeath;
 	int m_Wincheckdeley;
@@ -34,8 +34,6 @@ public:
 	int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon) override;
 
 private: // Intelnal function and value
-	void EndRoundClass(int Flag);
-
 	int nHunter; // 有多少个猎人
 	int DoWinchenkClassTick; // 终局判断延迟的Tick
 	char HunterList[256]; // 猎人列表

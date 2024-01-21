@@ -276,11 +276,12 @@ void CProjectile::FillInfo(CNetObj_Projectile *pProj)
 	pProj->m_Type = m_Type;
 }
 
-bool CProjectile::NetworkClipped(int SnappingClient)
+// dont need it anymore lol
+/*bool CProjectile::NetworkClipped(int SnappingClient)
 {
 	float Ct = (Server()->Tick() - m_StartTick) / (float)Server()->TickSpeed();
 	return NetworkPointClipped(SnappingClient, GetPos(Ct));
-}
+}*/
 
 void CProjectile::Snap(int SnappingClient, int OtherMode)
 {
