@@ -7,20 +7,23 @@ CJugNinja::CJugNinja(CCharacter *pOwnerChar) :
 {
 	m_MaxAmmo = g_pData->m_Weapons.m_aId[WEAPON_NINJA].m_Maxammo;
 	m_AmmoRegenTime = g_pData->m_Weapons.m_aId[WEAPON_NINJA].m_Ammoregentime;
-	m_FireDelay = g_pData->m_Weapons.m_aId[WEAPON_NINJA].m_Firedelay;
+	m_FireDelay = 340;
 	m_OldVelAmount = 0;
 	m_CurrentMoveTime = -1;
 	m_ActivationDir = vec2(0, 0);
 	m_NumObjectsHit = 0;
-	m_Duration = g_pData->m_Weapons.m_Ninja.m_Duration;
 }
 
 void CJugNinja::Fire(vec2 Direction)
 {
+	CCharacter *pChr = ((CCharacter *)GameWorld()->ClosestEntity(Pos(), 768.f, CGameWorld::ENTTYPE_CHARACTER, Character()));
+	if(!pChr)
+		return;
+
 	m_NumObjectsHit = 0;
 
 	m_ActivationDir = Direction;
-	m_CurrentMoveTime = g_pData->m_Weapons.m_Ninja.m_Movetime * Server()->TickSpeed() / 1000;
+	m_CurrentMoveTime = 140 * Server()->TickSpeed() / 1000;
 	m_OldVelAmount = length(Character()->Core()->m_Vel);
 
 	GameWorld()->CreateSound(Pos(), SOUND_NINJA_FIRE);
@@ -29,6 +32,8 @@ void CJugNinja::Fire(vec2 Direction)
 void CJugNinja::Tick()
 {
 	CWeapon::Tick();
+
+	if(!IsReloading)
 
 	if(m_CurrentMoveTime >= 0)
 		m_CurrentMoveTime--;
@@ -42,7 +47,7 @@ void CJugNinja::Tick()
 	if(m_CurrentMoveTime > 0)
 	{
 		// Set velocity
-		Character()->Core()->m_Vel = m_ActivationDir * g_pData->m_Weapons.m_Ninja.m_Velocity;
+		Character()->Core()->m_Vel = m_ActivationDir * 60;
 		vec2 OldPos = Pos();
 		GameServer()->Collision()->MoveBox(&Character()->Core()->m_Pos, &Character()->Core()->m_Vel, vec2(GetProximityRadius(), GetProximityRadius()), 0.f);
 
@@ -87,7 +92,7 @@ void CJugNinja::Tick()
 		}
 		{
 			CProjectile *aEnts[16];
-			int Num = GameWorld()->FindEntities(Pos() + (Character()->GetDirection() * GetProximityRadius() * 2.f), GetProximityRadius() * 2.0f, (CEntity **)aEnts, 16, CGameWorld::ENTTYPE_PROJECTILE);
+			int Num = GameWorld()->FindEntities(Pos() + (Character()->GetDirection() * GetProximityRadius() * 2.5f), GetProximityRadius() * 2.0f, (CEntity **)aEnts, 16, CGameWorld::ENTTYPE_PROJECTILE);
 
 			for(int i = 0; i < Num; ++i)
 			{
@@ -116,10 +121,4 @@ void CJugNinja::OnUnequip()
 {
 	if(m_CurrentMoveTime > 0)
 		Character()->Core()->m_Vel = m_ActivationDir * m_OldVelAmount;
-}
-
-void CJugNinja::OnGiven(bool IsAmmoFillUp)
-{
-	// refresh timer on pickup
-	m_WeaponAquiredTick = Server()->Tick();
 }

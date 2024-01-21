@@ -222,17 +222,17 @@ void CGameControllerHunterN::OnCharacterSpawn(CCharacter *pChr) // 给予生命�
 			pChr->GameWorld()->CreateSoundGlobal(SOUND_CTF_GRAB_EN, CmaskOne(pChr->GetPlayer()->GetCID()));
 			pChr->GameServer()->SendBroadcast("     这回合你被选择为猎人Hunter!\n     猎人双倍伤害 有瞬杀锤子和破片榴弹\n     分辨出你的队友 消灭敌方队伍胜利!", pChr->GetPlayer()->GetCID(), true);
 		}
-		/*else if(pChr->GetPlayer()->m_Class == CLASS_JUGGERNAUT)
+		else if(pChr->GetPlayer()->m_Class == CLASS_JUGGERNAUT)
 		{
-			pChr->m_MaxHealth = 40;
-			pChr->IncreaseHealth(40);
-			pChr->m_MaxArmor = 20;
-			pChr->IncreaseArmor(20);
-			//pChr->SetPowerUpWeapon(WEAPON_ID_JUGHAMMER, -1);
+			pChr->m_MaxHealth = 114;
+			pChr->IncreaseHealth(114);
+			pChr->m_MaxArmor = 5;
+			pChr->IncreaseArmor(5);
+			pChr->SetPowerUpWeapon(WEAPON_ID_JUGNINJA, -1);
 
 			pChr->GameWorld()->CreateSoundGlobal(SOUND_NINJA_FIRE, CmaskOne(pChr->GetPlayer()->GetCID()));
 			pChr->GameServer()->SendBroadcast("     这局你是剑圣Juggernaut！噶了所有人胜利!\n     剑圣40心20盾 有盾反锤子且能斩杀", pChr->GetPlayer()->GetCID(), true);
-		}*/
+		}
 	}
 }
 
@@ -250,6 +250,13 @@ int CGameControllerHunterN::OnCharacterTakeDamage(class CCharacter *pChr, vec2 &
 	if(pChr->GetPlayer()->GetCID() == From && pChr->GetPlayer()->m_Class == CLASS_HUNTER) // Hunter不能受到来自自己的伤害（这样就不会被逆天榴弹自爆）
 		return DAMAGE_NO_DAMAGE | DAMAGE_NO_INDICATOR;
 	return DAMAGE_NORMAL;
+}
+
+int CGameControllerHunterN::OnPickup(CPickup *pPickup, CCharacter *pChar, SPickupSound *pSound) // Juggernaut不能捡东西
+{
+	if(pChar->GetPlayer()->m_Class != CLASS_JUGGERNAUT || ((pPickup->GetType() == POWERUP_ARMOR)))
+		return IGameController::OnPickup(pPickup, pChar, pSound);
+	return -1;
 }
 
 bool CGameControllerHunterN::CanChangeTeam(CPlayer *pPlayer, int JoinTeam) const // 加入膀胱者重置职业Flag

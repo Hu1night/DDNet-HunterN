@@ -10,7 +10,6 @@ private:
 	int m_CurrentMoveTime;
 	float m_OldVelAmount;
 	int m_NumObjectsHit;
-	int m_Duration;
 	class CCharacter *m_apHitObjects[MAX_CLIENTS];
 
 public:
@@ -21,7 +20,6 @@ public:
 	bool IsPowerupOver() override { return false; };
 	void OnUnequip() override;
 	int GetType() override { return WEAPON_NINJA; }
-	void OnGiven(bool IsAmmoFillUp) override;
 };
 
 #endif // GAME_SERVER_WEAPONS_NINJA_H
