@@ -856,7 +856,7 @@ void CGameTeams::AddTaggedMapVote(IGameController *Controller, int Tag)
 		{
 			char aBuf[VOTE_DESC_LENGTH];
 			char aBufCom[133]; // "map "-> 5 + 128
-			str_format(aBuf, sizeof(aBuf), "Change Map: %s", m_aMapNames[i]);
+			str_format(aBuf, sizeof(aBuf), "Map: %s", m_aMapNames[i]);
 			str_format(aBufCom, sizeof(aBufCom), "map %s", m_aMapNames[i]);
 			Controller->AddVote(Controller, aBuf, aBufCom);
 		}

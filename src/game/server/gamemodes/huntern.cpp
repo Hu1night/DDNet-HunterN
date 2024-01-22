@@ -277,7 +277,7 @@ bool CGameControllerHunterN::CanChangeTeam(CPlayer *pPlayer, int JoinTeam) const
 
 void CGameControllerHunterN::DoWincheckRound() // check for time based win
 {
-	if((DoWinchenkClassTick != -1 && !DoWinchenkClassTick--) // 计时
+	if(!DoWinchenkClassTick // 计时
 		|| (!m_SuddenDeath && m_GameInfo.m_TimeLimit > 0 && (Server()->Tick() - m_GameStartTick) >= m_GameInfo.m_TimeLimit * Server()->TickSpeed() * 60))
 	{
 		int PlayerCount = 0;
@@ -362,6 +362,9 @@ void CGameControllerHunterN::DoWincheckRound() // check for time based win
 
 		SetGameState(IGS_END_ROUND, m_GameoverTime); // EndRound();
 	}
+
+	if(m_Wincheckdeley >= 0)
+		--m_Wincheckdeley;
 }
 
 int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon) // 杀手隐藏分增减 和受害人职业死亡消息 以及延时终局

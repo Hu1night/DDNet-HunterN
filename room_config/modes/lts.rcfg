@@ -1,7 +1,7 @@
 # lts room config
 
 # game settings
-map ctf1
+map ctf3
 scorelimit 20
 timelimit 2
 warmup 10
@@ -14,16 +14,18 @@ add_vote " " "info"
 add_vote "=== ROOM SETTINGS ===" "info"
 add_vote "Restart" "restart"
 
-# add mode switch votes
-exec "room_config/modes.rcfg"
-
 # rulesets
 add_vote "Rule: 2min 10wins" "scorelimit 10;timelimit 2"
 add_vote "Rule: 3min 15wins" "scorelimit 15;timelimit 3"
 add_vote "Rule: 5min 25wins" "scorelimit 25;timelimit 5"
 
+# ctf + lts maps (no huge map)
+add_vote "CTF maps:" "info"
 add_tagged_map_vote 156
-# ctf + lts maps (no huge maps)
+
+# add mode switch votes
+#add_vote " " "info"
+#exec "room_config/modes.rcfg"
 
 # add map votes
 #exec "room_config/maps/huntern.rcfg"
