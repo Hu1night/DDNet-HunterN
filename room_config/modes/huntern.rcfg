@@ -12,17 +12,17 @@ tournament_chat 1
 
 # room votes
 add_vote " " "info"
-add_vote "=== ROOM SETTINGS ===" "info"
-add_vote "Restart" "restart"
+add_vote "=== 房间设置 ===" "info"
+add_vote "重新开始游戏" "restart"
 
 # rulesets
-add_vote "Rule: 2min" "timelimit 2"
-add_vote "Rule: 3min" "timelimit 3"
-add_vote "Rule: 4min" "timelimit 4"
-add_vote "Rule: 5min" "timelimit 5"
-add_vote "Rule: 3 Player Per Hunter" "htn_hunt_ratio 3"
-add_vote "Rule: 4 Player Per Hunter" "htn_hunt_ratio 4"
-add_vote "Rule: 5 Player Per Hunter" "htn_hunt_ratio 5"
+add_vote "规则: 每局限时2min" "timelimit 2"
+add_vote "规则: 每局限时3min" "timelimit 3"
+add_vote "规则: 每局限时4min" "timelimit 4"
+add_vote "规则: 每局限时5min" "timelimit 5"
+add_vote "规则: 每3玩家1个猎人Hunter" "htn_hunt_ratio 3"
+add_vote "规则: 每4玩家1个猎人Hunter" "htn_hunt_ratio 4"
+add_vote "规则: 每5玩家1个猎人Hunter" "htn_hunt_ratio 5"
 
 # ctf maps
 add_vote "CTF maps:" "info"
@@ -39,3 +39,29 @@ add_tagged_map_vote 3
 
 # add map votes
 #exec "room_config/maps/huntern.rcfg"
+
+# 通用配置
+# tournament_chat "Tournament chat mode, 0 = disabled, 1 = spectator can't send global chat, 2 = all players can only send team chat"
+# warmup "Number of seconds to do warmup before match starts"
+# countdown "Number of seconds to freeze the game in a countdown before match starts, (-: for survival, +: for all"
+# teamdamage "Team damage (1 = half damage, 2 = full damage)"
+# match_swap "Swap teams between matches (2 = shuffle team)"
+# scorelimit "Score limit (0 disables)"
+# timelimit "Time limit in minutes (0 disables)"
+# roundlimit "Round limit for game with rounds (0 disables)"
+# teambalance_time "How many minutes to wait before autobalancing teams"
+# kill_delay "The minimum time in seconds between kills (-1 = disable kill)"
+# player_slots "Maximum room size (from 2 to 64)"
+# player_ready_mode "1 = players can ready to start the game on warmup 2 = players can unready to pause the game, 3 = both"
+# reset_on_match_end "Whether to reset to the initial state (warmup or wait for ready) after a match."
+# pause_per_match "Number of pause (using ready state) allowed per player per match"
+# minimum_players "Number of players required to start a match, (0 = the game can't start)"
+
+# HunterN特有的
+# htn_hunt_ratio "几个玩家里选取一个猎人（整数,默认4,限制2~64）"
+# htn_hunt_broadcast_list "是否全体广播猎人列表（开关,默认0,限制0~1）"
+# htn_hunt_broadcast_death "是否全体广播猎人死亡（开关,默认0,限制0~1）"
+# htn_hunt_effert_death "猎人死亡是否使用出生烟（开关,默认0,限制0~1）"
+# htn_hunt_frags_num "猎人榴弹产生的破片数量（整数,默认18,限制0~268435455）"
+# htn_wincheck_deley "终局判断延时毫秒（整数,默认100,限制0~268435455）"
+# htn_gameover_time "结算界面时长秒数（整数,默认7,限制0~268435455）"
