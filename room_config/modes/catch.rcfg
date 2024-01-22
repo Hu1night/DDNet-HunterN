@@ -1,6 +1,6 @@
 # catch room config
 
-# game settings
+# 游戏配置
 scorelimit 100
 map hunter5
 warmup 10
@@ -10,8 +10,8 @@ minimum_players 5
 
 # room votes
 add_vote " " "info"
-add_vote "=== ROOM SETTINGS ===" "info"
-add_vote "Restart" "restart"
+add_vote "=== 房间配置 ===" "info"
+add_vote "重开" "restart"
 
 # DM maps
 add_vote "DM maps:" "info"

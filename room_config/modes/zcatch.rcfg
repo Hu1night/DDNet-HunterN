@@ -3,17 +3,23 @@
 # inherit catch config
 exec "room_config/modes/catch.rcfg"
 
+# instagib settings
+add_vote "设置: 打开榴弹跳返回弹药" "ammo_regen_boost 1"
+add_vote "设置: 关闭榴弹跳返回弹药" "ammo_regen_boost 0"
+
 # extra maps
 add_tagged_map_vote 192
 # lms + lts maps
 
-# instagib settings
-add_vote "Setting: Free rocket jump ON" "ammo_regen_boost 1"
-add_vote "Setting: Free rocket jump OFF" "ammo_regen_boost 0"
-
 # set genade
 weapon 3
+# 最大弹药数
 max_ammo 6
-ammo_regen_time 250
+# 弹药重生时间
+ammo_regen_time 125
+# 空弹重装延迟
 empty_penalty 750
+# 榴弹跳返回弹药
 ammo_regen_boost 1
+# 弹药重生延迟
+ammo_regen_delay 250

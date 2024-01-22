@@ -1,6 +1,6 @@
-# dm room config
+# dm 个人死斗 房间配置
 
-# game settings
+# 游戏设置
 map dm1
 scorelimit 20
 timelimit 10
@@ -9,13 +9,13 @@ powerups 1
 
 # room votes
 add_vote " " "info"
-add_vote "=== ROOM SETTINGS ===" "info"
+add_vote "=== 房间配置 ===" "info"
 add_vote "Restart" "restart"
 
 # rulesets
-add_vote "Rule: 10min 20points" "scorelimit 20;timelimit 10"
-add_vote "Rule: 15min 50points" "scorelimit 50;timelimit 15"
-add_vote "Rule: 20min 75points" "scorelimit 75;timelimit 20"
+add_vote "规则: 10分钟 20分结束对局" "scorelimit 20;timelimit 10"
+add_vote "规则: 15分钟 50分结束对局" "scorelimit 50;timelimit 15"
+add_vote "规则: 20分钟 75分结束对局" "scorelimit 75;timelimit 20"
 
 # DM maps
 add_vote "DM maps:" "info"

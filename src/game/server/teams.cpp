@@ -69,29 +69,29 @@ void CGameTeams::ResetSwitchers(int Team)
 const char *CGameTeams::SetPlayerTeam(int ClientID, int Team, const char *pGameType)
 {
 	if(ClientID < 0 || ClientID >= MAX_CLIENTS)
-		return "Invalid client ID";
+		return "Invalid client ID"; // language
 	if(Team < 0 || Team >= MAX_CLIENTS + 1)
-		return "Invalid room number";
+		return "Invalid room number"; // language
 	if(Team != TEAM_SUPER && m_aTeamState[Team] > TEAMSTATE_OPEN)
-		return "This room started already";
+		return "此房间已经开始了游戏"; // language
 	if(m_Core.Team(ClientID) == Team)
-		return "You are in this room already";
+		return "你已在此房间"; // language
 
 	SGameInstance Instance = GetPlayerGameInstance(ClientID);
 	if(Instance.m_Init && Instance.m_pController->IsDisruptiveLeave(GameServer()->m_apPlayers[ClientID]))
-		return "You can't change room right now";
+		return "你现在不能切换房间"; // language
 
 	CCharacter *pChar = GameServer()->GetPlayerChar(ClientID);
 	if(pChar)
 	{
 		if(Team == TEAM_SUPER && !pChar->m_Super)
-			return "You can't join super room if you don't have super rights";
+			return "You can't join super room if you don't have super rights"; // language
 		if(Team != TEAM_SUPER && pChar->m_DDRaceState != DDRACE_NONE)
-			return "You have started the game already";
+			return "You have started the game already"; // language
 	}
 
 	if(!SetForcePlayerTeam(ClientID, Team, TEAM_REASON_NORMAL, pGameType))
-		return "Room does not exists. Use /create to create a room";
+		return "此房间不存在, 可用/create指令来创建房间"; // language
 
 	return nullptr;
 }
@@ -409,8 +409,8 @@ void CGameTeams::OnPlayerConnect(CPlayer *pPlayer)
 		str_format(aBuf, sizeof(aBuf), "team_join player='%d:%s' team=%d", ClientID, GameServer()->Server()->ClientName(ClientID), pPlayer->GetTeam());
 		GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
 
-		GameServer()->SendChatTarget(ClientID, "DDNet PvP Mod. Version: " GAME_VERSION);
-		GameServer()->SendChatTarget(ClientID, "say /info for detail and make sure to read our /rules");
+		GameServer()->SendChatTarget(ClientID, "DDNet PvP 模组 版本: " GAME_VERSION); // language
+		GameServer()->SendChatTarget(ClientID, "say /info for detail and make sure to read our /rules"); // language
 	}
 }
 
@@ -427,9 +427,9 @@ void CGameTeams::OnPlayerDisconnect(CPlayer *pPlayer, const char *pReason)
 	{
 		char aBuf[512];
 		if(pReason && *pReason)
-			str_format(aBuf, sizeof(aBuf), "'%s' has left the game (%s)", GameServer()->Server()->ClientName(ClientID), pReason);
+			str_format(aBuf, sizeof(aBuf), "'%s'离开了游戏 (%s)", GameServer()->Server()->ClientName(ClientID), pReason); // language
 		else
-			str_format(aBuf, sizeof(aBuf), "'%s' has left the game", GameServer()->Server()->ClientName(ClientID));
+			str_format(aBuf, sizeof(aBuf), "'%s'离开了游戏", GameServer()->Server()->ClientName(ClientID)); // language
 		GameServer()->SendChat(-1, CGameContext::CHAT_ALL, aBuf, -1, CGameContext::CHAT_SIX);
 
 		str_format(aBuf, sizeof(aBuf), "leave player='%d:%s'", ClientID, GameServer()->Server()->ClientName(ClientID));
@@ -437,7 +437,7 @@ void CGameTeams::OnPlayerDisconnect(CPlayer *pPlayer, const char *pReason)
 	}
 
 	if(!GameServer()->PlayerModerating() && WasModerator)
-		GameServer()->SendChat(-1, CGameContext::CHAT_ALL, "Server kick/spec votes are no longer actively moderated.");
+		GameServer()->SendChat(-1, CGameContext::CHAT_ALL, "Server kick/spec votes are no longer actively moderated."); // language
 
 	SetForcePlayerTeam(ClientID, TEAM_FLOCK, TEAM_REASON_DISCONNECT);
 }
@@ -693,8 +693,8 @@ void CGameTeams::UpdateVotes()
 		}
 		else
 		{
-			str_format(m_aRoomVotes[m_NumRooms], sizeof(m_aRoomVotes[m_NumRooms]), "%s Room %d: ♙%d/%d [%s] 旁观房间", TeamLocked(i) ? "⨂" : "⨀", i, NumPlayersInRoom, TeamLocked(i) ? NumPlayersInRoom : minimum(pController->m_PlayerSlots, RemainingSlots + NumPlayersInRoom + 1), pController->GetGameType());
-			str_format(m_aRoomVotesJoined[m_NumRooms], sizeof(m_aRoomVotesJoined[m_NumRooms]), "%s Room %d: ♙%d/%d [%s] 旁观房间 ⬅", TeamLocked(i) ? "⨂" : "⨀", i, NumPlayersInRoom, TeamLocked(i) ? NumPlayersInRoom : minimum(pController->m_PlayerSlots, RemainingSlots + NumPlayersInRoom), pController->GetGameType());
+			str_format(m_aRoomVotes[m_NumRooms], sizeof(m_aRoomVotes[m_NumRooms]), "%s Room %d: ♙%d/%d [%s] 旁观房间", TeamLocked(i) ? "⨂" : "⨀", i, NumPlayersInRoom, TeamLocked(i) ? NumPlayersInRoom : minimum(pController->m_PlayerSlots, RemainingSlots + NumPlayersInRoom + 1), pController->GetGameType()); // language
+			str_format(m_aRoomVotesJoined[m_NumRooms], sizeof(m_aRoomVotesJoined[m_NumRooms]), "%s Room %d: ♙%d/%d [%s] 旁观房间 ⬅", TeamLocked(i) ? "⨂" : "⨀", i, NumPlayersInRoom, TeamLocked(i) ? NumPlayersInRoom : minimum(pController->m_PlayerSlots, RemainingSlots + NumPlayersInRoom), pController->GetGameType()); // language
 		}
 		m_RoomNumbers[m_NumRooms] = i;
 		m_NumRooms++;
