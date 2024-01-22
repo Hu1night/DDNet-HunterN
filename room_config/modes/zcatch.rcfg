@@ -1,9 +1,5 @@
 # catch room config
 
-# extra maps
-add_tagged_map_vote 192
-# lms + lts maps
-
 # inherit catch config
 exec "room_config/modes/catch.rcfg"
 
