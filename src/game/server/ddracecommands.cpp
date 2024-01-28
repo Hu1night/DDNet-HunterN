@@ -228,7 +228,7 @@ void CGameContext::ConTeleport(IConsole::IResult *pResult, void *pUserData)
 
 	if(Tele != pResult->m_ClientID && AuthLevel < g_Config.m_SvTeleOthersAuthLevel)
 	{
-		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "tele", "you aren't allowed to tele others");
+		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "tele", "you aren't allowed to tele others"); // language
 		return;
 	}
 
@@ -263,7 +263,7 @@ bool CGameContext::TryVoteMute(const NETADDR *pAddr, int Secs)
 		return true;
 	}
 	// no free slot found
-	Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "votemute", "vote mute array is full");
+	Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "votemute", "vote mute array is full"); // language
 	return false;
 }
 
@@ -276,7 +276,7 @@ bool CGameContext::VoteMute(const NETADDR *pAddr, int Secs, const char *pDisplay
 		return true;
 
 	char aBuf[128];
-	str_format(aBuf, sizeof aBuf, "'%s' banned '%s' for %d seconds from voting.",
+	str_format(aBuf, sizeof aBuf, "'%s' banned '%s' for %d seconds from voting.", // language
 		Server()->ClientName(AuthedID), pDisplayName, Secs);
 	Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "votemute", aBuf);
 	return true;
@@ -293,7 +293,7 @@ bool CGameContext::VoteUnmute(const NETADDR *pAddr, const char *pDisplayName, in
 			if(pDisplayName)
 			{
 				char aBuf[128];
-				str_format(aBuf, sizeof aBuf, "'%s' unbanned '%s' from voting.",
+				str_format(aBuf, sizeof aBuf, "'%s' unbanned '%s' from voting.", // language
 					Server()->ClientName(AuthedID), pDisplayName);
 				Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "voteunmute", aBuf);
 			}
@@ -326,7 +326,7 @@ bool CGameContext::TryMute(const NETADDR *pAddr, int Secs, const char *pReason)
 		return true;
 	}
 	// no free slot found
-	Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "mutes", "mute array is full");
+	Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "mutes", "mute array is full"); // language
 	return false;
 }
 
@@ -340,9 +340,9 @@ void CGameContext::Mute(const NETADDR *pAddr, int Secs, const char *pDisplayName
 
 	char aBuf[128];
 	if(pReason[0])
-		str_format(aBuf, sizeof aBuf, "'%s' has been muted for %d seconds (%s)", pDisplayName, Secs, pReason);
+		str_format(aBuf, sizeof aBuf, "'%s'已被禁言 %d 秒 (%s)", pDisplayName, Secs, pReason); // language
 	else
-		str_format(aBuf, sizeof aBuf, "'%s' has been muted for %d seconds", pDisplayName, Secs);
+		str_format(aBuf, sizeof aBuf, "'%s'已被禁言 %d 秒", pDisplayName, Secs); // language
 	SendChat(-1, CHAT_ALL, aBuf);
 }
 
@@ -366,7 +366,7 @@ void CGameContext::ConVoteMute(IConsole::IResult *pResult, void *pUserData)
 	if(Found)
 	{
 		char aBuf[128];
-		str_format(aBuf, sizeof aBuf, "'%s' banned '%s' for %d seconds from voting.",
+		str_format(aBuf, sizeof aBuf, "'%s' banned '%s' for %d seconds from voting.", // language
 			pSelf->Server()->ClientName(pResult->m_ClientID), pSelf->Server()->ClientName(Victim), Seconds);
 		pSelf->SendChat(-1, CGameContext::CHAT_ALL, aBuf);
 	}
@@ -390,7 +390,7 @@ void CGameContext::ConVoteUnmute(IConsole::IResult *pResult, void *pUserData)
 	if(Found)
 	{
 		char aBuf[128];
-		str_format(aBuf, sizeof aBuf, "'%s' unbanned '%s' from voting.",
+		str_format(aBuf, sizeof aBuf, "'%s' unbanned '%s' from voting.", // language
 			pSelf->Server()->ClientName(pResult->m_ClientID), pSelf->Server()->ClientName(Victim));
 		pSelf->SendChat(-1, CGameContext::CHAT_ALL, aBuf);
 	}
@@ -637,7 +637,7 @@ void CGameContext::ConRoomSetting(IConsole::IResult *pResult, void *pUserData)
 		pSelf->Console()->Print(
 			IConsole::OUTPUT_LEVEL_STANDARD,
 			aInstanceBuf,
-			"The room is not ready or does not exist.");
+			"The room is not ready or does not exist."); // language
 		return;
 	}
 

@@ -3718,7 +3718,7 @@ bool CGameContext::RateLimitPlayerVote(int ClientID)
 	if(Now < pPlayer->m_FirstVoteTick)
 	{
 		char aBuf[64];
-		str_format(aBuf, sizeof(aBuf), "等待 %d 你才能发起投票", (int)((pPlayer->m_FirstVoteTick - Now) / TickSpeed) + 1); // language
+		str_format(aBuf, sizeof(aBuf), "等待 %d 秒后你才能发起投票", (int)((pPlayer->m_FirstVoteTick - Now) / TickSpeed) + 1); // language
 		SendChatTarget(ClientID, aBuf);
 		return true;
 	}
@@ -3727,7 +3727,7 @@ bool CGameContext::RateLimitPlayerVote(int ClientID)
 	if(pPlayer->m_LastVoteCall && TimeLeft > 0)
 	{
 		char aChatmsg[64];
-		str_format(aChatmsg, sizeof(aChatmsg), "等待 %d 你才能发起投票", (int)(TimeLeft / TickSpeed) + 1); // language
+		str_format(aChatmsg, sizeof(aChatmsg), "等待 %d 秒后你才能发起投票", (int)(TimeLeft / TickSpeed) + 1); // language
 		SendChatTarget(ClientID, aChatmsg);
 		return true;
 	}
@@ -3741,7 +3741,7 @@ bool CGameContext::RateLimitPlayerVote(int ClientID)
 	if(VoteMuted > 0)
 	{
 		char aChatmsg[64];
-		str_format(aChatmsg, sizeof(aChatmsg), "等待 %d 你才能发起投票", VoteMuted); // language
+		str_format(aChatmsg, sizeof(aChatmsg), "等待 %d 秒后你才能发起投票", VoteMuted); // language
 		SendChatTarget(ClientID, aChatmsg);
 		return true;
 	}
