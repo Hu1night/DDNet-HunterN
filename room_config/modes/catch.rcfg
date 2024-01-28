@@ -14,11 +14,11 @@ add_vote "=== 房间配置 ===" "info"
 add_vote "重开" "restart"
 
 # DM maps
-add_vote "DM maps:" "info"
+add_vote "--- DM maps ---" "info"
 add_tagged_map_vote 3
 
 # ctf maps (no huge map)
-add_vote "CTF maps:" "info"
+add_vote "--- CTF maps ---" "info"
 add_tagged_map_vote 28
 
 # add mode switch votes

@@ -25,11 +25,11 @@ add_vote "规则: 每4玩家1个猎人Hunter" "htn_hunt_ratio 4"
 add_vote "规则: 每5玩家1个猎人Hunter" "htn_hunt_ratio 5"
 
 # ctf maps
-add_vote "CTF maps:" "info"
+add_vote "--- CTF maps ---" "info"
 add_tagged_map_vote 60
 
 # DM maps
-add_vote "DM maps:" "info"
+add_vote "--- DM maps ---" "info"
 add_tagged_map_vote 3
 
 # add mode switch votes

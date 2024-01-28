@@ -20,7 +20,7 @@ add_vote "规则: 15分钟 50分结束对局" "scorelimit 50;timelimit 15"
 add_vote "规则: 20分钟 75分结束对局" "scorelimit 75;timelimit 20"
 
 # ctf maps (no huge map)
-add_vote "CTF maps:" "info"
+add_vote "--- CTF maps ---" "info"
 add_tagged_map_vote 28
 
 # add mode switch votes

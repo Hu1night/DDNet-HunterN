@@ -20,7 +20,7 @@ add_vote "规则: 3分钟 15次胜利结束对局" "scorelimit 15;timelimit 3"
 add_vote "规则: 5分钟 25次胜利结束对局" "scorelimit 25;timelimit 5"
 
 # ctf + lts maps (no huge map)
-add_vote "CTF maps:" "info"
+add_vote "--- CTF maps ---" "info"
 add_tagged_map_vote 156
 
 # add mode switch votes

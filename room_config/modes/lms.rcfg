@@ -18,11 +18,11 @@ add_vote "规则: 3分钟 50分结束对局" "scorelimit 50;timelimit 3"
 add_vote "规则: 5分钟 75分结束对局" "scorelimit 75;timelimit 5"
 
 # DM maps
-add_vote "DM maps:" "info"
+add_vote "--- DM maps ---" "info"
 add_tagged_map_vote 67
 
 # ctf maps (no huge map)
-add_vote "CTF maps:" "info"
+add_vote "--- CTF maps ---" "info"
 add_tagged_map_vote 156
 
 # add mode switch votes
