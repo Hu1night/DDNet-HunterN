@@ -223,8 +223,8 @@ void CGameControllerHunterN::OnCharacterSpawn(CCharacter *pChr) // 给予生命�
 	else if(pChr->GetPlayer()->m_Class == CLASS_HUNTER)
 	{
 		pChr->IncreaseHealth(10);
-		pChr->GiveWeapon(WEAPON_HAMMER, WEAPON_ID_HUNTHAMMER, -1);
 		pChr->GiveWeapon(WEAPON_GUN, WEAPON_ID_PISTOL, 10);
+		pChr->GiveWeapon(WEAPON_HAMMER, WEAPON_ID_HUNTHAMMER, -1);
 
 		pChr->GameWorld()->CreateSoundGlobal(SOUND_CTF_GRAB_EN, CmaskOne(pChr->GetPlayer()->GetCID()));
 		pChr->GameServer()->SendBroadcast("     这回合你被选择为猎人Hunter!\n     猎人双倍伤害 有瞬杀锤子和破片榴弹\n     分辨出你的队友 消灭敌方队伍胜利!", pChr->GetPlayer()->GetCID(), true);
