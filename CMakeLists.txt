@@ -979,10 +979,10 @@ set_src(GAME_SERVER GLOB_RECURSE src/game/server
   gamemodes/lms.h
   gamemodes/lts.cpp
   gamemodes/lts.h
-  gamemodes/tdm.cpp
-  gamemodes/tdm.h
   gamemodes/multibomb.cpp
   gamemodes/multibomb.h
+  gamemodes/tdm.cpp
+  gamemodes/tdm.h
   gameworld.cpp
   gameworld.h
   player.cpp
