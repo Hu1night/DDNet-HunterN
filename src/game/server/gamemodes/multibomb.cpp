@@ -8,7 +8,7 @@
 CGameControllerMultiBomb::CGameControllerMultiBomb() :
 	IGameController()
 {
-	m_pGameType = "bombS"; // len limited :(
+	m_pGameType = "bombMulti"; // len limited :(
 	m_GameFlags = IGF_SURVIVAL | IGF_SUDDENDEATH;
 
 	m_MinimumPlayers = 2;
