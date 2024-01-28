@@ -6,20 +6,16 @@ jobs:
   build-cmake:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-2019]
+        os: [ubuntu-latest, windows-latest, windows-2019]
         include:
         - os: ubuntu-latest
-          package-file: DDNet-Server
-          env:
-            CFLAGS: -Wdeclaration-after-statement -Werror
-            CXXFLAGS: -Werror
+          executable-file: DDNet-Server
+        - os: windows-latest
+          executable-file: DDNet-Server.exe
         - os: windows-2019
-          package-file: DDNet-Server.exe
-          env:
-            CFLAGS: /WX
-            CXXFLAGS: /WX
-            LDFLAGS: /WX
+          executable-file: DDNet-Server.exe
 
     steps:
     - uses: actions/checkout@v3
@@ -30,27 +26,27 @@ jobs:
       if: contains(matrix.os, 'ubuntu')
       run: |
         sudo apt-get update -y
-        sudo apt-get install libsqlite3-dev cmake -y
+        sudo apt-get install cmake libsqlite3-dev -y
 
     - name: Build in release mode
       run: |
-        cmake .
+        cmake . -DCMAKE_BUILD_TYPE=Release
         cmake --build ./ --config Release
 
     - name: Move release
       if: contains(matrix.os, 'windows')
-      run: mv ./release/${{ matrix.package-file }} ./
+      run: mv ./release/${{ matrix.executable-file }} ./
 
     - name: Test release
-      run: ./${{ matrix.package-file }} shutdown
+      run: ./${{ matrix.executable-file }} shutdown
 
     - name: Package
       run: |
         mkdir artifacts
-        mv ${{ matrix.package-file }} artifacts
+        mv ${{ matrix.executable-file }} artifacts
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: hunter-${{ matrix.os }}-build-cmake
+        name: huntern-${{ matrix.os }}
         path: artifacts

@@ -78,9 +78,9 @@ void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 	m_GameFlags = IGF_SURVIVAL | IGF_ROUND_TIMER_ROUND | IGF_SUDDENDEATH | IGF_MARK_MATCH | IGF_MARK_AMONGUS;
 	DoWinchenkClassTick = -1;
 
-	int TeamClass[1];
-	TeamClass[0] = CLASS_CIVIC; // TEAM_RED
-	TeamClass[1] = CLASS_HUNTER; // TEAM_BLUE
+	//int TeamClass[1];
+	//TeamClass[0] = CLASS_CIVIC; // TEAM_RED
+	//TeamClass[1] = CLASS_HUNTER; // TEAM_BLUE
 
 	int PlayerCount = 0; // 玩家计数
 	int PreselectPlayerCount = 0; // 最近没当过猎人的玩家的计数

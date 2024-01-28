@@ -7,24 +7,29 @@ CJugNinja::CJugNinja(CCharacter *pOwnerChar) :
 {
 	m_MaxAmmo = g_pData->m_Weapons.m_aId[WEAPON_NINJA].m_Maxammo;
 	m_AmmoRegenTime = g_pData->m_Weapons.m_aId[WEAPON_NINJA].m_Ammoregentime;
-	m_FireDelay = 340;
+	m_FireDelay = 400;
 	m_OldVelAmount = 0;
 	m_CurrentMoveTime = -1;
 	m_ActivationDir = vec2(0, 0);
 	m_NumObjectsHit = 0;
+
+	m_SnapID[0] = Server()->SnapNewID();
+	m_SnapID[1] = Server()->SnapNewID();
 }
 
 void CJugNinja::Fire(vec2 Direction)
 {
-	CCharacter *pChr = ((CCharacter *)GameWorld()->ClosestEntity(Pos(), 768.f, CGameWorld::ENTTYPE_CHARACTER, Character()));
+	CCharacter *pChr = ((CCharacter *)GameWorld()->ClosestEntity(Pos(), 640.f, CGameWorld::ENTTYPE_CHARACTER, Character()));
 	if(!pChr)
 		return;
 
 	m_NumObjectsHit = 0;
 
 	m_ActivationDir = Direction;
-	m_CurrentMoveTime = 140 * Server()->TickSpeed() / 1000;
+	m_CurrentMoveTime = 200 * Server()->TickSpeed() / 1000;
 	m_OldVelAmount = length(Character()->Core()->m_Vel);
+
+	IsIndicatorSnap = true;
 
 	GameWorld()->CreateSound(Pos(), SOUND_NINJA_FIRE);
 }
@@ -33,8 +38,6 @@ void CJugNinja::Tick()
 {
 	CWeapon::Tick();
 
-	if(!IsReloading)
-
 	if(m_CurrentMoveTime >= 0)
 		m_CurrentMoveTime--;
 
@@ -42,12 +45,14 @@ void CJugNinja::Tick()
 	{
 		// reset velocity
 		Character()->Core()->m_Vel = m_ActivationDir * m_OldVelAmount;
+
+		IsIndicatorSnap = false;
 	}
 
 	if(m_CurrentMoveTime > 0)
 	{
 		// Set velocity
-		Character()->Core()->m_Vel = m_ActivationDir * 60;
+		Character()->Core()->m_Vel = m_ActivationDir * 35;
 		vec2 OldPos = Pos();
 		GameServer()->Collision()->MoveBox(&Character()->Core()->m_Pos, &Character()->Core()->m_Vel, vec2(GetProximityRadius(), GetProximityRadius()), 0.f);
 
@@ -92,20 +97,21 @@ void CJugNinja::Tick()
 		}
 		{
 			CProjectile *aEnts[16];
-			int Num = GameWorld()->FindEntities(Pos() + (Character()->GetDirection() * GetProximityRadius() * 2.5f), GetProximityRadius() * 2.0f, (CEntity **)aEnts, 16, CGameWorld::ENTTYPE_PROJECTILE);
+			int Num = GameWorld()->FindEntities(Pos() + (Character()->GetDirection() * 45.f), 15.f, (CEntity **)aEnts, 16, CGameWorld::ENTTYPE_PROJECTILE);
 
 			for(int i = 0; i < Num; ++i)
 			{
 				if(aEnts[i]->GetOwner() == Character()->GetPlayer()->GetCID())
 					continue;
 
-				CCharacter *pChr = ((CCharacter *)GameWorld()->ClosestEntity((Pos() * 2) - OldPos, 384.f, CGameWorld::ENTTYPE_CHARACTER, Character()));
+				CCharacter *pChr = (CCharacter *)GameWorld()->ClosestEntity((Pos() * 2) - OldPos, 384.f, CGameWorld::ENTTYPE_CHARACTER, Character());
+				vec2 Dir;
 				if(pChr)
-					vec2 Dir = normalize(pChr->m_Pos - aEnts[i]->m_Pos) * 0.5f;
+					Dir = normalize(pChr->m_Pos - aEnts[i]->m_Pos) * 0.5f;
 				else
-					vec2 Dir = normalize(aEnts[i]->m_Pos - Character()->m_Pos) * 0.5f;
+					Dir = normalize(aEnts[i]->m_Pos - Character()->m_Pos) * 0.5f;
 
-				aEnts[i]->SetDir(normalize(pChr->m_Pos - aEnts[i]->m_Pos) * 0.5f);
+				aEnts[i]->SetDir(Dir);
 				aEnts[i]->SetStartPos(aEnts[i]->m_Pos);
 				aEnts[i]->SetStartTick(Server()->Tick());
 				aEnts[i]->SetOwner(Character()->GetPlayer()->GetCID());
@@ -114,6 +120,10 @@ void CJugNinja::Tick()
 				GameWorld()->CreateHammerHit(aEnts[i]->m_Pos);
 			}
 		}
+		vec2 CharacterDir = Character()->GetDirection();
+		m_IndPos[0] = Pos() + (CharacterDir * 60.f);
+		m_IndPos[1] = Pos() + (CharacterDir * 52.5f + (vec2(-CharacterDir.y, CharacterDir.x) * 13.f));
+		m_IndPos[2] = Pos() + (CharacterDir * 52.5f + (vec2(CharacterDir.y, -CharacterDir.x) * 13.f));
 	}
 }
 
@@ -121,4 +131,30 @@ void CJugNinja::OnUnequip()
 {
 	if(m_CurrentMoveTime > 0)
 		Character()->Core()->m_Vel = m_ActivationDir * m_OldVelAmount;
+}
+
+void CJugNinja::Snap(int SnappingClient, int Othermode)
+{
+	if(!IsIndicatorSnap)
+		return;
+
+	CNetObj_Laser *pObj0 = static_cast<CNetObj_Laser *>(Server()->SnapNewItem(NETOBJTYPE_LASER, m_SnapID[0], sizeof(CNetObj_Laser)));
+	if(pObj0)
+	{
+		pObj0->m_X = (int)m_IndPos[1].x;
+		pObj0->m_Y = (int)m_IndPos[1].y;
+		pObj0->m_FromX = (int)m_IndPos[0].x;
+		pObj0->m_FromY = (int)m_IndPos[0].y;
+		pObj0->m_StartTick = Server()->Tick() - 3;
+	}
+
+	CNetObj_Laser *pObj1 = static_cast<CNetObj_Laser *>(Server()->SnapNewItem(NETOBJTYPE_LASER, m_SnapID[1], sizeof(CNetObj_Laser)));
+	if(pObj1)
+	{
+		pObj1->m_X = (int)m_IndPos[2].x;
+		pObj1->m_Y = (int)m_IndPos[2].y;
+		pObj1->m_FromX = (int)m_IndPos[0].x;
+		pObj1->m_FromY = (int)m_IndPos[0].y;
+		pObj1->m_StartTick = Server()->Tick() - 3;
+	}
 }

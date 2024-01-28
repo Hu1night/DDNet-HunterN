@@ -513,8 +513,7 @@ void CPlayer::Snap(int SnappingClient)
 		pPlayerInfo->m_Score = Score;
 		pPlayerInfo->m_ClientID = MappedID;
 		pPlayerInfo->m_Local = (int)(m_ClientID == SnappingClient);
-		pPlayerInfo->m_Team = (Controller() && Controller()->IsAmongUs() && (pSnappingPlayer->m_Team == TEAM_SPECTATORS || pSnappingPlayer->m_DeadSpecMode || IsEndRound || IsEndMatch)) ? // Hunter
-			m_AmongUsTeam : m_Team; // Hunter
+		pPlayerInfo->m_Team = m_Team;
 
 		bool DeadAndNoRespawn = m_RespawnDisabled && (!m_pCharacter || !m_pCharacter->IsAlive());
 		bool FakeSpectator = m_ClientID == SnappingClient && (m_Paused || (m_DeadSpecMode && !IsEndMatch) || ((!m_pCharacter || !m_pCharacter->IsAlive()) && IsEndRound));
@@ -527,6 +526,8 @@ void CPlayer::Snap(int SnappingClient)
 				pPlayerInfo->m_Local = false;
 			pPlayerInfo->m_Team = TEAM_SPECTATORS;
 		}
+		if(Controller() && Controller()->IsAmongUs() && (pSnappingPlayer->m_Team == TEAM_SPECTATORS || pSnappingPlayer->m_DeadSpecMode || IsEndRound || IsEndMatch))
+			pPlayerInfo->m_Team = m_AmongUsTeam;
 	}
 	else
 	{

@@ -21,7 +21,7 @@ add_vote "Rule: 15min 500points" "scorelimit 500;timelimit 15"
 add_vote "Rule: 20min 700points" "scorelimit 700;timelimit 20"
 
 # ctf maps
-add_vote "CTF maps:" "info"
+add_vote "--- CTF maps ---" "info"
 add_tagged_map_vote 60
 
 # add mode switch votes
