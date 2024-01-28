@@ -2851,7 +2851,7 @@ void IGameController::SendChatTarget(int To, const char *pText, int Flags) const
 	if(To < 0)
 	{
 		Start = 0;
-		Limit = MAX_CLIENTS;
+		Limit = Server()->MaxClients();
 	}
 
 	for(int i = Start; i < Limit; i++)
