@@ -59,7 +59,7 @@ void CBombHammer::Fire(vec2 Direction)
 
 	vec2 HammerHitPos = Pos() + Direction * GetProximityRadius() * 0.75f;
 
-	CCharacter *pChr = (CCharacter *)GameWorld()->ClosestEntity(HammerHitPos, GetProximityRadius() * 0.5f, CGameWorld::ENTTYPE_CHARACTER, Character());
+	CCharacter *pChr = (CCharacter *)GameWorld()->ClosestEntity(HammerHitPos, GetProximityRadius() * 1.5f, CGameWorld::ENTTYPE_CHARACTER, Character());
 
 	//if ((pChr == this) || GameServer()->Collision()->IntersectLine(ProjStartPos, pChr->m_Pos, NULL, NULL))
 	if(!pChr || (pChr->IsAlive() && pChr->IsSolo()))

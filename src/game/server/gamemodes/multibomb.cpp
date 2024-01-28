@@ -20,7 +20,7 @@ void CGameControllerMultiBomb::OnCharacterSpawn(CCharacter *pChr)
 
 	pChr->SetPowerUpWeapon(WEAPON_ID_BOMBHAMMER, 0);
 
-	if(!IsGameRunning() && !m_BoomerNum && m_aTeamSize[TEAM_RED] < 2)
+	if(!IsGameRunning() || !m_BoomerNum || m_aTeamSize[TEAM_RED] < 2)
 		return;
 
 	for(int i = 0; i < m_BoomerNum; i++)
@@ -48,7 +48,7 @@ bool CGameControllerMultiBomb::OnEntity(int Index, vec2 Pos, int Layer, int Flag
 
 void CGameControllerMultiBomb::OnWorldReset()
 {
-	m_BoomerNum = (m_aTeamSize[TEAM_RED] - 2) / 5 + 1;
+	m_BoomerNum = (m_aTeamSize[TEAM_RED] - 1) / 5 + 1;
 	m_BoomerCID[m_BoomerNum - 1] = {0};
 
 	if(!m_BoomerNum)
