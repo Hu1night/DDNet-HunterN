@@ -29,6 +29,9 @@ void CGameControllerMultiBomb::OnCharacterSpawn(CCharacter *pChr)
 		{
 			pChr->SetArmor(10);
 
+			if(!pChr->GetPowerupWeapon())
+				continue;
+
 			((CBombHammer *)pChr->GetPowerupWeapon())->m_nextRoundtick = (rand() % Server()->TickSpeed()) + 1;
 			((CBombHammer *)pChr->GetPowerupWeapon())->m_IsActive = true; // 启动炸弹
 		}
