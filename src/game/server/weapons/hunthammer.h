@@ -10,15 +10,11 @@ public:
 	~CHuntHammer() { if(IndicatorSnapID)Server()->SnapFreeID(IndicatorSnapID); }
 
 	void Fire(vec2 Direction) override;
-	void Tick() override;
 	void Snap(int SnappingClient, int OtherMode) override;
 	int GetType() override { return WEAPON_HAMMER; }
 
 private:
 	int IndicatorSnapID;
-	bool IsIndicatorSnap;
-	vec2 IndicatorFrom;
-	vec2 IndicatorTo;
 };
 
 #endif // GAME_SERVER_WEAPONS_HAMMER_H

@@ -517,9 +517,9 @@ void CPlayer::Snap(int SnappingClient)
 			m_AmongUsTeam : m_Team; // Hunter
 
 		bool DeadAndNoRespawn = m_RespawnDisabled && (!m_pCharacter || !m_pCharacter->IsAlive());
-		bool FakeSpectator = m_ClientID == SnappingClient && (m_Paused || (m_DeadSpecMode && !IsEndMatch) || (m_DeadSpecMode && DeadAndNoRespawn && IsEndRound)); // Hunter
+		bool FakeSpectator = m_ClientID == SnappingClient && (m_Paused || (m_DeadSpecMode && !(IsEndMatch || IsEndRound)));
 		FakeSpectator |= GameServer()->GetDDRaceTeam(SnapAs) != GameServer()->GetDDRaceTeam(m_ClientID) && !GameServer()->m_apPlayers[SnappingClient]->ShowOthersMode();
-		FakeSpectator |= !IsEndMatch && ((m_ClientID != SnappingClient || IsEndRound) && DeadAndNoRespawn);
+		FakeSpectator |= !(IsEndMatch || IsEndRound) && ((m_ClientID != SnappingClient) && DeadAndNoRespawn);
 
 		if(FakeSpectator)
 		{
@@ -551,7 +551,7 @@ void CPlayer::Snap(int SnappingClient)
 		pPlayerInfo->m_Latency = Latency;
 	}
 
-	if(m_ClientID == SnappingClient && (IsSpectating() || (m_DeadSpecMode && !IsEndMatch) || IsEndRound))
+	if(m_ClientID == SnappingClient && (IsSpectating() || (m_DeadSpecMode && (!IsEndMatch || !IsEndRound))))
 	{
 		if(SnappingClient < 0 || !Server()->IsSixup(SnappingClient))
 		{
