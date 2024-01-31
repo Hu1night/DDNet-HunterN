@@ -860,8 +860,8 @@ void CCharacter::SnapCharacter(int SnappingClient, int MappedID)
 	if(m_pPlayer->GetCID() == SnappingClient || SnappingClient == -1 ||
 		(!g_Config.m_SvStrictSpectateMode && m_pPlayer->GetCID() == GameServer()->m_apPlayers[SnappingClient]->GetSpectatorID()))
 	{
-		Health = (m_Health * 10) / m_MaxHealth;
-		Armor = (m_Armor * 10) / m_MaxArmor;
+		Health = (m_MaxHealth > 10) ? (m_Health * 10) / m_MaxHealth : m_Health;
+		Armor = (m_MaxArmor > 10) ? (m_Armor * 10) / m_MaxArmor : m_Armor;
 		if(pCurrentWeapon && pCurrentWeapon->NumAmmoIcons() > 0)
 			AmmoCount = (!m_FreezeTime) ? pCurrentWeapon->NumAmmoIcons() : 0;
 	}
