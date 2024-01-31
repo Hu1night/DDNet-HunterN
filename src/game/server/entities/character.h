@@ -254,6 +254,7 @@ public:
 	int GetActiveWeapon() { return m_ActiveWeaponSlot; };
 	void SetActiveWeapon(int ActiveWeap) { m_ActiveWeaponSlot = ActiveWeap; };
 	void SetLastAction(int LastAction) { m_LastAction = LastAction; };
+	void SetHealth(int Health) { m_Health = Health; };
 	int GetArmor() { return m_Armor; };
 	void SetArmor(int Armor) { m_Armor = Armor; };
 	CCharacterCore GetCore() { return m_Core; };

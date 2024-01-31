@@ -13,21 +13,76 @@ static void ConSetClass(IConsole::IResult *pResult, void *pUserData)
 {
 	IGameController *pSelf = (IGameController *)pUserData;
 
-	CPlayer *pPlayer = pSelf->GetPlayerIfInRoom(pResult->GetInteger(0));
-	if(pPlayer)
-	{
-		pPlayer->m_Class = pResult->GetInteger(1); // 0 = CIVIC, 1 = HUNTER, 2 = JUGGERNAUT
+	CPlayer *pPlayer = pSelf->GetPlayerIfInRoom(pResult->GetInteger(1));
+	if(!pPlayer) // If the player does not exist
+		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "invalid client id");
+	else
+	{	pPlayer->m_Class = pResult->GetInteger(0); // Set Class 1 = CIVIC, 2 = HUNTER, 4 = JUGGERNAUT
+		if(pResult->NumArguments() > 2)
+			pPlayer->m_AmongUsTeam = pResult->GetInteger(2); // Team
 		if(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive())
-		{
-			CGameControllerHunterN::OnResetClass(pPlayer->GetCharacter());
-		}
-	}
+			CGameControllerHunterN::OnResetClass(pPlayer->GetCharacter()); // reset class after OnCharacterSpawn
+		if(pResult->NumArguments() > 3)
+			pPlayer->m_UseHunterWeapon = pResult->GetInteger(3);} // Override m_UseHunterWeapon after OnResetClass/OnCharacterSpawn
+}
+
+static void ConGiveWeapon(IConsole::IResult *pResult, void *pUserData)
+{
+	IGameController *pSelf = (IGameController *)pUserData;
+
+	CPlayer *pPlayer = pSelf->GetPlayerIfInRoom((pResult->NumArguments() > 2) ? pResult->GetInteger(2) : pResult->m_ClientID);
+	if(!pPlayer)
+		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "invalid client id");
+	else if(!pPlayer->GetCharacter() || !pPlayer->GetCharacter()->IsAlive())
+		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "character is dead");
+	else
+	{	pPlayer->GetCharacter()->RemoveWeapon(pResult->GetInteger(1)); // Slot
+		pPlayer->GetCharacter()->GiveWeapon(pResult->GetInteger(1), // Slot
+			pResult->GetInteger(0), // Type
+				(pResult->NumArguments() > 3) ? pResult->GetInteger(3) : -1);} // ammo
+}
+
+static void ConSetHeal(IConsole::IResult *pResult, void *pUserData)
+{
+	IGameController *pSelf = (IGameController *)pUserData;
+
+	CPlayer *pPlayer = pSelf->GetPlayerIfInRoom((pResult->NumArguments() > 2) ? pResult->GetInteger(2) : pResult->m_ClientID);
+	if(!pPlayer)
+		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "invalid client id");
+	else if(!pPlayer->GetCharacter() || !pPlayer->GetCharacter()->IsAlive())
+		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "character is dead");
+	else
+	{	if(pResult->NumArguments() > 3) // Set m_MaxHealth
+			pPlayer->GetCharacter()->m_MaxHealth = pResult->GetInteger(3) > 0 ? pResult->GetInteger(3) : 0; // math maximum(pResult->GetInteger(3), 0);
+		if(pResult->NumArguments() > 4) // Set m_MaxArmor
+			pPlayer->GetCharacter()->m_MaxArmor = pResult->GetInteger(4) > 0 ? pResult->GetInteger(4) : 0; // math maximum(pResult->GetInteger(4), 0);
+
+		pPlayer->GetCharacter()->SetHealth(pResult->GetInteger(0)); // Set Health
+		if(pResult->NumArguments() > 1)
+			pPlayer->GetCharacter()->SetArmor(pResult->GetInteger(1));} // Set Armor
+}
+
+static void ConRevive(IConsole::IResult *pResult, void *pUserData)
+{
+	IGameController *pSelf = (IGameController *)pUserData;// CGameControllerHunterN *pSelf = (CGameControllerHunterN *)pUserData; // Warning  // Use CGameControllerHunterN instead of IGameController
+
+	CPlayer *pPlayer = pSelf->GetPlayerIfInRoom((pResult->NumArguments() > 0) ? pResult->GetInteger(0) : pResult->m_ClientID);
+	if(!pPlayer) // If the player does not exist
+		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "invalid client id");
+	else if(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive())
+		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "character is alive");
+	else
+	{	//if(pPlayer->m_Class == CLASS_NONE)
+			pPlayer->m_Class = CLASS_CIVIC;
+		//else if(pPlayer->m_Class == CLASS_HUNTER)
+		//	++pSelf->nHunter;
+		pPlayer->TryRespawn();}
 }
 
 CGameControllerHunterN::CGameControllerHunterN() :
 	IGameController()
 {
-	m_pGameType = "hunterN";
+	m_pGameType = "HunterN";
 	m_GameFlags = IGF_SURVIVAL | IGF_ROUND_TIMER_ROUND | IGF_SUDDENDEATH | IGF_MARK_MATCH | IGF_MARK_AMONGUS;
 	// 生存模式，回合模式，SUDDENDEATH，回合终局显示游戏结束，游戏结束/旁观Snap队伍模式
 
@@ -40,7 +95,10 @@ CGameControllerHunterN::CGameControllerHunterN() :
 	INSTANCE_CONFIG_INT(&m_GameoverTime, "htn_gameover_time", 7, 0, 0xFFFFFFF, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "结算界面时长秒数（整数,默认0,限制0~268435455）");
 	//INSTANCE_CONFIG_INT(&m_RoundMode, "htn_round_mode", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "回合模式 正常0 娱乐1（整数,默认0,限制0~1）");
 
-	InstanceConsole()->Register("htn_setclass", "i[CID] i[class-id]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConSetClass, this, "给玩家设置职业（1平民,2猎人,3剑圣）");
+	InstanceConsole()->Register("htn_setclass", "i[class-id] ?i[CID] ?i[team-id] ?i[hunt-weapon]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConSetClass, this, "给玩家设置职业（1平民,2猎人,4剑圣）");
+	InstanceConsole()->Register("htn_giveweapon", "i[weapon-id] i[slot] ?i[CID] ?i[ammo-num]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConGiveWeapon, this, "给玩家武器");
+	InstanceConsole()->Register("htn_setheal", "i[health] ?i[armor] ?i[CID] ?i[max-health] ?i[max-armor]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConSetHeal, this, "给玩家血量和盾");
+	InstanceConsole()->Register("htn_revive", "?i[CID]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConRevive, this, "复活吧");
 }
 
 void CGameControllerHunterN::OnResetClass(CCharacter *pChr) // 职业重置（出生后）
@@ -55,7 +113,7 @@ void CGameControllerHunterN::OnResetClass(CCharacter *pChr) // 职业重置（�
 	pChr->Controller()->OnCharacterSpawn(pChr);
 }
 
-void CGameControllerHunterN::SendChatRoom(const char *pText, int Flags) // 为什么没有内置的函数让我在Room里面BB
+void CGameControllerHunterN::SendChatRoom(const char *pText, int Flags)
 {
 	CNetMsg_Sv_Chat Msg;
 	Msg.m_Team = 0;
@@ -179,27 +237,26 @@ void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 		}
 	}
 
-	//if(!m_BroadcastHunterList)
-		for(int i = 0; i < MAX_CLIENTS; ++i) // 循环所有旁观者 把猎人列表告诉他们
+	for(int i = 0; i < MAX_CLIENTS; ++i) // 循环所有旁观者 把猎人列表告诉他们
+	{
+		CPlayer *pPlayer = GetPlayerIfInRoom(i);
+		if(pPlayer)
 		{
-			CPlayer *pPlayer = GetPlayerIfInRoom(i);
-			if(pPlayer)
+			if(pPlayer->GetTeam() == TEAM_SPECTATORS)
 			{
-				if(pPlayer->GetTeam() == TEAM_SPECTATORS &&
-					!(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive()))
-				{
-					SendChatTarget(pPlayer->GetCID(), HunterList); // 给膀胱者发
-				}
-				if(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive()) // 这个玩家出生了 所以OnCharacterSpawn已经过了
+				SendChatTarget(pPlayer->GetCID(), HunterList); // 给膀胱者发
+			}
+			else if(pPlayer->GetCharacter())
+			{
+				if(pPlayer->GetCharacter()->IsAlive()) // 这个玩家出生了 所以OnCharacterSpawn已经过了
 				{
 					OnResetClass(pPlayer->GetCharacter()); // 在这里给他们Class提示和武器
 				}
 			}
 		}
-	/*else
-	{
-		SendChatRoom(HunterList); // 全局广播
-	}*/
+	}
+
+	InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", HunterList);
 }
 
 void CGameControllerHunterN::OnCharacterSpawn(CCharacter *pChr) // 给予生命值和武器
@@ -217,7 +274,7 @@ void CGameControllerHunterN::OnCharacterSpawn(CCharacter *pChr) // 给予生命�
 	{
 		pChr->IncreaseHealth(10);
 		pChr->GiveWeapon(WEAPON_GUN, WEAPON_ID_PISTOL, 10);
-		pChr->GetPlayer()->m_UseHunterWeapon = false;
+		pChr->GetPlayer()->m_UseHunterWeapon = false; // 不使用猎人武器
 
 		pChr->GameWorld()->CreateSoundGlobal(SOUND_CTF_GRAB_PL, CmaskOne(pChr->GetPlayer()->GetCID()));
 		pChr->GameServer()->SendBroadcast("这局你是平民Civic! 消灭敌方队伍胜利!     \n猎人双倍伤害 有瞬杀锤子和破片榴弹", pChr->GetPlayer()->GetCID(), true);
@@ -227,7 +284,7 @@ void CGameControllerHunterN::OnCharacterSpawn(CCharacter *pChr) // 给予生命�
 		pChr->IncreaseHealth(10);
 		pChr->GiveWeapon(WEAPON_GUN, WEAPON_ID_PISTOL, 10);
 		pChr->GiveWeapon(WEAPON_HAMMER, WEAPON_ID_HUNTHAMMER, -1);
-		pChr->GetPlayer()->m_UseHunterWeapon = true;
+		pChr->GetPlayer()->m_UseHunterWeapon = true; // 使用猎人武器
 
 		pChr->GameWorld()->CreateSoundGlobal(SOUND_CTF_GRAB_EN, CmaskOne(pChr->GetPlayer()->GetCID()));
 		pChr->GameServer()->SendBroadcast("     这回合你被选择为猎人Hunter!\n     猎人双倍伤害 有瞬杀锤子和破片榴弹\n     分辨出你的队友 消灭敌方队伍胜利!", pChr->GetPlayer()->GetCID(), true);
@@ -239,7 +296,7 @@ void CGameControllerHunterN::OnCharacterSpawn(CCharacter *pChr) // 给予生命�
 		pChr->m_MaxArmor = 5;
 		pChr->IncreaseArmor(5);
 		pChr->SetPowerUpWeapon(WEAPON_ID_JUGNINJA, -1);
-		pChr->GetPlayer()->m_UseHunterWeapon = false;
+		pChr->GetPlayer()->m_UseHunterWeapon = false; // 不使用猎人武器
 
 		pChr->GameWorld()->CreateSoundGlobal(SOUND_NINJA_FIRE, CmaskOne(pChr->GetPlayer()->GetCID()));
 		pChr->GameServer()->SendBroadcast("     这局你是剑圣Juggernaut！噶了所有人胜利!\n     剑圣40心20盾 有盾反锤子且能斩杀", pChr->GetPlayer()->GetCID(), true);
