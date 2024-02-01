@@ -36,8 +36,8 @@ static void ConGiveWeapon(IConsole::IResult *pResult, void *pUserData)
 	else if(!pPlayer->GetCharacter() || !pPlayer->GetCharacter()->IsAlive())
 		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "character is dead");
 	else
-	{	pPlayer->GetCharacter()->RemoveWeapon(pResult->GetInteger(1)); // Slot
-		pPlayer->GetCharacter()->GiveWeapon(pResult->GetInteger(1), // Slot
+	{	pPlayer->GetCharacter()->RemoveWeapon((pResult->GetInteger(1) < NUM_WEAPONS && pResult->GetInteger(1) >= 0) ? pResult->GetInteger(1) : 0); // Slot
+		pPlayer->GetCharacter()->GiveWeapon((pResult->GetInteger(1) < NUM_WEAPONS && pResult->GetInteger(1) >= 0) ? pResult->GetInteger(1) : 0, // Slot
 			pResult->GetInteger(0), // Type
 				(pResult->NumArguments() > 3) ? pResult->GetInteger(3) : -1);} // ammo
 }
@@ -69,13 +69,11 @@ static void ConRevive(IConsole::IResult *pResult, void *pUserData)
 	CPlayer *pPlayer = pSelf->GetPlayerIfInRoom((pResult->NumArguments() > 0) ? pResult->GetInteger(0) : pResult->m_ClientID);
 	if(!pPlayer) // If the player does not exist
 		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "invalid client id");
-	else if(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive())
+	else if(!pResult->GetInteger(1) && pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive())
 		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "character is alive");
 	else
-	{	//if(pPlayer->m_Class == CLASS_NONE)
+	{	if(pPlayer->m_Class == CLASS_NONE)
 			pPlayer->m_Class = CLASS_CIVIC;
-		//else if(pPlayer->m_Class == CLASS_HUNTER)
-		//	++pSelf->nHunter;
 		pPlayer->TryRespawn();}
 }
 
@@ -98,7 +96,7 @@ CGameControllerHunterN::CGameControllerHunterN() :
 	InstanceConsole()->Register("htn_setclass", "i[class-id] ?i[CID] ?i[team-id] ?i[hunt-weapon]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConSetClass, this, "给玩家设置职业（1平民,2猎人,4剑圣）");
 	InstanceConsole()->Register("htn_giveweapon", "i[weapon-id] i[slot] ?i[CID] ?i[ammo-num]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConGiveWeapon, this, "给玩家武器");
 	InstanceConsole()->Register("htn_setheal", "i[health] ?i[armor] ?i[CID] ?i[max-health] ?i[max-armor]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConSetHeal, this, "给玩家血量和盾");
-	InstanceConsole()->Register("htn_revive", "?i[CID]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConRevive, this, "复活吧");
+	InstanceConsole()->Register("htn_revive", "?i[CID] ?i[force-respawn]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConRevive, this, "复活吧");
 }
 
 void CGameControllerHunterN::OnResetClass(CCharacter *pChr) // 职业重置（出生后）
@@ -319,12 +317,12 @@ int CGameControllerHunterN::OnCharacterTakeDamage(class CCharacter *pChr, vec2 &
 	return DAMAGE_NORMAL;
 }
 
-int CGameControllerHunterN::OnPickup(CPickup *pPickup, CCharacter *pChar, SPickupSound *pSound) // Juggernaut不能捡东西
+/*int CGameControllerHunterN::OnPickup(CPickup *pPickup, CCharacter *pChar, SPickupSound *pSound) // Juggernaut不能捡东西
 {
 	if(pChar->GetPlayer()->m_Class != CLASS_JUGGERNAUT || ((pPickup->GetType() == POWERUP_ARMOR)))
 		return IGameController::OnPickup(pPickup, pChar, pSound);
 	return -1;
-}
+}*/
 
 bool CGameControllerHunterN::CanChangeTeam(CPlayer *pPlayer, int JoinTeam) const // 加入膀胱者重置职业Flag
 {
