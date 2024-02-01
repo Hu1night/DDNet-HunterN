@@ -133,6 +133,7 @@ void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 {
 	m_GameFlags = IGF_SURVIVAL | IGF_ROUND_TIMER_ROUND | IGF_SUDDENDEATH | IGF_MARK_MATCH | IGF_MARK_AMONGUS;
 	DoWinchenkClassTick = -1;
+	m_SuddenDeath = 0;
 
 	//int TeamClass[1];
 	//TeamClass[0] = CLASS_CIVIC; // TEAM_RED
@@ -359,7 +360,10 @@ void CGameControllerHunterN::DoWincheckRound() // check for time based win
 		}
 
 		if(!DoWinchenkClassTick && TeamBlueCount && TeamRedCount)
-			return; // 没死够
+		{
+			--DoWinchenkClassTick;
+			return;
+		}
 
 		// 游戏结束
 		m_aTeamscore[TEAM_RED] = 0; // 重置
