@@ -426,6 +426,14 @@ void CGameControllerHunterN::DoWincheckRound() // check for time based win
 		--DoWinchenkClassTick;
 }
 
+/*void CGameControllerHunterN::DoWincheckMatch()
+{
+	if(m_GameInfo.m_MatchNum > 0 && m_GameInfo.m_MatchCurrent >= m_GameInfo.m_MatchNum)
+	{
+		EndMatch();
+	}
+}*/
+
 int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon) // 杀手隐藏分增减 和受害人职业死亡消息 以及延时终局
 {
 	if(m_GameState == IGS_GAME_RUNNING) // 如果游戏在正常运行
