@@ -26,11 +26,12 @@ public:
 	void OnWorldReset() override;
 	void OnPlayerJoin(class CPlayer *pPlayer) override;
 	int OnCharacterTakeDamage(class CCharacter *pChr, vec2 &Force, int &Dmg, int From, int WeaponType, int WeaponID, bool IsExplosion) override;
-	int OnPickup(CPickup *pPickup, CCharacter *pChar, SPickupSound *pSound) override;
+	//int OnPickup(CPickup *pPickup, CCharacter *pChar, SPickupSound *pSound) override;
 	//bool CanDeadPlayerFreeView(const class CPlayer *pSpectator) override { return true; }
 	//bool CanDeadPlayerFollow(const CPlayer *pSpectator, const CPlayer *pTarget) override { return true; }
 	bool CanChangeTeam(CPlayer *pPlayer, int JoinTeam) const override;
 	void DoWincheckRound() override;
+	void DoWincheckMatch() override { ; }
 	int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon) override;
 
 private: // Intelnal function and value

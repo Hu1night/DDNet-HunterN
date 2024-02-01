@@ -71,6 +71,7 @@ versionsrv
 generated
 
 # IDE project files
+.cmake
 .cproject
 .idea
 .project
