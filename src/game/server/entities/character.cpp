@@ -630,38 +630,10 @@ void CCharacter::Die(int Killer, int Weapon)
 
 	int DeathFlag = Controller()->OnInternalCharacterDeath(this, GameServer()->m_apPlayers[Killer], Weapon);
 	int ModeSpecial = DeathFlag & (DEATH_KILLER_HAS_FLAG | DEATH_VICTIM_HAS_FLAG);
+	int IsHideReason = (DeathFlag & DEATH_NO_REASON);
 
 	if(!(DeathFlag & DEATH_NO_KILL_MSG))
-	{
-		/* Hunter Start */
-		CNetMsg_Sv_KillMsg Msg;
-		Msg.m_Killer = Killer;
-		Msg.m_Victim = m_pPlayer->GetCID();
-		Msg.m_Weapon = Weapon;
-		Msg.m_ModeSpecial = ModeSpecial;
-
-		if(DeathFlag & DEATH_NO_REASON)
-		{
-			CNetMsg_Sv_KillMsg PlayerMsg(Msg);
-			PlayerMsg.m_Killer = m_pPlayer->GetCID();  // This makes the killer Anonymous
-			PlayerMsg.m_Weapon = WEAPON_WORLD;
-
-			for(int i = 0; i < MAX_CLIENTS; ++i)
-			{
-				if(GameServer()->PlayerExists(i) && GameServer()->GetPlayerDDRTeam(i) == GameWorld()->Team())
-					Server()->SendPackMsg((GameServer()->m_apPlayers[i]->GetTeam() != TEAM_SPECTATORS) ? &PlayerMsg : &Msg, MSGFLAG_VITAL, i);
-			}
-		}
-		else
-		{
-			for(int i = 0; i < MAX_CLIENTS; ++i)
-			{
-				if(GameServer()->PlayerExists(i) && GameServer()->GetPlayerDDRTeam(i) == GameWorld()->Team())
-					Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, i);
-			}
-		}
-		/* Hunter End */
-	}
+		Controller()->SendKillMsg(Killer, m_pPlayer->GetCID(), Weapon, ModeSpecial, IsHideReason);
 
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "kill killer='%d:%s' victim='%d:%s' weapon=%d special=%d",
