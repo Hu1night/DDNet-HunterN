@@ -74,7 +74,7 @@ bool CGrenade::GrenadeCollide(CProjectile *pProj, vec2 Pos, CCharacter *pHit, bo
 				WEAPON_SHOTGUN, //Type
 				pProj->GetWeaponID(), //WeaponID
 				pProj->GetOwner(), //Owner
-				FragPos, //Pos
+				FragPos + d, //Pos
 				d * 0.5f, //Dir
 				6.0f, // Radius
 				0.2f * pProj->Server()->TickSpeed(), //Span
