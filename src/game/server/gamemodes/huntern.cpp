@@ -5,7 +5,7 @@
 #include "huntern.h"
 #include <game/server/entities/character.h>
 #include <game/server/weapons.h>
-#include <game/server/entities/pickup.h>
+//#include <game/server/entities/pickup.h>
 #include <game/server/classes.h>
 
 // HunterN commands
@@ -31,7 +31,7 @@ static void ConGiveWeapon(IConsole::IResult *pResult, void *pUserData)
 	IGameController *pSelf = (IGameController *)pUserData;
 
 	CPlayer *pPlayer = pSelf->GetPlayerIfInRoom((pResult->NumArguments() > 2) ? pResult->GetInteger(2) : pResult->m_ClientID);
-	if(!pPlayer)
+	if(!pPlayer) 
 		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "invalid client id");
 	else if(!pPlayer->GetCharacter() || !pPlayer->GetCharacter()->IsAlive())
 		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "character is dead");
@@ -88,7 +88,8 @@ CGameControllerHunterN::CGameControllerHunterN() :
 	//INSTANCE_CONFIG_INT(&m_BroadcastHunterList, "htn_hunt_broadcast_list", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "是否全体广播猎人列表（开关,默认0,限制0~1）");
 	INSTANCE_CONFIG_INT(&m_BroadcastHunterDeath, "htn_hunt_broadcast_death", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "是否全体广播猎人死亡（开关,默认0,限制0~1）");
 	INSTANCE_CONFIG_INT(&m_EffectHunterDeath, "htn_hunt_effert_death", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "猎人死亡是否使用出生烟（开关,默认0,限制0~1）");
-	INSTANCE_CONFIG_INT(&m_HuntFragsNum, "htn_hunt_frags_num", 18, 0, 0xFFFFFFF, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "猎人榴弹产生的破片数量（整数,默认18,限制0~268435455）");
+	INSTANCE_CONFIG_INT(&m_HuntFragNum, "htn_hunt_frag_num", 18, 0, 0xFFFFFFF, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "猎人榴弹产生的破片数量（整数,默认18,限制0~268435455）");
+	INSTANCE_CONFIG_INT(&m_HuntFragTrack, "htn_hunt_frag_track", 18, 0, 0xFFFFFFF, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "猎人榴弹产生的破片数量（整数,默认18,限制0~268435455）");
 	INSTANCE_CONFIG_INT(&m_Wincheckdeley, "htn_wincheck_deley", 100, 0, 0xFFFFFFF, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "终局判断延时毫秒（整数,默认100,限制0~268435455）");
 	INSTANCE_CONFIG_INT(&m_GameoverTime, "htn_gameover_time", 7, 0, 0xFFFFFFF, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "结算界面时长秒数（整数,默认0,限制0~268435455）");
 	//INSTANCE_CONFIG_INT(&m_RoundMode, "htn_round_mode", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "回合模式 正常0 娱乐1（整数,默认0,限制0~1）");
@@ -361,7 +362,7 @@ void CGameControllerHunterN::DoWincheckRound() // check for time based win
 
 		if(!DoWinchenkClassTick && TeamBlueCount && TeamRedCount)
 		{
-			--DoWinchenkClassTick;
+			DoWinchenkClassTick = -1; //  关闭DoWincheck
 			return;
 		}
 
@@ -460,9 +461,9 @@ int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CP
 			}
 			else
 			{
-				char aBuff[16];
-				str_format(aBuff, sizeof(aBuff), "%d Hunter left.", nHunter);
-				str_append(aBuf, aBuff, sizeof(aBuf));
+				char aBufEx[16];
+				str_format(aBufEx, sizeof(aBufEx), "%d Hunter left.", nHunter);
+				str_append(aBuf, aBufEx, sizeof(aBuf));
 				for(int i = 0; i < MAX_CLIENTS; ++i) // 逐个给所有人根据职业发送死亡消息
 				{
 					CPlayer *pPlayer = GetPlayerIfInRoom(i);

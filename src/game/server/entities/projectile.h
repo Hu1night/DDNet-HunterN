@@ -67,6 +67,7 @@ public:
 	int GetOwner() { return m_Owner; }
 	int GetWeaponID() { return m_WeaponID; }
 	/* Hunter Start */
+	int GetStartTick() { return m_StartTick; }
 	void SetOwner(int Owner) { m_Owner = Owner; }
 	void SetStartTick(int Tick) { m_StartTick = Tick; }
 	void SetStartPos(vec2 Pos) { m_StartPos = Pos; }

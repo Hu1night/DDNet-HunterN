@@ -313,7 +313,8 @@ public:
 	int m_ResetOnMatchEnd;
 	int m_PausePerMatch;
 	int m_MinimumPlayers;
-	int m_HuntFragsNum; // Hunter
+	int m_HuntFragNum; // Hunter
+	int m_HuntFragTrack; // Hunter
 
 	// mega map stuff
 	char m_aMap[128];

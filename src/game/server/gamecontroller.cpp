@@ -454,7 +454,8 @@ IGameController::IGameController()
 	m_ResendVotes = false;
 	m_NumPlayerNotReady = 0;
 
-	m_HuntFragsNum = 18; // Hunter
+	m_HuntFragNum = 18; // Hunter
+	m_HuntFragTrack = 0; // Hunter
 
 	// fake client broadcast
 	mem_zero(m_aFakeClientBroadcast, sizeof(m_aFakeClientBroadcast));
