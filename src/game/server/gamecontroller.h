@@ -313,7 +313,8 @@ public:
 	int m_ResetOnMatchEnd;
 	int m_PausePerMatch;
 	int m_MinimumPlayers;
-	int m_HuntFragsNum; // Hunter
+	int m_HuntFragNum; // Hunter
+	int m_HuntFragTrack; // Hunter
 
 	// mega map stuff
 	char m_aMap[128];
@@ -435,7 +436,7 @@ public:
 	// Instance Space Ops
 	void SendChatTarget(int To, const char *pText, int Flags = 3) const;
 	void SendBroadcast(const char *pText, int ClientID, bool IsImportant = true) const;
-	//void SendKillMsg(int Killer, int Victim, int Weapon, int ModeSpecial = 0) const;
+	void SendKillMsg(int Killer, int Victim, int Weapon, int ModeSpecial = 0, bool IsHideReason = false) const;
 
 	// helpers
 	bool IsDDNetEntity(int Index) const;

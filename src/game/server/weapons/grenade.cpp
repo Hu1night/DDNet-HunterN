@@ -37,26 +37,44 @@ bool CGrenade::GrenadeCollide(CProjectile *pProj, vec2 Pos, CCharacter *pHit, bo
 	if(pProj->GameServer()->m_apPlayers[pProj->GetOwner()]->m_UseHunterWeapon)
 	{
 		float a = (rand()%314)/5.0;
-		vec2 d = vec2(cosf(a), sinf(a)) * 80;
+		vec2 ParticleDir = vec2(cosf(a), sinf(a)) * 80;
 
-		pProj->GameWorld()->CreateExplosionParticle(Pos + d); // Create Particle
-		pProj->GameWorld()->CreateExplosionParticle(Pos + vec2(d.y, -d.x));
-		pProj->GameWorld()->CreateExplosionParticle(Pos + vec2(-d.x, -d.y));
-		pProj->GameWorld()->CreateExplosionParticle(Pos + vec2(-d.y, d.x));
+		pProj->GameWorld()->CreateExplosionParticle(Pos + ParticleDir); // vec2(d.x, d.y) // Create Particle
+		pProj->GameWorld()->CreateExplosionParticle(Pos + vec2(ParticleDir.y, -ParticleDir.x));
+		pProj->GameWorld()->CreateExplosionParticle(Pos + vec2(-ParticleDir.x, -ParticleDir.y));
+		pProj->GameWorld()->CreateExplosionParticle(Pos + vec2(-ParticleDir.y, ParticleDir.x));
+
+		vec2 DirChr; // 指向玩家
+		vec2 FragPos; // 破片生成的位置
+		CCharacter* ClosestCharacter = 0; // 最近的其他的玩家的角色的指针
+
+		if(!pHit && pProj->Controller()->m_HuntFragTrack) // 打得好 给了他们狠狠一击!
+		{
+			FragPos = pProj->GetPos((pProj->Server()->Tick() - pProj->GetStartTick() - 1) / (float)pProj->Server()->TickSpeed()); // 上一刻位置 让破片不至于埋土里
+
+			ClosestCharacter = (CCharacter *)pProj->GameWorld()->ClosestEntity(FragPos, 448.f, CGameWorld::ENTTYPE_CHARACTER, pProj->GameServer()->m_apPlayers[pProj->GetOwner()]->GetCharacter());
+			if(ClosestCharacter) // 如果14格内没有其他玩家
+				DirChr = normalize(ClosestCharacter->m_Pos - FragPos); // 指向玩家
+		}
+		else
+			FragPos = Pos;
 
 		CMsgPacker Msg(NETMSGTYPE_SV_EXTRAPROJECTILE);
-		Msg.AddInt(pProj->Controller()->m_HuntFragsNum);
+		Msg.AddInt(pProj->Controller()->m_HuntFragNum);
 
-		for(int i = 0; i < pProj->Controller()->m_HuntFragsNum; i++) // Create Fragments
+		for(int i = 0; i < pProj->Controller()->m_HuntFragNum; i++) // Create Fragments
 		{
-			float a = (rand()%314)/5.0;
-			vec2 d = vec2(cosf(a), sinf(a));
+			float a = (rand()%314)/5.f;
+			vec2 d = vec2(cosf(a), sinf(a)); // 随机指向
+			if(ClosestCharacter)
+				d = normalize((d * 0.5f) + DirChr); // 飞向玩家
+
 			CProjectile *pProjFrag = new CProjectile(
 				pProj->GameWorld(),
 				WEAPON_SHOTGUN, //Type
 				pProj->GetWeaponID(), //WeaponID
 				pProj->GetOwner(), //Owner
-				Pos + d, //Pos
+				FragPos, //Pos
 				d * 0.5f, //Dir
 				6.0f, // Radius
 				0.2f * pProj->Server()->TickSpeed(), //Span

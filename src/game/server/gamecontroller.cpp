@@ -454,7 +454,8 @@ IGameController::IGameController()
 	m_ResendVotes = false;
 	m_NumPlayerNotReady = 0;
 
-	m_HuntFragsNum = 18; // Hunter
+	m_HuntFragNum = 18; // Hunter
+	m_HuntFragTrack = 0; // Hunter
 
 	// fake client broadcast
 	mem_zero(m_aFakeClientBroadcast, sizeof(m_aFakeClientBroadcast));
@@ -2920,7 +2921,7 @@ void IGameController::SendBroadcast(const char *pText, int ClientID, bool IsImpo
 			GameServer()->SendBroadcast(pText, i, IsImportant);
 }
 
-/*void IGameController::SendKillMsg(int Killer, int Victim, int Weapon, int ModeSpecial) const
+void IGameController::SendKillMsg(int Killer, int Victim, int Weapon, int ModeSpecial, bool IsHideReason) const
 {
 	// send the kill message
 	CNetMsg_Sv_KillMsg Msg;
@@ -2929,12 +2930,31 @@ void IGameController::SendBroadcast(const char *pText, int ClientID, bool IsImpo
 	Msg.m_Weapon = Weapon;
 	Msg.m_ModeSpecial = ModeSpecial;
 
-	for(int i = 0; i < MAX_CLIENTS; ++i)
+	/* Hunter Start */
+	if(IsHideReason)
 	{
-		if(GetPlayerIfInRoom(i))
-			Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, i);
+		CNetMsg_Sv_KillMsg PlayerMsg(Msg);
+		PlayerMsg.m_Killer = Victim;  // This makes the killer Anonymous
+		PlayerMsg.m_Weapon = WEAPON_WORLD;
+
+		for(int i = 0; i < MAX_CLIENTS; ++i)
+		{
+			if(GetPlayerIfInRoom(i))
+				Server()->SendPackMsg((GameServer()->m_apPlayers[i]->GetTeam() != TEAM_SPECTATORS || !(GameServer()->m_apPlayers[i]->GetCharacter() && GameServer()->m_apPlayers[i]->GetCharacter()->IsAlive())) ?
+					&PlayerMsg : &Msg, // Is Hide Reason
+						MSGFLAG_VITAL, i);
+		}
 	}
-}*/
+	else
+	{
+		for(int i = 0; i < MAX_CLIENTS; ++i)
+		{
+			if(GetPlayerIfInRoom(i))
+				Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, i);
+		}
+	}
+	/* Hunter End */
+}
 
 void IGameController::InstanceConsolePrint(const char *pStr, void *pUser)
 {
