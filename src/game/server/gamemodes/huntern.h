@@ -22,8 +22,9 @@ public:
 	void SendChatRoom(const char *pText, int Flags = 3);
 
 	// event
-	void OnCharacterSpawn(class CCharacter *pChr) override;
 	void OnWorldReset() override;
+	bool IsSpawnRandom() const { return m_aTeamSize[TEAM_RED] > 4; };
+	void OnCharacterSpawn(class CCharacter *pChr) override;
 	void OnPlayerJoin(class CPlayer *pPlayer) override;
 	int OnCharacterTakeDamage(class CCharacter *pChr, vec2 &Force, int &Dmg, int From, int WeaponType, int WeaponID, bool IsExplosion) override;
 	//int OnPickup(CPickup *pPickup, CCharacter *pChar, SPickupSound *pSound) override;

@@ -246,12 +246,9 @@ void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 			{
 				SendChatTarget(pPlayer->GetCID(), HunterList); // 给膀胱者发
 			}
-			else if(pPlayer->GetCharacter())
+			else if(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive()) // 这个玩家出生了 所以OnCharacterSpawn已经过了
 			{
-				if(pPlayer->GetCharacter()->IsAlive()) // 这个玩家出生了 所以OnCharacterSpawn已经过了
-				{
-					OnResetClass(pPlayer->GetCharacter()); // 在这里给他们Class提示和武器
-				}
+				OnResetClass(pPlayer->GetCharacter()); // 在这里给他们Class提示和武器
 			}
 		}
 	}
@@ -326,7 +323,7 @@ int CGameControllerHunterN::OnCharacterTakeDamage(class CCharacter *pChr, vec2 &
 	return -1;
 }*/
 
-bool CGameControllerHunterN::CanChangeTeam(CPlayer *pPlayer, int JoinTeam) const // 加入膀胱者重置职业Flag
+bool CGameControllerHunterN::CanChangeTeam(CPlayer *pPlayer, int JoinTeam) const // 加入膀胱者则重置职业Flag
 {
 	if(JoinTeam == TEAM_SPECTATORS)
 	{
