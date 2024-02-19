@@ -32,7 +32,7 @@ make -j16
 * DDNet-HunterN的Mega_std_collection地图启动时执行/data/maps/huntern_msc.map.cfg
 * 服务器资产定位使用/storage.cfg
 
-**关于DDNet-PvP的Mega map生成**
-使用[DDNet-PvP附加工具](https://github.com/Hu1night/DDNet-HunterN/releases/download/0.3a1/DDNet-PvP.Extra.tools.zip)中的map_merge程序进行Mega map的生成
-使用用法：```map_merge 输出地图名 输入地图1 输入地图2 输入地图3 ... 输入地图n```
-使用实例：```map_merge huntern.map hunter1.map hunter2.map hunter3.map hunter4.map hunter6.map```
+**关于DDNet-PvP的Mega map生成**<br />
+使用[DDNet-PvP附加工具](https://github.com/Hu1night/DDNet-HunterN/releases/download/0.3a1/DDNet-PvP.Extra.tools.zip)中的map_merge程序进行Mega map的生成<br />
+使用用法：```map_merge 输出地图名 输入地图1 输入地图2 输入地图3 ... 输入地图n```<br />
+使用实例：```map_merge huntern.map hunter1.map hunter2.map hunter3.map hunter4.map hunter6.map```<br />
