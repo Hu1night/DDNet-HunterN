@@ -147,6 +147,7 @@ public:
 	static void AddMap(const char *pMapName);
 	static void AddMapWithTag(const char *pMapName, int Tag); // Hunter
 	static void AddTaggedMapVote(IGameController *Controller, int Tag); // Hunter
+	const char *GetMapName(int NumMap);
 	static int GetMapIndex(const char *pMapName);
 
 	void UpdateGameTypeName();

@@ -861,6 +861,15 @@ void CGameTeams::AddTaggedMapVote(IGameController *Controller, int Tag)
 			Controller->AddVote(Controller, aBuf, aBufCom);
 		}
 }
+
+const char *CGameTeams::GetMapName(int NumMap)
+{
+	NumMap--;
+	if(NumMap >= 0 && NumMap < m_NumMaps)
+		return m_aMapNames[NumMap];
+
+	return nullptr;
+}
 /* Hunter End */
 
 int CGameTeams::GetMapIndex(const char *pMapName)

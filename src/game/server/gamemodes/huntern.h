@@ -14,16 +14,20 @@ private: // config
 	int m_Wincheckdeley;
 	int m_GameoverTime;
 	//int m_RoundMode;
+public: // Maprotation
+	int m_Maprotation[64] = {0}; // 存储MapIndex的数组
 
 public:
 	CGameControllerHunterN();
 
 	static void OnResetClass(CCharacter *pChr);
 	void SendChatRoom(const char *pText, int Flags = 3);
+	void CycleMap();
 
 	// event
-	void OnCharacterSpawn(class CCharacter *pChr) override;
 	void OnWorldReset() override;
+	bool IsSpawnRandom() const { return m_aTeamSize[TEAM_RED] > 4; };
+	void OnCharacterSpawn(class CCharacter *pChr) override;
 	void OnPlayerJoin(class CPlayer *pPlayer) override;
 	int OnCharacterTakeDamage(class CCharacter *pChr, vec2 &Force, int &Dmg, int From, int WeaponType, int WeaponID, bool IsExplosion) override;
 	//int OnPickup(CPickup *pPickup, CCharacter *pChar, SPickupSound *pSound) override;
@@ -31,7 +35,7 @@ public:
 	//bool CanDeadPlayerFollow(const CPlayer *pSpectator, const CPlayer *pTarget) override { return true; }
 	bool CanChangeTeam(CPlayer *pPlayer, int JoinTeam) const override;
 	void DoWincheckRound() override;
-	void DoWincheckMatch() override { ; }
+	void DoWincheckMatch() override;
 	int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon) override;
 
 private: // Intelnal function and value
