@@ -60,12 +60,14 @@ class CGameTeams
 	};
 	std::vector<SEntity> m_Entities;
 
+public: enum { MAX_MAPS = 64, }; // Hunter
+private:
 	// gametypes
 	static std::vector<SGameType> m_GameTypes;
 	static char m_aGameTypeName[17];
-	static char m_aMapNames[64][128];
+	static char m_aMapNames[MAX_MAPS][128]; // Hunter
 	static int m_NumMaps;
-	static int m_MapsTag[64]; // Hunter
+	static int m_MapsTag[MAX_MAPS]; // Hunter
 	static SGameType m_DefaultGameType;
 	static char m_aGameTypeList[512];
 

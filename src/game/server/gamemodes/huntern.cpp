@@ -13,13 +13,16 @@ static void ConMapAdd(IConsole::IResult *pResult, void *pUserData)
 {
 	CGameControllerHunterN *pSelf = (CGameControllerHunterN *)pUserData;
 
+	char aBuf[256];
+
 	if(pResult->NumArguments() > 0) // 如果要加入地图
 	{
 		for(int j = 0; j < pResult->NumArguments(); ++j) // 逐个加入地图到列表
 		{
 			const char *pMapName = pResult->GetString(j);
 
-			for(int i = 0; i < 64; ++i) // 循环所有子地图
+			int i = 0;
+			for(;i < CGameControllerHunterN::MAX_MAPROTATIONS; ++i) // 遍历地图循环列表
 			{
 				if(!pSelf->m_Maprotation[i]) // 在列表里找到了可用空位
 				{
@@ -28,22 +31,23 @@ static void ConMapAdd(IConsole::IResult *pResult, void *pUserData)
 						break; // 跳出到错误提示
 
 					pSelf->m_Maprotation[i] = MapIndex; // 加入循环列表
-					goto next_map;
+					str_format(aBuf, sizeof(aBuf), "Add map%d '%s' to slot %d", j, pMapName, i);
+					pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "instance", aBuf);
+					goto next_map; // 跳转到下一次外循环
 				}
 			}
 
-			char aBuf[512];
-			str_format(aBuf, sizeof(aBuf), "Cannot add map '%s'", pMapName);
+			str_format(aBuf, sizeof(aBuf), "Cannot add map%d '%s' to slot %d", j, pMapName, i);
 			pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "instance", aBuf);
 
-			next_map:;
+			next_map:; // 下一次外循环
 		}
 	}
 	else // 显示列表
 	{
-		char aBuf[1024];
-		str_format(aBuf, sizeof(aBuf), "Value: ");
-		for(int i = 0; i < 64; ++i) // 循环所有子地图
+		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "instance", "Value: ");
+
+		for(int i = 0; i < CGameControllerHunterN::MAX_MAPROTATIONS; ++i) // 遍历地图循环列表
 		{
 			if(!pSelf->m_Maprotation[i]) // 列表走到了尽头
 				break;
@@ -52,10 +56,9 @@ static void ConMapAdd(IConsole::IResult *pResult, void *pUserData)
 			if(!pMapName)
 				continue;
 
-			str_append(aBuf, pMapName, sizeof(aBuf));
-			str_append(aBuf, ", ", sizeof(aBuf));
+			str_format(aBuf, sizeof(aBuf), "%d-%d | %s, ", i, pSelf->m_Maprotation[i], pMapName);
+			pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "instance", aBuf); // 输出
 		}
-		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "instance", aBuf); // 输出
 	}
 }
 
@@ -63,7 +66,7 @@ static void ConMapClear(IConsole::IResult *pResult, void *pUserData)
 {
 	CGameControllerHunterN *pSelf = (CGameControllerHunterN *)pUserData;
 
-	for(int i = 0; i < 64; ++i) pSelf->m_Maprotation[i] = {0};
+	for(int i = 0; i < CGameControllerHunterN::MAX_MAPROTATIONS; ++i) pSelf->m_Maprotation[i] = {0};
 }
 
 static void ConSetClass(IConsole::IResult *pResult, void *pUserData)
@@ -151,9 +154,9 @@ CGameControllerHunterN::CGameControllerHunterN() :
 	INSTANCE_CONFIG_INT(&m_GameoverTime, "htn_gameover_time", 7, 0, 0xFFFFFFF, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "结算界面时长秒数（整数,默认0,限制0~268435455）");
 	//INSTANCE_CONFIG_INT(&m_RoundMode, "htn_round_mode", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "回合模式 正常0 娱乐1（整数,默认0,限制0~1）");;
 
-	InstanceConsole()->Register("htn_map", "", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConMapAdd, this, "Maps to rotate between");
-	InstanceConsole()->Register("htn_map_add", "?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConMapAdd, this, "Add a map to the maps rotation list");
-	InstanceConsole()->Register("htn_map_clear", "", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConMapClear, this, "Clear the maps rotation list");
+	InstanceConsole()->Register("htn_map", "", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConMapAdd, this, "地图所循环的列表");
+	InstanceConsole()->Register("htn_map_add", /* just 64 maps :P */ "?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConMapAdd, this, "向地图循环添加地图");
+	InstanceConsole()->Register("htn_map_clear", "", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConMapClear, this, "清除地图循环列表");
 
 	InstanceConsole()->Register("htn_setclass", "i[class-id] ?i[CID] ?i[team-id] ?i[hunt-weapon]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConSetClass, this, "给玩家设置职业（1平民,2猎人,4剑圣）");
 	InstanceConsole()->Register("htn_giveweapon", "i[weapon-id] i[slot] ?i[CID] ?i[ammo-num]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConGiveWeapon, this, "给玩家武器");
@@ -532,7 +535,7 @@ int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CP
 			if(m_EffectHunterDeath)
 				GameWorld()->CreatePlayerSpawn(pVictim->m_Pos); // 死亡给个出生烟
 
-			char aBuf[56];
+			char aBuf[64];
 			str_format(aBuf, sizeof(aBuf), "Hunter '%s' was defeated! ", Server()->ClientName(pVictim->GetPlayer()->GetCID()));
 
 			if(m_BroadcastHunterDeath == 1 ||

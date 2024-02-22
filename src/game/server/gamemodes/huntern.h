@@ -14,8 +14,11 @@ private: // config
 	int m_Wincheckdeley;
 	int m_GameoverTime;
 	//int m_RoundMode;
+
 public: // Maprotation
-	int m_Maprotation[64] = {0}; // 存储MapIndex的数组
+	enum { MAX_MAPROTATIONS = CGameTeams::MAX_MAPS, };
+	// enum { MAX_MAPROTATIONS = 114514, };
+	int m_Maprotation[MAX_MAPROTATIONS] = {0}; // 存储MapIndex的数组
 
 public:
 	CGameControllerHunterN();

@@ -603,9 +603,9 @@ int CGameTeams::FindAEmptyTeam()
 }
 std::vector<SGameType> CGameTeams::m_GameTypes;
 SGameType CGameTeams::m_DefaultGameType = {nullptr, nullptr, nullptr, false};
-char CGameTeams::m_aMapNames[64][128];
+char CGameTeams::m_aMapNames[MAX_MAPS][128]; // Hunter
 int CGameTeams::m_NumMaps;
-int CGameTeams::m_MapsTag[64] = {0}; // Hunter
+int CGameTeams::m_MapsTag[MAX_MAPS] = {0}; // Hunter
 char CGameTeams::m_aGameTypeName[17] = {0};
 
 void CGameTeams::SetDefaultGameType(const char *pGameType, const char *pSettings, bool IsFile)
@@ -833,7 +833,7 @@ void CGameTeams::ClearMaps()
 
 void CGameTeams::AddMap(const char *pMapName)
 {
-	if(m_NumMaps >= 64)
+	if(m_NumMaps >= MAX_MAPS)
 		return;
 	str_copy(m_aMapNames[m_NumMaps], pMapName, 128);
 	m_NumMaps++;
@@ -842,7 +842,7 @@ void CGameTeams::AddMap(const char *pMapName)
 /* Hunter Start */
 void CGameTeams::AddMapWithTag(const char *pMapName, int Tag)
 {
-	if(m_NumMaps >= 64)
+	if(m_NumMaps >= MAX_MAPS)
 		return;
 	str_copy(m_aMapNames[m_NumMaps], pMapName, 128);
 	m_MapsTag[m_NumMaps] = Tag;
