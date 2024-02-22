@@ -16,7 +16,7 @@ private: // config
 	//int m_RoundMode;
 
 public: // Maprotation
-	enum { MAX_MAPROTATIONS = CGameTeams::MAX_MAPS, };
+	enum { MAX_MAPROTATIONS = 32, };
 	// enum { MAX_MAPROTATIONS = 114514, };
 	int m_Maprotation[MAX_MAPROTATIONS] = {0}; // 存储MapIndex的数组
 
