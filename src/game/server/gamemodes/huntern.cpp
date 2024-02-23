@@ -563,7 +563,7 @@ int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CP
 						else
 							GameWorld()->CreateSoundGlobal(SOUND_CTF_DROP, CmaskOne(pPlayer->GetCID()));
 					}
-				}
+				}	
 			}
 
 			if(pKiller && pKiller != pVictim->GetPlayer()) // 不是自杀
@@ -600,8 +600,13 @@ int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CP
 			GameWorld()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
 		}*/
 
-		if(nHunter) // 如果没有猎人 就不要发猎人列表 等EndMatch
+		if(nHunter) // 如果没有猎人(当然是全死光啦) 就不要发猎人列表 等EndMatch
+		{
+			char aBuf[32];
+			str_format(aBuf, sizeof(aBuf), "你被 '%s' 所杀", Server()->ClientName(pKiller->GetCID()));
+			SendChatTarget(pVictim->GetPlayer()->GetCID(), aBuf); // 给被弄死的人发
 			SendChatTarget(pVictim->GetPlayer()->GetCID(), HunterList); // 给被弄死的人发
+		}
 
 		DoWinchenkClassTick = ((Server()->TickSpeed() * m_Wincheckdeley) / 1000); // 延时终局
 	}
