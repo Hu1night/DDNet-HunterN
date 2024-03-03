@@ -35,9 +35,12 @@ static void ConMapAdd(IConsole::IResult *pResult, void *pUserData)
 					}
 
 					pSelf->m_aMaprotation[i] = MapIndex; // 加入循环列表
+					IsError = 0; // 0 = 没问题
+
 					str_format(aBuf, sizeof(aBuf), "Add map%d '%s' to slot %d", j, pMapName, i);
 					pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "instance", aBuf);
-					IsError = 0; // 0 = 没问题
+
+					break;
 				}
 			}
 
@@ -61,7 +64,7 @@ static void ConMapAdd(IConsole::IResult *pResult, void *pUserData)
 			if(!pMapName)
 				continue;
 
-			str_format(aBuf, sizeof(aBuf), "%d-%d | %s, ", i, pSelf->m_aMaprotation[i], pMapName);
+			str_format(aBuf, sizeof(aBuf), "%d | %d - %s, ", i, pSelf->m_aMaprotation[i], pMapName);
 			pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "instance", aBuf); // 输出
 		}
 	}
@@ -150,6 +153,8 @@ CGameControllerHunterN::CGameControllerHunterN() :
 	m_GameFlags = HUNTERN_GAMEFLAGS;
 	// 生存模式，回合模式，SUDDENDEATH，回合终局显示游戏结束，游戏结束/旁观Snap队伍模式
 
+	m_IsCycleMap = false;
+
 	INSTANCE_CONFIG_INT(&m_HunterRatio, "htn_hunt_ratio", 4, 2, MAX_CLIENTS, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "几个玩家里选取一个猎人（整数,默认4,限制2~64）");
 	//INSTANCE_CONFIG_INT(&m_Broadcastm_HunterList, "htn_hunt_broadcast_list", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "是否全体广播猎人列表（开关,默认0,限制0~1）");
 	INSTANCE_CONFIG_INT(&m_BroadcastHunterDeath, "htn_hunt_broadcast_death", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "是否全体广播猎人死亡（开关,默认0,限制0~1）");
@@ -233,8 +238,9 @@ void CGameControllerHunterN::OnGameStart(bool IsRound)
 	m_GameFlags = HUNTERN_GAMEFLAGS;
 	m_DoWinchenkClassTick = -1;
 
-	if(!IsRound)
+	if(!IsRound && m_IsCycleMap)
 	{
+		m_IsCycleMap = false;
 		CycleMap();
 	}
 }
@@ -536,7 +542,10 @@ void CGameControllerHunterN::DoWincheckRound() // check for time based win
 void CGameControllerHunterN::DoWincheckMatch() // Roundlimit 触发DoWincheckMatch
 {
 	if(m_GameInfo.m_MatchNum > 0 && m_GameInfo.m_MatchCurrent >= m_GameInfo.m_MatchNum)
+	{
+		m_IsCycleMap = true;
 		SetGameState(IGS_END_MATCH, m_GameoverTime); // EndMatch();
+	}
 }
 
 int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon) // 杀手隐藏分增减 和受害人职业死亡消息 以及延时终局
@@ -619,14 +628,16 @@ int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CP
 		{
 			if(Weapon >= WEAPON_WORLD)
 			{
-				char aBuf[32];
+				char aBuf[64];
 				str_format(aBuf, sizeof(aBuf), "你被 '%s' 的%s所杀", Server()->ClientName(pKiller->GetCID()),
 					(Weapon == WEAPON_HAMMER ? "锤子"
 					: (Weapon == WEAPON_GUN ? "手枪"
 					: (Weapon == WEAPON_SHOTGUN ? "霰弹"
 					: (Weapon == WEAPON_GRENADE ? "榴弹"
 					: (Weapon == WEAPON_LASER ? "激光"
-					: "忍者刀" ))))));
+					: (Weapon == WEAPON_NINJA ? "忍者刀"
+					: "地刺")))))));
+
 				SendChatTarget(pVictim->GetPlayer()->GetCID(), aBuf); // 给被弄死的人发
 			}
 

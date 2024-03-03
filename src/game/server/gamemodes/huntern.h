@@ -46,6 +46,7 @@ private: // Intelnal function and value
 	int m_NumHunter; // 有多少个猎人
 	int m_DoWinchenkClassTick; // 终局判断延迟的Tick
 	char m_HunterList[256]; // 猎人列表
+	bool m_IsCycleMap;
 	//int TeamClass[1];
 	//int MatchFlag = -1;
 
