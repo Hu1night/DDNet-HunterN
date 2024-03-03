@@ -21,26 +21,31 @@ static void ConMapAdd(IConsole::IResult *pResult, void *pUserData)
 		{
 			const char *pMapName = pResult->GetString(j);
 
-			int i = 0;
-			for(;i < CGameControllerHunterN::MAX_MAPROTATIONS; ++i) // 遍历地图循环列表
+			int IsError = 2; // 2 = 地图循环没有空位
+			int i;
+			for(i = 0; i < CGameControllerHunterN::MAX_MAPROTATIONS; ++i) // 遍历地图循环列表
 			{
-				if(!pSelf->m_Maprotation[i]) // 在列表里找到了可用空位
+				if(!pSelf->m_aMaprotation[i]) // 在列表里找到了可用空位
 				{
 					int MapIndex = pSelf->GameServer()->Teams()->GetMapIndex(pMapName);
 					if(MapIndex == 0)
+					{
+						IsError = 1; // 1 = 未找到地图
 						break; // 跳出到错误提示
+					}
 
-					pSelf->m_Maprotation[i] = MapIndex; // 加入循环列表
+					pSelf->m_aMaprotation[i] = MapIndex; // 加入循环列表
 					str_format(aBuf, sizeof(aBuf), "Add map%d '%s' to slot %d", j, pMapName, i);
 					pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "instance", aBuf);
-					goto next_map; // 跳转到下一次外循环
+					IsError = 0; // 0 = 没问题
 				}
 			}
 
-			str_format(aBuf, sizeof(aBuf), "Cannot add map%d '%s' to slot %d", j, pMapName, i);
-			pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "instance", aBuf);
-
-			next_map:; // 下一次外循环
+			if(IsError)
+			{
+				str_format(aBuf, sizeof(aBuf), "Cannot add map%d '%s' to slot %d (%s)", j, pMapName, i, IsError ? "No Map Found" : "Out of Range");
+				pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "instance", aBuf);
+			}
 		}
 	}
 	else // 显示列表
@@ -49,14 +54,14 @@ static void ConMapAdd(IConsole::IResult *pResult, void *pUserData)
 
 		for(int i = 0; i < CGameControllerHunterN::MAX_MAPROTATIONS; ++i) // 遍历地图循环列表
 		{
-			if(!pSelf->m_Maprotation[i]) // 列表走到了尽头
+			if(!pSelf->m_aMaprotation[i]) // 列表走到了尽头
 				break;
 
-			const char *pMapName = pSelf->GameServer()->Teams()->GetMapName(pSelf->m_Maprotation[i]);
+			const char *pMapName = pSelf->GameServer()->Teams()->GetMapName(pSelf->m_aMaprotation[i]);
 			if(!pMapName)
 				continue;
 
-			str_format(aBuf, sizeof(aBuf), "%d-%d | %s, ", i, pSelf->m_Maprotation[i], pMapName);
+			str_format(aBuf, sizeof(aBuf), "%d-%d | %s, ", i, pSelf->m_aMaprotation[i], pMapName);
 			pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "instance", aBuf); // 输出
 		}
 	}
@@ -66,7 +71,8 @@ static void ConMapClear(IConsole::IResult *pResult, void *pUserData)
 {
 	CGameControllerHunterN *pSelf = (CGameControllerHunterN *)pUserData;
 
-	for(int i = 0; i < CGameControllerHunterN::MAX_MAPROTATIONS; ++i) pSelf->m_Maprotation[i] = {0};
+	for(int i = 0; i < CGameControllerHunterN::MAX_MAPROTATIONS; ++i)
+		pSelf->m_aMaprotation[i] = {0}; // 清空地图循环列表
 }
 
 static void ConSetClass(IConsole::IResult *pResult, void *pUserData)
@@ -141,11 +147,11 @@ CGameControllerHunterN::CGameControllerHunterN() :
 	IGameController()
 {
 	m_pGameType = "HunterN";
-	m_GameFlags = IGF_SURVIVAL | IGF_ROUND_TIMER_ROUND | IGF_SUDDENDEATH | IGF_MARK_MATCH | IGF_MARK_AMONGUS;
+	m_GameFlags = HUNTERN_GAMEFLAGS;
 	// 生存模式，回合模式，SUDDENDEATH，回合终局显示游戏结束，游戏结束/旁观Snap队伍模式
 
 	INSTANCE_CONFIG_INT(&m_HunterRatio, "htn_hunt_ratio", 4, 2, MAX_CLIENTS, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "几个玩家里选取一个猎人（整数,默认4,限制2~64）");
-	//INSTANCE_CONFIG_INT(&m_BroadcastHunterList, "htn_hunt_broadcast_list", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "是否全体广播猎人列表（开关,默认0,限制0~1）");
+	//INSTANCE_CONFIG_INT(&m_Broadcastm_HunterList, "htn_hunt_broadcast_list", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "是否全体广播猎人列表（开关,默认0,限制0~1）");
 	INSTANCE_CONFIG_INT(&m_BroadcastHunterDeath, "htn_hunt_broadcast_death", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "是否全体广播猎人死亡（开关,默认0,限制0~1）");
 	INSTANCE_CONFIG_INT(&m_EffectHunterDeath, "htn_hunt_effert_death", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "猎人死亡是否使用出生烟（开关,默认0,限制0~1）");
 	INSTANCE_CONFIG_INT(&m_HuntFragNum, "htn_hunt_frag_num", 18, 0, 0xFFFFFFF, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "猎人榴弹产生的破片数量（整数,默认18,限制0~268435455）");
@@ -155,7 +161,8 @@ CGameControllerHunterN::CGameControllerHunterN() :
 	//INSTANCE_CONFIG_INT(&m_RoundMode, "htn_round_mode", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "回合模式 正常0 娱乐1（整数,默认0,限制0~1）");;
 
 	InstanceConsole()->Register("htn_map", "", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConMapAdd, this, "地图所循环的列表");
-	InstanceConsole()->Register("htn_map_add", /* just 64 maps :P */ "?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConMapAdd, this, "向地图循环添加地图");
+#define ALOTMAPS "?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps] ?s[maps]"
+	InstanceConsole()->Register("htn_map_add", ALOTMAPS/* just 64 maps :P */, CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConMapAdd, this, "向地图循环添加地图");
 	InstanceConsole()->Register("htn_map_clear", "", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConMapClear, this, "清除地图循环列表");
 
 	InstanceConsole()->Register("htn_setclass", "i[class-id] ?i[CID] ?i[team-id] ?i[hunt-weapon]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConSetClass, this, "给玩家设置职业（1平民,2猎人,4剑圣）");
@@ -164,6 +171,7 @@ CGameControllerHunterN::CGameControllerHunterN() :
 	InstanceConsole()->Register("htn_revive", "?i[CID]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConRevive, this, "复活吧");
 }
 
+// Functional
 void CGameControllerHunterN::OnResetClass(CCharacter *pChr) // 职业重置（出生后）
 {
 	pChr->m_MaxHealth = 10;
@@ -194,37 +202,45 @@ void CGameControllerHunterN::SendChatRoom(const char *pText, int Flags)
 		}
 }
 
-void CGameControllerHunterN::CycleMap()
+void CGameControllerHunterN::CycleMap() // 循环地图
 {
-	if(!m_Maprotation[0]) // 列表没东西
+	if(!m_aMaprotation[0]) // 列表没东西
 		return;
 
 	bool CurrentMapfound = false; // 是否找到了当前地图
 
 	for(int i = 0; i < 64; ++i) // 循环所有子地图
 	{
-		if(!m_Maprotation[i]) // 列表走到了尽头 没找到可用地图
+		if(!m_aMaprotation[i]) // 列表走到了尽头 没找到可用地图
 			break;
-		else if(m_Maprotation[i] == m_MapIndex) // 是否在列表里找到了当前地图
+		else if(m_aMaprotation[i] == m_MapIndex) // 是否在列表里找到了当前地图
 			CurrentMapfound = true; // 下次循环会试图寻找可用地图
 		else if(CurrentMapfound)
 		{
-			m_MapIndex = m_Maprotation[i]; // 切换地图
+			m_MapIndex = m_aMaprotation[i]; // 切换地图
 			GameServer()->Teams()->ReloadGameInstance(GameWorld()->Team());
 			return;
 		}
 	}
 
-	m_MapIndex = m_Maprotation[0]; // 重置到列表第一项
+	m_MapIndex = m_aMaprotation[0]; // 重置到列表第一项
 	GameServer()->Teams()->ReloadGameInstance(GameWorld()->Team());
+}
+
+// Event
+void CGameControllerHunterN::OnGameStart(bool IsRound)
+{
+	m_GameFlags = HUNTERN_GAMEFLAGS;
+	m_DoWinchenkClassTick = -1;
+
+	if(!IsRound)
+	{
+		CycleMap();
+	}
 }
 
 void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 {
-	m_GameFlags = IGF_SURVIVAL | IGF_ROUND_TIMER_ROUND | IGF_SUDDENDEATH | IGF_MARK_MATCH | IGF_MARK_AMONGUS;
-	DoWinchenkClassTick = -1;
-	m_SuddenDeath = 0;
-
 	//int TeamClass[1];
 	//TeamClass[0] = CLASS_CIVIC; // TEAM_RED
 	//TeamClass[1] = CLASS_HUNTER; // TEAM_BLUE
@@ -232,7 +248,7 @@ void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 	//int PlayerCount = m_aTeamSize[TEAM_RED]; // 玩家计数
 	int PreselectPlayerCount = 0; // 最近没当过猎人的玩家的计数
 	int rHunter = 0; // 猎人选择随机数
-	// int nHunter = 0; // 需要选择多少个猎人
+	// int m_NumHunter = 0; // 需要选择多少个猎人
 
 	for(int i = 0; i < MAX_CLIENTS; ++i) // 重置并计数玩家
 	{
@@ -250,24 +266,22 @@ void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 		}
 	}
 
-	if(m_aTeamSize[TEAM_RED] < 2)
-	{
+	if(m_aTeamSize[TEAM_RED] < 2) // m_aTeamSize[TEAM_RED] = 非队伍模式的人数量
 		return;
-	}
 
-	nHunter = (m_aTeamSize[TEAM_RED] - 2) / m_HunterRatio + 1;// 我们要多少个猎人
-	str_format(HunterList, sizeof(HunterList), "本回合的 %d 个Hunter是: ", nHunter); // Generate Hunter info message 生成猎人列表消息头
+	m_NumHunter = (m_aTeamSize[TEAM_RED] - 2) / m_HunterRatio + 1;// 我们要多少个猎人
+	str_format(m_HunterList, sizeof(m_HunterList), "本回合的 %d 个Hunter是: ", m_NumHunter); // Generate Hunter info message 生成猎人列表消息头
 
 	SendChatRoom("——————欢迎来到HunterN猎人杀——————");
 	//MatchFlag = -1; // 要成为Jug的玩家不存在 撤了
 	char aBuf[64];
-	str_format(aBuf, sizeof(aBuf), "本回合有 %d 个猎人Hunter has been selected.", nHunter);
+	str_format(aBuf, sizeof(aBuf), "本回合有 %d 个猎人Hunter has been selected.", m_NumHunter);
 	SendChatRoom(aBuf);
 	SendChatRoom("规则：每回合秘密抽选猎人 猎人对战平民 活人看不到死人消息");
 	SendChatRoom("      猎人双倍伤害 有瞬杀锤子(平民无锤)和破片榴弹(对自己无伤)");
 	SendChatRoom("分辨队友并消灭敌人来取得胜利！Be warned! Sudden Death.");
 
-	for(int iHunter = nHunter; iHunter > 0; --iHunter) // 需要选择nHunter个猎人
+	for(int iHunter = m_NumHunter; iHunter > 0; --iHunter) // 需要选择m_NumHunter个猎人
 	{
 		if(PreselectPlayerCount <= 0) // 先检查m_Preselect的玩家够不够（即所有玩家是不是最近都当过猎人了） 如果不够就重置所有玩家的m_Preselect
 		{
@@ -306,8 +320,8 @@ void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 						--PreselectPlayerCount;
 
 						// Generate Hunter info message 生成猎人列表消息
-						str_append(HunterList, Server()->ClientName(i), sizeof(HunterList));
-						str_append(HunterList, ", ", sizeof(HunterList));
+						str_append(m_HunterList, Server()->ClientName(i), sizeof(m_HunterList));
+						str_append(m_HunterList, ", ", sizeof(m_HunterList));
 
 						//if(iHunter != 1) // 最后一次循环 要循环全体玩家
 							break;
@@ -331,7 +345,7 @@ void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 		{
 			if(pPlayer->GetTeam() == TEAM_SPECTATORS)
 			{
-				SendChatTarget(pPlayer->GetCID(), HunterList); // 给膀胱者发
+				SendChatTarget(pPlayer->GetCID(), m_HunterList); // 给膀胱者发
 			}
 			else if(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive()) // 这个玩家出生了 所以OnCharacterSpawn已经过了
 			{
@@ -340,7 +354,7 @@ void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 		}
 	}
 
-	InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", HunterList);
+	InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", m_HunterList);
 }
 
 void CGameControllerHunterN::OnCharacterSpawn(CCharacter *pChr) // 给予生命值和武器
@@ -372,6 +386,7 @@ void CGameControllerHunterN::OnCharacterSpawn(CCharacter *pChr) // 给予生命�
 
 		pChr->GameWorld()->CreateSoundGlobal(SOUND_CTF_GRAB_EN, CmaskOne(pChr->GetPlayer()->GetCID()));
 		pChr->GameServer()->SendBroadcast("     这回合你被选择为猎人Hunter!\n     猎人双倍伤害 有瞬杀锤子和破片榴弹\n     分辨出你的队友 消灭敌方队伍胜利!", pChr->GetPlayer()->GetCID(), true);
+		
 	}
 	/*else if(pChr->GetPlayer()->m_Class == CLASS_JUGGERNAUT)
 	{
@@ -391,7 +406,10 @@ void CGameControllerHunterN::OnPlayerJoin(class CPlayer *pPlayer) // 使新进�
 {
 	if(m_GameState == IGS_GAME_RUNNING && pPlayer->m_RespawnDisabled) // 死人
 	{
-		SendChatTarget(pPlayer->GetCID(), HunterList);
+		SendChatTarget(pPlayer->GetCID(), m_HunterList);
+		SendChatTarget(pPlayer->GetCID(), "1. 每局开始时会秘密随机选择玩家成为猎人或平民 且玩家只知道自己身份 猎人的目标是消灭所有平民");
+		SendChatTarget(pPlayer->GetCID(), "2. 猎人使用高伤武器、瞬杀追踪锤(20伤,长按追踪)和破片榴弹 而平民没有锤子且只能使用常规武器");
+		SendChatTarget(pPlayer->GetCID(), "3. 当玩家死时如为猎人死亡则通知其他猎人 且死亡原因和死后聊天仅旁观/死人可见");
 	}
 }
 
@@ -422,8 +440,9 @@ bool CGameControllerHunterN::CanChangeTeam(CPlayer *pPlayer, int JoinTeam) const
 
 void CGameControllerHunterN::DoWincheckRound() // check for time based win
 {
-	if(!DoWinchenkClassTick // 计时
-		|| (!m_SuddenDeath && m_GameInfo.m_TimeLimit > 0 && (Server()->Tick() - m_GameStartTick) >= m_GameInfo.m_TimeLimit * Server()->TickSpeed() * 60))
+	bool IsTimeEnd = (!m_SuddenDeath && m_GameInfo.m_TimeLimit > 0 && (Server()->Tick() - m_GameStartTick) >= m_GameInfo.m_TimeLimit * Server()->TickSpeed() * 60);
+
+	if(IsTimeEnd || !m_DoWinchenkClassTick) // 计时
 	{
 		int PlayerCount = 0;
 		int TeamRedCount = 0;
@@ -441,87 +460,83 @@ void CGameControllerHunterN::DoWincheckRound() // check for time based win
 					++TeamRedCount;
 				else if(pPlayer->m_AmongUsTeam == TEAM_BLUE)
 					++TeamBlueCount;
-			}	
-		}
-
-		if(!DoWinchenkClassTick && TeamBlueCount && TeamRedCount)
-		{
-			DoWinchenkClassTick = -1; //  关闭DoWincheck
-			return;
-		}
-
-		// 游戏结束
-		m_aTeamscore[TEAM_RED] = 0; // 重置
-		m_aTeamscore[TEAM_BLUE] = 0;
-
-		for(int i = 0; i < MAX_CLIENTS; ++i) // 进行玩家分数和隐藏分操作 和选择Jug
-		{
-			CPlayer *pPlayer = GetPlayerIfInRoom(i);
-			if(pPlayer)
-			{
-				if(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive())
-					pPlayer->m_HiddenScore += 2; // 存活加分
-				//if(pPlayer->m_Score + minimum(25, pPlayer->m_HiddenScore * 5) > 48)
-					//MatchFlag = pPlayer->GetCID(); // Jug判断
-				if(pPlayer->m_HiddenScore)
-					pPlayer->m_Score += pPlayer->m_HiddenScore; // 添加隐藏分
-
-				if(pPlayer->m_Class & CLASS_CIVIC)
-				{
-					m_aTeamscore[TEAM_RED] += 1; // 用队伍分数显示有几个民
-				}
-				else if(pPlayer->m_Class & CLASS_HUNTER)
-				{
-					//pPlayer->m_AmongUsTeam = TEAM_BLUE; // 结算界面左边红队为民 右边蓝队为猎 平民为红队
-					m_aTeamscore[TEAM_BLUE] += 1; // 用队伍分数显示有几个猎
-				}
 			}
 		}
 
-		if(!PlayerCount)
+		if(IsTimeEnd || !(TeamBlueCount && TeamRedCount)) // 如果不是回合限时结束则需某队死光
 		{
-			SendChatRoom("两人幸终！");
-		}
-		else if(!TeamBlueCount) // no blue
-		{
-			SendChatRoom(HunterList);
-			SendChatRoom("红队胜利！"); // 平民为红队
-			//GameWorld()->CreateSoundGlobal(SOUND_CTF_CAPTURE); // 猎人死的时候够吵了
+			// 游戏结束
+			m_aTeamscore[TEAM_RED] = 0; // 重置
+			m_aTeamscore[TEAM_BLUE] = 0;
 
-			m_aTeamscore[TEAM_BLUE] = -m_aTeamscore[TEAM_BLUE]; // 反转蓝队分数 显示"红队胜利"
-		}
-		else if(!TeamRedCount) // no red
-		{
-			//SendChatRoom(HunterList); // 猎人胜利不显示列表（因为平民被打死的时候已经显示过了）
-			SendChatRoom("蓝队胜利！"); // 猎人为蓝队
-			GameWorld()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
+			for(int i = 0; i < MAX_CLIENTS; ++i) // 进行玩家分数和隐藏分操作 和选择Jug
+			{
+				CPlayer *pPlayer = GetPlayerIfInRoom(i);
+				if(pPlayer)
+				{
+					if(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive())
+						pPlayer->m_HiddenScore += 2; // 存活加分
+					//if(pPlayer->m_Score + minimum(25, pPlayer->m_HiddenScore * 5) > 48)
+						//MatchFlag = pPlayer->GetCID(); // Jug判断
+					if(pPlayer->m_HiddenScore)
+					{
+						pPlayer->m_Score += pPlayer->m_HiddenScore; // 添加隐藏分
+					}
 
-			m_aTeamscore[TEAM_RED] = -m_aTeamscore[TEAM_RED]; // 反转红队分数 就会显示"蓝队胜利"
-		}
-		else
-		{
-			SendChatRoom(HunterList);
-			SendChatRoom("游戏结束！");
-			GameWorld()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
-			//m_aTeamscore[TEAM_BLUE] = -m_aTeamscore[TEAM_BLUE]; // 不反转分数 也会显示"红队胜利"
-		}
+					if(pPlayer->m_Class & CLASS_CIVIC)
+					{
+						m_aTeamscore[TEAM_RED] += 1; // 用队伍分数显示有几个民
+					}
+					else if(pPlayer->m_Class & CLASS_HUNTER)
+					{
+						//pPlayer->m_AmongUsTeam = TEAM_BLUE; // 结算界面左边红队为民 右边蓝队为猎 平民为红队
+						m_aTeamscore[TEAM_BLUE] += 1; // 用队伍分数显示有几个猎
+					}
+				}
+			}
 
-		m_GameFlags |= IGF_MARK_TEAMS; // 队伍形式显示
+			if(!PlayerCount)
+			{
+				SendChatRoom("两人幸终！");
+			}
+			else if(!TeamBlueCount) // no blue
+			{
+				SendChatRoom(m_HunterList);
+				SendChatRoom("红队胜利！"); // 平民为红队
+				//GameWorld()->CreateSoundGlobal(SOUND_CTF_CAPTURE); // 猎人死的时候够吵了
 
-		SetGameState(IGS_END_ROUND, m_GameoverTime); // EndRound();
+				m_aTeamscore[TEAM_BLUE] = -m_aTeamscore[TEAM_BLUE]; // 反转蓝队分数 显示"红队胜利"
+			}
+			else if(!TeamRedCount) // no red
+			{
+				//SendChatRoom(m_HunterList); // 猎人胜利不显示列表（因为平民被打死的时候已经显示过了）
+				SendChatRoom("蓝队胜利！"); // 猎人为蓝队
+				GameWorld()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
+
+				m_aTeamscore[TEAM_RED] = -m_aTeamscore[TEAM_RED]; // 反转红队分数 就会显示"蓝队胜利"
+			}
+			else
+			{
+				SendChatRoom(m_HunterList);
+				SendChatRoom("游戏结束！");
+				GameWorld()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
+				//m_aTeamscore[TEAM_BLUE] = -m_aTeamscore[TEAM_BLUE]; // 不反转分数 也会显示"红队胜利"
+			}
+
+			m_GameFlags |= IGF_MARK_TEAMS; // 队伍形式显示
+
+			SetGameState(IGS_END_ROUND, m_GameoverTime); // EndRound();
+		}
 	}
 
-	if(DoWinchenkClassTick >= 0)
-		--DoWinchenkClassTick;
+	if(m_DoWinchenkClassTick >= 0)
+		--m_DoWinchenkClassTick;
 }
 
-void CGameControllerHunterN::DoWincheckMatch()
+void CGameControllerHunterN::DoWincheckMatch() // Roundlimit 触发DoWincheckMatch
 {
 	if(m_GameInfo.m_MatchNum > 0 && m_GameInfo.m_MatchCurrent >= m_GameInfo.m_MatchNum)
-	{
 		SetGameState(IGS_END_MATCH, m_GameoverTime); // EndMatch();
-		CycleMap();
-	}
 }
 
 int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon) // 杀手隐藏分增减 和受害人职业死亡消息 以及延时终局
@@ -530,7 +545,7 @@ int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CP
 	{
 		if(pVictim->GetPlayer()->m_Class == CLASS_HUNTER) // 猎人死亡
 		{
-			--nHunter; // 计数猎人死亡
+			--m_NumHunter; // 计数猎人死亡
 
 			if(m_EffectHunterDeath)
 				GameWorld()->CreatePlayerSpawn(pVictim->m_Pos); // 死亡给个出生烟
@@ -539,7 +554,7 @@ int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CP
 			str_format(aBuf, sizeof(aBuf), "Hunter '%s' was defeated! ", Server()->ClientName(pVictim->GetPlayer()->GetCID()));
 
 			if(m_BroadcastHunterDeath == 1 ||
-				!nHunter) // 如果是最后一个Hunter
+				!m_NumHunter) // 如果是最后一个Hunter
 			{
 				SendChatRoom(aBuf); // 直接全体广播
 				GameWorld()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
@@ -547,7 +562,7 @@ int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CP
 			else
 			{
 				char aBufEx[16];
-				str_format(aBufEx, sizeof(aBufEx), "%d Hunter left.", nHunter);
+				str_format(aBufEx, sizeof(aBufEx), "%d Hunter left.", m_NumHunter);
 				str_append(aBuf, aBufEx, sizeof(aBuf));
 				for(int i = 0; i < MAX_CLIENTS; ++i) // 逐个给所有人根据职业发送死亡消息
 				{
@@ -600,15 +615,25 @@ int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CP
 			GameWorld()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
 		}*/
 
-		if(nHunter) // 如果没有猎人(当然是全死光啦) 就不要发猎人列表 等EndMatch
+		if(m_NumHunter) // 如果没有猎人(当然是全死光啦) 就不要发猎人列表 等EndMatch
 		{
-			char aBuf[32];
-			str_format(aBuf, sizeof(aBuf), "你被 '%s' 所杀", Server()->ClientName(pKiller->GetCID()));
-			SendChatTarget(pVictim->GetPlayer()->GetCID(), aBuf); // 给被弄死的人发
-			SendChatTarget(pVictim->GetPlayer()->GetCID(), HunterList); // 给被弄死的人发
+			if(Weapon >= WEAPON_WORLD)
+			{
+				char aBuf[32];
+				str_format(aBuf, sizeof(aBuf), "你被 '%s' 的%s所杀", Server()->ClientName(pKiller->GetCID()),
+					(Weapon == WEAPON_HAMMER ? "锤子"
+					: (Weapon == WEAPON_GUN ? "手枪"
+					: (Weapon == WEAPON_SHOTGUN ? "霰弹"
+					: (Weapon == WEAPON_GRENADE ? "榴弹"
+					: (Weapon == WEAPON_LASER ? "激光"
+					: "忍者刀" ))))));
+				SendChatTarget(pVictim->GetPlayer()->GetCID(), aBuf); // 给被弄死的人发
+			}
+
+			SendChatTarget(pVictim->GetPlayer()->GetCID(), m_HunterList); // 给被弄死的人发
 		}
 
-		DoWinchenkClassTick = ((Server()->TickSpeed() * m_Wincheckdeley) / 1000); // 延时终局
+		m_DoWinchenkClassTick = ((Server()->TickSpeed() * m_Wincheckdeley) / 1000); // 延时终局
 	}
 
 	return DEATH_NO_REASON | DEATH_SKIP_SCORE; // 隐藏死因并跳过内置分数逻辑

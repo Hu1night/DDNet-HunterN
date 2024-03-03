@@ -18,7 +18,7 @@ private: // config
 public: // Maprotation
 	enum { MAX_MAPROTATIONS = 32, };
 	// enum { MAX_MAPROTATIONS = 114514, };
-	int m_Maprotation[MAX_MAPROTATIONS] = {0}; // 存储MapIndex的数组
+	int m_aMaprotation[MAX_MAPROTATIONS] = {0}; // 存储MapIndex的数组
 
 public:
 	CGameControllerHunterN();
@@ -28,6 +28,7 @@ public:
 	void CycleMap();
 
 	// event
+	void OnGameStart(bool IsRound) override;
 	void OnWorldReset() override;
 	bool IsSpawnRandom() const { return m_aTeamSize[TEAM_RED] > 4; };
 	void OnCharacterSpawn(class CCharacter *pChr) override;
@@ -42,12 +43,14 @@ public:
 	int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon) override;
 
 private: // Intelnal function and value
-	int nHunter; // 有多少个猎人
-	int DoWinchenkClassTick; // 终局判断延迟的Tick
-	char HunterList[256]; // 猎人列表
+	int m_NumHunter; // 有多少个猎人
+	int m_DoWinchenkClassTick; // 终局判断延迟的Tick
+	char m_HunterList[256]; // 猎人列表
 	//int TeamClass[1];
 	//int MatchFlag = -1;
 
+protected:
+	enum { HUNTERN_GAMEFLAGS = IGF_SURVIVAL | IGF_ROUND_TIMER_ROUND | IGF_SUDDENDEATH | IGF_MARK_MATCH | IGF_MARK_AMONGUS, };
 	enum HUNTERN_WINFLAG
 	{
 		FLAG_WIN_NONE = 0,
