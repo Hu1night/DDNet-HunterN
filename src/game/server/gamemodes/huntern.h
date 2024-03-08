@@ -24,13 +24,11 @@ public:
 	CGameControllerHunterN();
 
 	static void OnResetClass(CCharacter *pChr);
-	void SendChatRoom(const char *pText, int Flags = 3);
 	void CycleMap();
 
 	// event
-	void OnGameStart(bool IsRound) override;
 	void OnWorldReset() override;
-	bool IsSpawnRandom() const { return m_aTeamSize[TEAM_RED] > 4; };
+	bool IsSpawnRandom() const { return m_aTeamSize[TEAM_RED] > 4 ? m_aTeamSize[TEAM_RED] < 2 : false; };
 	void OnCharacterSpawn(class CCharacter *pChr) override;
 	void OnPlayerJoin(class CPlayer *pPlayer) override;
 	int OnCharacterTakeDamage(class CCharacter *pChr, vec2 &Force, int &Dmg, int From, int WeaponType, int WeaponID, bool IsExplosion) override;
@@ -46,7 +44,6 @@ private: // Intelnal function and value
 	int m_NumHunter; // 有多少个猎人
 	int m_DoWinchenkClassTick; // 终局判断延迟的Tick
 	char m_HunterList[256]; // 猎人列表
-	bool m_IsCycleMap;
 	//int TeamClass[1];
 	//int MatchFlag = -1;
 
