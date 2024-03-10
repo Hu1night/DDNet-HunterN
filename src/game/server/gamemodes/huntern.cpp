@@ -116,9 +116,14 @@ static void ConGiveWeapon(IConsole::IResult *pResult, void *pUserData)
 		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "character is dead");
 	else
 	{	pPlayer->GetCharacter()->RemoveWeapon((pResult->GetInteger(1) < NUM_WEAPONS && pResult->GetInteger(1) >= 0) ? pResult->GetInteger(1) : 0); // Slot
-		pPlayer->GetCharacter()->GiveWeapon((pResult->GetInteger(1) < NUM_WEAPONS && pResult->GetInteger(1) >= 0) ? pResult->GetInteger(1) : 0, // Slot
-			pResult->GetInteger(0), // Type
-				(pResult->NumArguments() > 3) ? pResult->GetInteger(3) : -1);} // ammo
+		if(!pResult->GetInteger(4)) // Give Weapon
+			pPlayer->GetCharacter()->GiveWeapon((pResult->GetInteger(1) < NUM_WEAPONS && pResult->GetInteger(1) >= 0) ? pResult->GetInteger(1) : 0, // Slot
+				pResult->GetInteger(0), // Type
+					(pResult->NumArguments() > 3) ? pResult->GetInteger(3) : -1); // ammo
+		else // Powerup Weapon
+			pPlayer->GetCharacter()->SetPowerUpWeapon(pResult->GetInteger(0), // Type
+					(pResult->NumArguments() > 3) ? pResult->GetInteger(3) : -1); // ammo
+	}
 }
 
 static void ConSetHeal(IConsole::IResult *pResult, void *pUserData)
@@ -179,7 +184,7 @@ CGameControllerHunterN::CGameControllerHunterN() :
 	InstanceConsole()->Register("htn_map_clear", "", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConMapClear, this, "清除地图循环列表");
 
 	InstanceConsole()->Register("htn_setclass", "i[class-id] ?i[CID] ?i[team-id] ?i[hunt-weapon]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConSetClass, this, "给玩家设置职业（1平民,2猎人,4剑圣）");
-	InstanceConsole()->Register("htn_giveweapon", "i[weapon-id] i[slot] ?i[CID] ?i[ammo-num]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConGiveWeapon, this, "给玩家武器");
+	InstanceConsole()->Register("htn_giveweapon", "i[weapon-id] i[slot] ?i[CID] ?i[ammo-num] ?i[is-powerup]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConGiveWeapon, this, "给玩家武器");
 	InstanceConsole()->Register("htn_setheal", "i[health] ?i[armor] ?i[CID] ?i[max-health] ?i[max-armor]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConSetHeal, this, "给玩家血量和盾");
 	InstanceConsole()->Register("htn_revive", "?i[CID]", CFGFLAG_CHAT | CFGFLAG_INSTANCE, ConRevive, this, "复活吧");
 }
