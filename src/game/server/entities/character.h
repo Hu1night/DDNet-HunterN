@@ -94,7 +94,6 @@ public:
 	void ForceSetWeapon(int Slot, int Type, int Ammo = -1);
 	void SetOverrideWeapon(int Slot, int Type, int Ammo = -1);
 	void SetPowerUpWeapon(int Type, int Ammo = -1);
-	void SetPowerUpWeaponPointer(CWeapon *Weapon) { m_pPowerupWeapon = Weapon; }
 
 	void SetEndlessHook(bool Enable);
 
@@ -295,7 +294,6 @@ public:
 	vec2 GetAimPos() { return vec2(m_LatestInput.m_TargetX, m_LatestInput.m_TargetY); } // Hunter
 	CNetObj_PlayerInput GetLatestInput() { return m_LatestInput; } // Hunter
 	CNetObj_PlayerInput GetLatestPrevPrevInput() { return m_LatestPrevPrevInput; } // Hunter
-	void SetQueuedWeaponSlot(int WeaponSlot) { m_QueuedWeaponSlot = WeaponSlot; }
 };
 
 enum

@@ -17,7 +17,7 @@ private:
 	int m_aPuppetCID[MAX_PUPPETS];
 	vec2 m_aPuppetsDirPos[MAX_PUPPETS];
 	bool m_IsKeepFiring;
-	int m_PrevTickPuppets;
+	int m_PrevPuppetCount;
 };
 
 #endif // GAME_SERVER_WEAPONS_PUPPETEEHAMMER_H
