@@ -7,11 +7,27 @@ CPuppeteeHammer::CPuppeteeHammer(CCharacter *pOwnerChar) :
 {
 	m_MaxAmmo = 10;
 	m_AmmoRegenTime = 1;
-	m_FireDelay = 500;
+	m_FireDelay = 300;
 	m_IsKeepFiring = false;
 	m_PrevPuppetCount = 0;
+	m_WeaponSlot = -1;
 	mem_zero(m_aPuppetCID, sizeof(m_aPuppetCID));
-	mem_zero(m_aPuppetsDirPos, sizeof(m_aPuppetsDirPos));
+	mem_zero(m_aPuppetDirPos, sizeof(m_aPuppetDirPos));
+}
+
+CPuppeteeHammer::~CPuppeteeHammer()
+{
+	for(int i = 0; i < MAX_PUPPETS; i++)
+	{
+		CCharacter *pChr = GameServer()->GetPlayerChar(m_aPuppetCID[i] - 1);
+		if(!pChr)
+			continue;
+
+		m_aPuppetWeapon[i] = pChr->GetPlayer()->m_UseHunterWeapon;
+	}
+
+	if(Character()->GetOverrideWeapon())
+		Character()->SetOverrideWeapon(nullptr); // m_pOverrideWeapon = nullptr;
 }
 
 void CPuppeteeHammer::Tick()
@@ -34,47 +50,11 @@ void CPuppeteeHammer::Tick()
 			m_aPuppetCID[i] = 0;
 	}
 
-	if(!PuppetCount) // Just do nothing
-	{}
-	else if((Character()->GetLatestPrevPrevInput().m_Fire & 1) && !(Character()->GetLatestInput().m_Fire & 1) && IsReloading()) // 松发让傀儡开火
+	bool IsNeedUpdate = m_PrevPuppetCount != PuppetCount;
+
+	if(PuppetCount)
 	{
-		vec2 AimPos = Pos() + (Character()->GetAimPos() * 1.5f);
-
-		for(int i = 0; i < MAX_PUPPETS; i++)
-		{
-			CCharacter *pChr = apChar[i];
-			if(!pChr)
-				continue;
-
-			CWeapon *pChrWeapon = pChr->GetWeapon(PuppetWeaponSlot);
-			if(!pChrWeapon)
-				continue;
-
-			vec2 AimDir = normalize(AimPos - pChr->m_Pos);
-
-			pChrWeapon->HandleFire(AimDir);
-		}
-	}
-	else if((m_IsKeepFiring && !IsReloading()) // Pressing
-		|| (m_PrevPuppetCount != PuppetCount)) // Update
-	{
-		vec2 OwnerDir = Character()->GetDirection();
-		vec2 PuppetsDir = OwnerDir * clamp(length(Character()->GetAimPos()) * 0.5f, 48.f, 128.f);
-		int a = 0;
-
-		for(int i = 0; i < MAX_PUPPETS; i++)
-		{
-			if(!m_aPuppetCID[i])
-				continue;
-
-			a++;
-			m_aPuppetsDirPos[i] = PuppetsDir + (vec2(-OwnerDir.y, OwnerDir.x) * ((a / 2) * 48.f * (a % 2 ? 1 : -1) + (((PuppetCount + 1) % 2) * 24.f)));
-		}
-	}
-
-	if(PuppetCount) // do tick stuff
-	{
-		for(int i = 0; i < MAX_PUPPETS; i++)
+		for(int i = 0; i < MAX_PUPPETS; i++) // do tick stuff
 		{
 			CCharacter *pChr = apChar[i];
 			if(!pChr)
@@ -83,15 +63,61 @@ void CPuppeteeHammer::Tick()
 			pChr->Freeze(5, true);
 
 			// TODO: replace MoveBox
-			pChr->Core()->m_Vel = Pos() + m_aPuppetsDirPos[i] - pChr->Core()->m_Pos;
+			pChr->Core()->m_Vel = Pos() + m_aPuppetDirPos[i] - pChr->Core()->m_Pos;
 			GameServer()->Collision()->MoveBox(&pChr->Core()->m_Pos, &pChr->Core()->m_Vel, vec2(GetProximityRadius(), GetProximityRadius()), 0.f);
 			pChr->Core()->m_Vel = vec2(0.f, 0.f);
 
 			pChr->SetActiveWeapon(PuppetWeaponSlot);
 		}
+
+		m_IsKeepFiring = m_IsKeepFiring ? (Character()->GetLatestInput().m_Fire & 1) : false;
+
+		if((m_IsKeepFiring && !IsReloading()) // Pressing
+			|| IsNeedUpdate) // Update
+		{
+			vec2 OwnerDir = Character()->GetDirection();
+			vec2 PuppetsDir = OwnerDir * clamp(length(Character()->GetAimPos()), 48.f, 128.f);
+			//float SpreadDist = length(Character()->GetAimPos());
+			int a = 0;
+
+			for(int i = 0; i < MAX_PUPPETS; i++)
+			{
+				if(!m_aPuppetCID[i])
+					continue;
+
+				a++;
+				m_aPuppetDirPos[i] = PuppetsDir + (vec2(-OwnerDir.y, OwnerDir.x) * ((a / 2) * 48.f * (a % 2 ? 1 : -1) + (((PuppetCount + 1) % 2) * 24.f)));
+			}
+		}
+		else if(Character()->GetInput().m_Fire & 1 && !(Character()->GetLatestInput().m_Fire & 1) && m_PrevPuppetCount == PuppetCount) // hammer didn't hit anything
+		{
+			vec2 AimPos = Pos() + (Character()->GetAimPos() * 1.5f);
+
+			for(int i = 0; i < MAX_PUPPETS; i++)
+			{
+				CCharacter *pChr = apChar[i];
+				if(!pChr)
+					continue;
+
+				CWeapon *pChrWeapon = pChr->GetWeapon(PuppetWeaponSlot);
+				if(!pChrWeapon)
+					continue;
+
+				vec2 AimDir = normalize(AimPos - pChr->m_Pos);
+
+				pChrWeapon->HandleFire(AimDir);
+			}
+		}
 	}
 
-	m_IsKeepFiring = m_IsKeepFiring ? (Character()->GetLatestInput().m_Fire & 1) : false;
+	if(IsNeedUpdate)
+	{
+		if(PuppetCount) // Set Override
+			Character()->SetOverrideWeapon(this); // m_pOverrideWeapon = this;
+		else // remove Override
+			Character()->SetOverrideWeapon(nullptr); // m_pOverrideWeapon = nullptr;
+	}
+
 	m_PrevPuppetCount = PuppetCount;
 }
 
@@ -140,6 +166,8 @@ void CPuppeteeHammer::Fire(vec2 Direction)
 				continue;
 
 			m_aPuppetCID[i] = TargetCID + 1;
+			m_aPuppetWeapon[i] = pTarget->GetPlayer()->m_UseHunterWeapon;
+			pTarget->GetPlayer()->m_UseHunterWeapon = true;
 			break;
 		}
 

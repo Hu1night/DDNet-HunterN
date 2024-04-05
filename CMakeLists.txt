@@ -998,6 +998,8 @@ set_src(GAME_SERVER GLOB_RECURSE src/game/server
   weapon.cpp
   weapon.h
   weapons.h
+  weapons/asmrhammer.cpp
+  weapons/asmrhammer.h
   weapons/explodinglaser.cpp
   weapons/explodinglaser.h
   weapons/grenade.cpp
@@ -1018,6 +1020,8 @@ set_src(GAME_SERVER GLOB_RECURSE src/game/server
   weapons/puppeteehammer.h
   weapons/shotgun.cpp
   weapons/shotgun.h
+  weapons/tankgrenade.cpp
+  weapons/tankgrenade.h
 )
 set(GAME_GENERATED_SERVER
   "src/game/generated/server_data.cpp"

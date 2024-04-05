@@ -7,6 +7,7 @@ class CPuppeteeHammer : public CWeapon
 {
 public:
 	CPuppeteeHammer(CCharacter *pOwnerChar);
+	~CPuppeteeHammer();
 
 	void Tick() override;
 	void Fire(vec2 Direction) override;
@@ -15,9 +16,11 @@ public:
 private:
 	enum { MAX_PUPPETS = 4, };
 	int m_aPuppetCID[MAX_PUPPETS];
-	vec2 m_aPuppetsDirPos[MAX_PUPPETS];
+	vec2 m_aPuppetDirPos[MAX_PUPPETS];
+	bool m_aPuppetWeapon[MAX_PUPPETS];
 	bool m_IsKeepFiring;
 	int m_PrevPuppetCount;
+	int m_WeaponSlot;
 };
 
 #endif // GAME_SERVER_WEAPONS_PUPPETEEHAMMER_H
