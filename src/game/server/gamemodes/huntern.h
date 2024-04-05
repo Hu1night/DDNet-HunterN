@@ -29,7 +29,6 @@ public:
 
 	// event
 	void OnWorldReset() override;
-	bool IsSpawnRandom() const { return m_aTeamSize[TEAM_RED] > 4 ? m_aTeamSize[TEAM_RED] < 2 : false; };
 	void OnCharacterSpawn(class CCharacter *pChr) override;
 	void OnPlayerJoin(class CPlayer *pPlayer) override;
 	int OnCharacterTakeDamage(class CCharacter *pChr, vec2 &Force, int &Dmg, int From, int WeaponType, int WeaponID, bool IsExplosion) override;
