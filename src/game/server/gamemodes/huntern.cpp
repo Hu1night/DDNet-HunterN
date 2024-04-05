@@ -199,6 +199,8 @@ void CGameControllerHunterN::OnResetClass(CCharacter *pChr) // 职业重置（�
 	pChr->RemoveWeapon(WEAPON_GUN); // OnClassSpawn给手枪
 	pChr->SetPowerUpWeapon(WEAPON_ID_NONE);
 
+	pChr->m_SpawnTick = pChr->Server()->Tick(); // for CGameControllerHunterN::OnEntitySnap()
+
 	pChr->Controller()->OnCharacterSpawn(pChr);
 }
 
@@ -347,8 +349,6 @@ void CGameControllerHunterN::OnCharacterSpawn(CCharacter *pChr) // 给予生命�
 	}
 
 	// 如果游戏在正常运行
-	pChr->m_SpawnTick = Server()->TickSpeed(); // for CGameControllerHunterN::OnEntitySnap()
-
 	if(pChr->GetPlayer()->m_Class == CLASS_CIVIC)
 	{
 		pChr->IncreaseHealth(10);
