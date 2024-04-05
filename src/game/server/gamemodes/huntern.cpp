@@ -197,7 +197,7 @@ void CGameControllerHunterN::OnResetClass(CCharacter *pChr) // 职业重置（�
 
 	pChr->RemoveWeapon(WEAPON_HAMMER); // OnClassSpawn给武器
 	pChr->RemoveWeapon(WEAPON_GUN); // OnClassSpawn给手枪
-	pChr->RemovePowerUpWeapon();
+	pChr->SetPowerUpWeapon(WEAPON_ID_NONE);
 
 	pChr->Controller()->OnCharacterSpawn(pChr);
 }

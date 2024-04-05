@@ -46,9 +46,6 @@ CCharacter::~CCharacter()
 	{
 		if(m_apWeaponSlots[i])
 			delete m_apWeaponSlots[i];
-
-		if(m_apOverrideWeaponSlots[i])
-			delete m_apOverrideWeaponSlots[i];
 	}
 
 	if(m_pPowerupWeapon)
@@ -73,8 +70,8 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 	m_LastPenalty = false;
 	m_LastBonus = false;
 
-	mem_zero(m_apOverrideWeaponSlots, sizeof(m_apOverrideWeaponSlots));
 	mem_zero(m_apWeaponSlots, sizeof(m_apWeaponSlots));
+	m_pOverrideWeapon = nullptr;
 	m_pPowerupWeapon = nullptr;
 
 	m_TeleGunTeleport = false;
@@ -136,17 +133,13 @@ void CCharacter::SetWeaponSlot(int W, bool WithSound)
 
 	if(m_LastWeaponSlot >= 0 && m_LastWeaponSlot < NUM_WEAPON_SLOTS)
 	{
-		if(m_apOverrideWeaponSlots[m_LastWeaponSlot])
-			m_apOverrideWeaponSlots[m_LastWeaponSlot]->OnUnequip();
-		else if(m_apWeaponSlots[m_LastWeaponSlot])
+		if(m_apWeaponSlots[m_LastWeaponSlot])
 			m_apWeaponSlots[m_LastWeaponSlot]->OnUnequip();
 	}
 
 	if(m_ActiveWeaponSlot >= 0 && m_ActiveWeaponSlot < NUM_WEAPON_SLOTS)
 	{
-		if(m_apOverrideWeaponSlots[m_ActiveWeaponSlot])
-			m_apOverrideWeaponSlots[m_ActiveWeaponSlot]->OnEquip();
-		else if(m_apWeaponSlots[m_ActiveWeaponSlot])
+		if(m_apWeaponSlots[m_ActiveWeaponSlot])
 			m_apWeaponSlots[m_ActiveWeaponSlot]->OnEquip();
 	}
 
@@ -312,12 +305,12 @@ CWeapon *CCharacter::CurrentWeapon()
 
 	if(!m_pPowerupWeapon)
 	{
+		if(m_pOverrideWeapon)
+			return m_pOverrideWeapon;
+
 		pCurrentWeapon = m_apWeaponSlots[m_ActiveWeaponSlot];
 		if(!pCurrentWeapon)
 			return nullptr;
-
-		if(m_apOverrideWeaponSlots[m_ActiveWeaponSlot])
-			pCurrentWeapon = m_apOverrideWeaponSlots[m_ActiveWeaponSlot];
 	}
 
 	return pCurrentWeapon;
@@ -348,8 +341,6 @@ void CCharacter::HandleWeapons()
 		for(int i = 0; i < NUM_WEAPON_SLOTS; i++)
 		{
 			if(m_apWeaponSlots[i])
-				m_apWeaponSlots[i]->Tick();
-			if(m_apOverrideWeaponSlots[i])
 				m_apWeaponSlots[i]->Tick();
 		}
 		if(m_pPowerupWeapon)
@@ -584,8 +575,6 @@ void CCharacter::TickPaused()
 	for(int i = 0; i < NUM_WEAPON_SLOTS; i++)
 	{
 		if(m_apWeaponSlots[i])
-			m_apWeaponSlots[i]->TickPaused();
-		if(m_apOverrideWeaponSlots[i])
 			m_apWeaponSlots[i]->TickPaused();
 	}
 	if(m_pPowerupWeapon)
@@ -1979,18 +1968,6 @@ bool CCharacter::RemoveWeapon(int Slot)
 
 	return Removed;
 }
-/* Hunter Start */
-void CCharacter::RemovePowerUpWeapon()
-{
-	if(m_pPowerupWeapon)
-	{
-		m_pPowerupWeapon->OnUnequip();
-		delete m_pPowerupWeapon;
-	}
-	m_pPowerupWeapon = nullptr;
-	SetWeaponSlot(WEAPON_GAME, false);
-}
-/* Hunter End */
 
 bool CCharacter::GiveWeapon(int Slot, int Type, int Ammo)
 {
@@ -2045,47 +2022,6 @@ void CCharacter::ForceSetWeapon(int Slot, int Type, int Ammo)
 		} \
 		m_apWeaponSlots[Slot]->SetAmmo(Ammo); \
 		m_apWeaponSlots[Slot]->OnGiven(!IsCreatingWeapon); \
-		if(m_ActiveWeaponSlot < 0 || m_ActiveWeaponSlot >= NUM_WEAPON_SLOTS) \
-			SetWeaponSlot(Slot, false); \
-	}
-#include <game/server/weapons.h>
-#undef REGISTER_WEAPON
-}
-
-void CCharacter::SetOverrideWeapon(int Slot, int Type, int Ammo)
-{
-	if(Type == WEAPON_ID_NONE)
-	{
-		bool IsActive = m_ActiveWeaponSlot == Slot;
-		if(IsActive)
-			SetWeaponSlot(WEAPON_GAME, false);
-		if(m_apOverrideWeaponSlots[Slot])
-		{
-			delete m_apOverrideWeaponSlots[Slot];
-			m_apOverrideWeaponSlots[Slot] = nullptr;
-		}
-		if(IsActive)
-			SetWeaponSlot(Slot, false);
-	}
-#define REGISTER_WEAPON(WEAPTYPE, CLASS) \
-	else if(Type == WEAPTYPE) \
-	{ \
-		bool IsCreatingWeapon = false; \
-		if(m_apOverrideWeaponSlots[Slot] && m_apOverrideWeaponSlots[Slot]->GetWeaponID() != Type) \
-		{ \
-			if(m_ActiveWeaponSlot == Slot) \
-				SetWeaponSlot(WEAPON_GAME, false); \
-			delete m_apOverrideWeaponSlots[Slot]; \
-			m_apOverrideWeaponSlots[Slot] = nullptr; \
-		} \
-		if(m_apOverrideWeaponSlots[Slot] == nullptr) \
-		{ \
-			m_apOverrideWeaponSlots[Slot] = new CLASS(this); \
-			m_apOverrideWeaponSlots[Slot]->SetTypeID(WEAPTYPE); \
-			IsCreatingWeapon = true; \
-		} \
-		m_apOverrideWeaponSlots[Slot]->SetAmmo(Ammo); \
-		m_apOverrideWeaponSlots[Slot]->OnGiven(!IsCreatingWeapon); \
 		if(m_ActiveWeaponSlot < 0 || m_ActiveWeaponSlot >= NUM_WEAPON_SLOTS) \
 			SetWeaponSlot(Slot, false); \
 	}

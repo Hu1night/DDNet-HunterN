@@ -89,10 +89,9 @@ public:
 	bool IncreaseArmor(int Amount);
 
 	bool RemoveWeapon(int Slot);
-	void RemovePowerUpWeapon(); // Hunter
 	bool GiveWeapon(int Slot, int Type, int Ammo = -1);
 	void ForceSetWeapon(int Slot, int Type, int Ammo = -1);
-	void SetOverrideWeapon(int Slot, int Type, int Ammo = -1);
+	void SetOverrideWeapon(CWeapon *Weapon) { m_pOverrideWeapon = Weapon; } // Hunter
 	void SetPowerUpWeapon(int Type, int Ammo = -1);
 
 	void SetEndlessHook(bool Enable);
@@ -115,7 +114,7 @@ private:
 	int m_NeededFaketuning;
 
 	CWeapon *m_pPowerupWeapon;
-	CWeapon *m_apOverrideWeaponSlots[NUM_WEAPONS - 1];
+	CWeapon *m_pOverrideWeapon;
 	CWeapon *m_apWeaponSlots[NUM_WEAPONS - 1];
 
 	int m_LastWeaponSlot;
@@ -263,7 +262,7 @@ public:
 	bool IsAlive() { return m_Alive; };
 	void SetWeaponTimerType(int Type) { m_WeaponTimerType = Type; }
 	CWeapon *GetWeapon(int Slot) { return m_apWeaponSlots[Slot]; }
-	CWeapon *GetOverrideWeapon(int Slot) { return m_apOverrideWeaponSlots[Slot]; }
+	CWeapon *GetOverrideWeapon() { return m_pOverrideWeapon; }
 	CWeapon *GetPowerupWeapon() { return m_pPowerupWeapon; }
 	void Protect(float Seconds, bool CancelOnFire = false);
 	bool IsProtected();
@@ -293,7 +292,7 @@ public:
 	vec2 GetDirection() { return normalize(vec2(m_LatestInput.m_TargetX, m_LatestInput.m_TargetY)); } // Hunter
 	vec2 GetAimPos() { return vec2(m_LatestInput.m_TargetX, m_LatestInput.m_TargetY); } // Hunter
 	CNetObj_PlayerInput GetLatestInput() { return m_LatestInput; } // Hunter
-	CNetObj_PlayerInput GetLatestPrevPrevInput() { return m_LatestPrevPrevInput; } // Hunter
+	CNetObj_PlayerInput GetInput() { return m_LatestPrevPrevInput; } // Hunter
 };
 
 enum
