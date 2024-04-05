@@ -233,14 +233,8 @@ void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 	m_GameFlags = HUNTERN_GAMEFLAGS;
 	m_DoWinchenkClassTick = -1;
 	
-	//int TeamClass[1];
-	//TeamClass[0] = CLASS_CIVIC; // TEAM_RED
-	//TeamClass[1] = CLASS_HUNTER; // TEAM_BLUE
-
-	//int PlayerCount = m_aTeamSize[TEAM_RED]; // 玩家计数
 	int PreselectPlayerCount = 0; // 最近没当过猎人的玩家的计数
 	int rHunter = 0; // 猎人选择随机数
-	// int m_NumHunter = 0; // 需要选择多少个猎人
 
 	for(int i = 0; i < MAX_CLIENTS; ++i) // 重置并计数玩家
 	{
@@ -315,17 +309,10 @@ void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 						str_append(m_HunterList, Server()->ClientName(i), sizeof(m_HunterList));
 						str_append(m_HunterList, ", ", sizeof(m_HunterList));
 
-						//if(iHunter != 1) // 最后一次循环 要循环全体玩家
-							break;
+						break;
 					}
 					--rHunter;
 				}
-
-				/*if(iHunter == 1) // 最后一次循环 所有玩家都选择了职业
-					if(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive()) // 这个玩家出生了 所以OnCharacterSpawn已经过了
-					{
-						OnResetClass(pPlayer->GetCharacter()); // 在这里给他们Class提示和武器
-					}*/
 			}
 		}
 	}
@@ -360,6 +347,8 @@ void CGameControllerHunterN::OnCharacterSpawn(CCharacter *pChr) // 给予生命�
 	}
 
 	// 如果游戏在正常运行
+	pChr->m_SpawnTick = Server()->TickSpeed(); // for CGameControllerHunterN::OnEntitySnap()
+
 	if(pChr->GetPlayer()->m_Class == CLASS_CIVIC)
 	{
 		pChr->IncreaseHealth(10);
@@ -533,102 +522,95 @@ void CGameControllerHunterN::DoWincheckMatch() // Roundlimit 触发DoWincheckMat
 
 int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon) // 杀手隐藏分增减 和受害人职业死亡消息 以及延时终局
 {
-	if(m_GameState == IGS_GAME_RUNNING) // 如果游戏在正常运行
+	if(m_GameState != IGS_GAME_RUNNING) // 如果游戏在正常运行
+		return DEATH_SKIP_SCORE; // 跳过内置分数逻辑
+
+	if(pVictim->GetPlayer()->m_Class == CLASS_HUNTER) // 猎人死亡 进行计数和猎人死亡报告
 	{
-		if(pVictim->GetPlayer()->m_Class == CLASS_HUNTER) // 猎人死亡
+		--m_NumHunter; // 计数猎人死亡
+
+		if(m_EffectHunterDeath)
+			GameWorld()->CreatePlayerSpawn(pVictim->m_Pos); // 死亡给个出生烟
+
+		char aBuf[64];
+		str_format(aBuf, sizeof(aBuf), "Hunter '%s' was defeated! ", Server()->ClientName(pVictim->GetPlayer()->GetCID()));
+
+		if(m_BroadcastHunterDeath == 1 ||
+			!m_NumHunter) // 如果是最后一个Hunter
 		{
-			--m_NumHunter; // 计数猎人死亡
-
-			if(m_EffectHunterDeath)
-				GameWorld()->CreatePlayerSpawn(pVictim->m_Pos); // 死亡给个出生烟
-
-			char aBuf[64];
-			str_format(aBuf, sizeof(aBuf), "Hunter '%s' was defeated! ", Server()->ClientName(pVictim->GetPlayer()->GetCID()));
-
-			if(m_BroadcastHunterDeath == 1 ||
-				!m_NumHunter) // 如果是最后一个Hunter
-			{
-				SendChatTarget(-1, aBuf); // 直接全体广播
-				GameWorld()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
-			}
-			else
-			{
-				char aBufEx[16];
-				str_format(aBufEx, sizeof(aBufEx), "%d Hunter left.", m_NumHunter);
-				str_append(aBuf, aBufEx, sizeof(aBuf));
-				for(int i = 0; i < MAX_CLIENTS; ++i) // 逐个给所有人根据职业发送死亡消息
-				{
-					CPlayer *pPlayer = GetPlayerIfInRoom(i);
-					if(pPlayer)
-					{
-						if((m_BroadcastHunterDeath != -1 && pPlayer->m_Class == CLASS_HUNTER) || // 猎
-							pPlayer->GetTeam() == TEAM_SPECTATORS || pPlayer->m_DeadSpecMode) // 观察者 和 死人
-						{
-							SendChatTarget(pPlayer->GetCID(), aBuf); // 给所有猎人广播他们"队友"的死亡消息
-							GameWorld()->CreateSoundGlobal(SOUND_CTF_CAPTURE, CmaskOne(pPlayer->GetCID()));
-						}
-						else
-							GameWorld()->CreateSoundGlobal(SOUND_CTF_DROP, CmaskOne(pPlayer->GetCID()));
-					}
-				}	
-			}
-
-			if(pKiller && pKiller != pVictim->GetPlayer()) // 不是自杀
-			{
-				if(pKiller->m_Class != CLASS_HUNTER) // 隐藏分添加
-					pKiller->m_HiddenScore += 4;
-				else
-					pKiller->m_HiddenScore -= 2; // Teamkill
-			}
-		}
-		else if(pVictim->GetPlayer()->m_Class == CLASS_CIVIC) // 平民死亡
-		{
-			if(pKiller && pKiller != pVictim->GetPlayer()) // 不是自杀
-			{
-				if(pKiller->m_Class != CLASS_CIVIC) // 隐藏分添加
-					pKiller->m_HiddenScore += 1;
-				else
-					pKiller->m_HiddenScore -= 1; // Teamkill
-			}
-
-			GameWorld()->CreateSoundGlobal(SOUND_CTF_DROP);
-		}
-		/*else if(pVictim->GetPlayer()->m_Class == CLASS_JUGGERNAUT)
-		{
-			if(pKiller && pKiller != pVictim->GetPlayer())
-			{
-				if(pKiller->m_Class != CLASS_JUG) // 隐藏分添加
-					pKiller->m_HiddenScore += 8;
-				else // :P
-					pKiller->m_HiddenScore -= 114514; // Teamkill
-			}
-
-			SendChatTarget(-1, "Juggernaut was defeated!");
+			SendChatTarget(-1, aBuf); // 直接全体广播
 			GameWorld()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
-		}*/
-
-		if(m_NumHunter) // 如果没有猎人(当然是全死光啦) 就不要发猎人列表 等EndMatch
-		{
-			if(Weapon >= WEAPON_WORLD)
-			{
-				char aBuf[64];
-				str_format(aBuf, sizeof(aBuf), "你被 '%s' 的%s所杀", Server()->ClientName(pKiller->GetCID()),
-					(Weapon == WEAPON_HAMMER ? "锤子"
-					: (Weapon == WEAPON_GUN ? "手枪"
-					: (Weapon == WEAPON_SHOTGUN ? "霰弹"
-					: (Weapon == WEAPON_GRENADE ? "榴弹"
-					: (Weapon == WEAPON_LASER ? "激光"
-					: (Weapon == WEAPON_NINJA ? "忍者刀"
-					: "地刺")))))));
-
-				SendChatTarget(pVictim->GetPlayer()->GetCID(), aBuf); // 给被弄死的人发
-			}
-
-			SendChatTarget(pVictim->GetPlayer()->GetCID(), m_HunterList); // 给被弄死的人发
 		}
+		else
+		{
+			char aBufEx[16];
+			str_format(aBufEx, sizeof(aBufEx), "%d Hunter left.", m_NumHunter);
+			str_append(aBuf, aBufEx, sizeof(aBuf));
+			for(int i = 0; i < MAX_CLIENTS; ++i) // 逐个给所有人根据职业发送死亡消息
+			{
+				CPlayer *pPlayer = GetPlayerIfInRoom(i);
+				if(pPlayer)
+				{
+					if((m_BroadcastHunterDeath != -1 && pPlayer->m_Class == CLASS_HUNTER) || // 猎
+						pPlayer->GetTeam() == TEAM_SPECTATORS || pPlayer->m_DeadSpecMode) // 观察者 和 死人
+					{
+						SendChatTarget(pPlayer->GetCID(), aBuf); // 给所有猎人广播他们"队友"的死亡消息
+						GameWorld()->CreateSoundGlobal(SOUND_CTF_CAPTURE, CmaskOne(pPlayer->GetCID()));
+					}
+					else
+						GameWorld()->CreateSoundGlobal(SOUND_CTF_DROP, CmaskOne(pPlayer->GetCID()));
+				}
+			}	
+		}
+	}
+	else if(pVictim->GetPlayer()->m_Class == CLASS_CIVIC) // 平民死亡
+	{
+		GameWorld()->CreateSoundGlobal(SOUND_CTF_DROP);
+	}
+	/*else if(pVictim->GetPlayer()->m_Class == CLASS_JUGGERNAUT)
+	{
+		SendChatTarget(-1, "Juggernaut was defeated!");
+		GameWorld()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
+	}*/
 
-		m_DoWinchenkClassTick = ((Server()->TickSpeed() * m_Wincheckdeley) / 1000); // 延时终局
+	if(pKiller != pVictim->GetPlayer()) // 不是自杀
+	{
+		pKiller->m_HiddenScore += // 给予分数
+			m_aKillScore[pVictim->GetPlayer()->m_Class] // Class
+				[pKiller->m_Class == pVictim->GetPlayer()->m_Class]; // IsTeamKill
+
+		if(Weapon >= WEAPON_WORLD)
+		{
+			char aBuf[64];
+			str_format(aBuf, sizeof(aBuf), "你被 '%s' 的%s所杀", Server()->ClientName(pKiller->GetCID()), m_aWeaponName[Weapon + 1]);
+
+			SendChatTarget(pVictim->GetPlayer()->GetCID(), aBuf); // 给被弄死的人发
+		}
 	}
 
+	if(m_NumHunter) // 如果没有猎人(当然是全死光啦) 就不要发猎人列表 等EndMatch
+		SendChatTarget(pVictim->GetPlayer()->GetCID(), m_HunterList); // 给被弄死的人发猎人列表
+
+	m_DoWinchenkClassTick = ((Server()->TickSpeed() * m_Wincheckdeley) / 1000); // 延时终局
+
 	return DEATH_NO_REASON | DEATH_SKIP_SCORE; // 隐藏死因并跳过内置分数逻辑
+}
+
+void CGameControllerHunterN::OnPreEntitySnap(int SnappingClient, int OtherMode) // 出生用旗子显示自己队伍
+{
+	CPlayer *pPlayer = GetPlayerIfInRoom(SnappingClient);
+	if(!pPlayer || pPlayer->GetCID() != SnappingClient) // 只对自己显示
+		return;
+
+	CCharacter *pChar = pPlayer->GetCharacter();
+	if(!pChar || pChar->m_SpawnTick + (Server()->TickSpeed() * 5) <= Server()->Tick()) // GameStart + 5 sec
+		return;
+
+	CNetObj_Flag *pFlag = (CNetObj_Flag *)Server()->SnapNewItem(NETOBJTYPE_FLAG, 0, sizeof(CNetObj_Flag));
+	if(!pFlag)
+		return;
+
+	pFlag->m_X = round_to_int(pChar->m_Pos.x);
+	pFlag->m_Y = round_to_int(pChar->m_Pos.y);
+	pFlag->m_Team = pPlayer->m_AmongUsTeam; // 显示玩家的队伍
 }

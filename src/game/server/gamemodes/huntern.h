@@ -3,6 +3,7 @@
 #ifndef GAME_SERVER_GAMEMODES_HUNTERN_H
 #define GAME_SERVER_GAMEMODES_HUNTERN_H
 #include <game/server/gamecontroller.h>
+#include <game/server/classes.h>
 
 class CGameControllerHunterN : public IGameController
 {
@@ -39,6 +40,7 @@ public:
 	void DoWincheckRound() override;
 	void DoWincheckMatch() override;
 	int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon) override;
+	void OnPreEntitySnap(int SnappingClient, int OtherMode) override;
 
 private: // Intelnal function and value
 	int m_NumHunter; // 有多少个猎人
@@ -56,6 +58,22 @@ protected:
 		FLAG_WIN_TEAMRED = 2,
 		FLAG_WIN_TEAMBLUE = 4,
 	};
+
+	const int m_aKillScore[NUM_CLASSES][2] = { // Kill & TeamKill Score
+	{0, 0}, // CLASS_NONE
+	{1, -1}, // CLASS_CIVIC
+	{4, -2}, // CLASS_HUNTER
+	{8, -114514}, // CLASS_JUGGERNAUT
+	{4, -2},}; // CLASS_PUPPETEE
+
+	const char m_aWeaponName[7][16] = {
+	{"地刺"},
+	{"锤子"},
+	{"手枪"},
+	{"霰弹"},
+	{"榴弹"},
+	{"激光"},
+	{"忍者刀"},};
 };
 
 #endif
