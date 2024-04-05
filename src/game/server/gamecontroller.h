@@ -627,6 +627,8 @@ public:
 	*/
 	virtual void OnSnap(int SnappingClient){};
 
+	virtual void OnPreEntitySnap(int SnappingClient, int OtherMode){};
+
 	// =================
 	//    GAME EVENTS
 	// =================

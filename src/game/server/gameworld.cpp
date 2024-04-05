@@ -132,6 +132,8 @@ void CGameWorld::RemoveEntity(CEntity *pEnt)
 //
 void CGameWorld::Snap(int SnappingClient, int OtherMode)
 {
+	Controller()->OnPreEntitySnap(SnappingClient, OtherMode);
+
 	for(auto *pEnt : m_apFirstEntityTypes)
 		for(; pEnt;)
 		{
