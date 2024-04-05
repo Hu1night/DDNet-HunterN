@@ -92,7 +92,7 @@ static void ConSetClass(IConsole::IResult *pResult, void *pUserData)
 {
 	IGameController *pSelf = (IGameController *)pUserData;
 
-	CPlayer *pPlayer = pSelf->GetPlayerIfInRoom(pResult->GetInteger(1));
+	CPlayer *pPlayer = pSelf->GetPlayerIfInRoom(pResult->NumArguments() > 1 ? pResult->GetInteger(1) : pResult->m_ClientID);
 	if(!pPlayer) // If the player does not exist
 		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "invalid client id");
 	else
