@@ -168,6 +168,9 @@ CGameControllerHunterN::CGameControllerHunterN() :
 	m_GameFlags = HUNTERN_GAMEFLAGS;
 	// 生存模式，回合模式，SUDDENDEATH，回合终局显示游戏结束，游戏结束/旁观Snap队伍模式
 
+	m_aNumTeamPlayer[TEAM_RED] = 0;
+	m_aNumTeamPlayer[TEAM_BLUE] = 0;
+
 	INSTANCE_CONFIG_INT(&m_HunterRatio, "htn_hunt_ratio", 4, 2, MAX_CLIENTS, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "几个玩家里选取一个猎人（整数,默认4,限制2~64）");
 	//INSTANCE_CONFIG_INT(&m_Broadcastm_HunterList, "htn_hunt_broadcast_list", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "是否全体广播猎人列表（开关,默认0,限制0~1）");
 	INSTANCE_CONFIG_INT(&m_BroadcastHunterDeath, "htn_hunt_broadcast_death", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "是否全体广播猎人死亡（开关,默认0,限制0~1）");
@@ -211,7 +214,7 @@ void CGameControllerHunterN::CycleMap() // 循环地图
 
 	bool CurrentMapfound = false; // 是否找到了当前地图
 
-	for(int i = 0; i < 64; ++i) // 循环所有子地图
+	for(int i = 0; i < CGameTeams::MAX_MAPS; ++i) // 循环所有子地图
 	{
 		if(!m_aMaprotation[i]) // 列表走到了尽头 没找到可用地图
 			break;
@@ -230,6 +233,12 @@ void CGameControllerHunterN::CycleMap() // 循环地图
 }
 
 // Event
+void CGameControllerHunterN::OnInit() // 换图时会软重置GameController 分数会清空 在这里恢复
+{
+	m_aTeamscore[TEAM_RED] = m_aNumTeamPlayer[TEAM_RED];
+	m_aTeamscore[TEAM_BLUE] = m_aNumTeamPlayer[TEAM_BLUE];
+}
+
 void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 {
 	m_GameFlags = HUNTERN_GAMEFLAGS;
@@ -241,23 +250,24 @@ void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 	for(int i = 0; i < MAX_CLIENTS; ++i) // 重置并计数玩家
 	{
 		CPlayer *pPlayer = GetPlayerIfInRoom(i);
-		if(pPlayer && pPlayer->GetTeam() != TEAM_SPECTATORS &&
-			(!pPlayer->m_RespawnDisabled ||
-				(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive())))
-		{
-			pPlayer->m_AmongUsTeam = TEAM_RED; // 重置队伍
-			pPlayer->m_HiddenScore = 0; // 重置隐藏分
-			pPlayer->m_UseHunterWeapon = false; // 默认武器
-			pPlayer->m_Class = CLASS_CIVIC; // 重置玩家为平民
-			if(pPlayer->m_Preselect) // 猎人选择伪随机！我们要在m_Preselect的玩家里面选择猎人
-				++PreselectPlayerCount; // 计数有PreselectPlayerCount个玩家
-		}
+		if(!pPlayer || pPlayer->GetTeam() == TEAM_SPECTATORS
+			|| (pPlayer->m_RespawnDisabled && (!pPlayer->GetCharacter() || !pPlayer->GetCharacter()->IsAlive())))
+			continue;
+
+		pPlayer->m_AmongUsTeam = TEAM_RED; // 重置队伍
+		pPlayer->m_HiddenScore = 0; // 重置隐藏分
+		pPlayer->m_UseHunterWeapon = false; // 默认武器
+		pPlayer->m_Class = CLASS_CIVIC; // 重置玩家为平民
+		if(pPlayer->m_Preselect) // 猎人选择伪随机！我们要在m_Preselect的玩家里面选择猎人
+			++PreselectPlayerCount; // 计数有PreselectPlayerCount个玩家
 	}
 
 	if(m_aTeamSize[TEAM_RED] < 2) // m_aTeamSize[TEAM_RED] = 非队伍模式的人数量
 		return;
 
-	m_NumHunter = (m_aTeamSize[TEAM_RED] - 2) / m_HunterRatio + 1;// 我们要多少个猎人
+	m_aNumTeamPlayer[TEAM_BLUE] = (m_aTeamSize[TEAM_RED] - 2) / m_HunterRatio + 1; // 我们要多少个猎人
+	m_aNumTeamPlayer[TEAM_RED] = m_aTeamSize[TEAM_RED] - m_aNumTeamPlayer[TEAM_BLUE];
+	m_NumHunter = m_aNumTeamPlayer[TEAM_BLUE];
 	str_format(m_HunterList, sizeof(m_HunterList), "本回合的 %d 个Hunter是: ", m_NumHunter); // Generate Hunter info message 生成猎人列表消息头
 
 	SendChatTarget(-1, "——————欢迎来到HunterN猎人杀——————");
@@ -276,14 +286,13 @@ void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 			for(int i = 0; i < MAX_CLIENTS; ++i) // 重置所有玩家的m_Preselect
 			{
 				CPlayer *pPlayer = GetPlayerIfInRoom(i);
-				if(pPlayer && pPlayer->GetTeam() != TEAM_SPECTATORS &&
-					(!pPlayer->m_RespawnDisabled ||
-						(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive())))
-				{
-					pPlayer->m_Preselect = true; // 设置m_Preselect为真（包括猎人 主要是为了随机性）
-					if(pPlayer->m_Class == CLASS_CIVIC) // 只有平民才可以被计数
-						++PreselectPlayerCount; // 重置PreselectPlayerCount
-				}
+				if(!pPlayer || pPlayer->GetTeam() == TEAM_SPECTATORS
+					|| (pPlayer->m_RespawnDisabled && (!pPlayer->GetCharacter() || !pPlayer->GetCharacter()->IsAlive())))
+					continue;
+
+				pPlayer->m_Preselect = true; // 设置m_Preselect为真（包括猎人 主要是为了随机性）
+				if(pPlayer->m_Class == CLASS_CIVIC) // 只有平民才可以被计数
+					++PreselectPlayerCount; // 重置PreselectPlayerCount
 			}
 		}
 
@@ -292,46 +301,44 @@ void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 		for(int i = 0; i < MAX_CLIENTS; ++i) // 在PreselectPlayerCount个玩家里选择第rHunter个玩家为猎人
 		{
 			CPlayer *pPlayer = GetPlayerIfInRoom(i);
-			if(pPlayer)
+			if(!pPlayer || pPlayer->GetTeam() == TEAM_SPECTATORS
+				|| (pPlayer->m_RespawnDisabled && (!pPlayer->GetCharacter() || !pPlayer->GetCharacter()->IsAlive()))
+				|| !pPlayer->m_Preselect || pPlayer->m_Class != CLASS_CIVIC) // 在平民职业的玩家里面选择猎人
+				continue; // 首先剔除不在选择队列里的玩家
+
+			if(rHunter != 0) // 计数玩家
 			{
-				if(pPlayer->GetTeam() != TEAM_SPECTATORS &&
-				(!pPlayer->m_RespawnDisabled ||
-					(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive())) &&
-						pPlayer->m_Preselect && (pPlayer->m_Class == CLASS_CIVIC)) // 在平民职业的玩家里面选择猎人
-				{
-					if(rHunter == 0) // 找到了第rHunter个玩家 选择为猎人
-					{
-						pPlayer->m_Class = CLASS_HUNTER; // 设置猎人Flag
-						//pPlayer->m_UseHunterWeapon = true; // 使用猎人武器 // 在OnCharachar里面设置
-						pPlayer->m_AmongUsTeam = TEAM_BLUE; // 设置队伍
-						pPlayer->m_Preselect = false; // 把m_Preselect设为否 即最近当过猎人
-						--PreselectPlayerCount;
-
-						// Generate Hunter info message 生成猎人列表消息
-						str_append(m_HunterList, Server()->ClientName(i), sizeof(m_HunterList));
-						str_append(m_HunterList, ", ", sizeof(m_HunterList));
-
-						break;
-					}
-					--rHunter;
-				}
+				rHunter--;
+				continue;
 			}
+
+			pPlayer->m_Class = CLASS_HUNTER; // 设置猎人Flag
+			//pPlayer->m_UseHunterWeapon = true; // 使用猎人武器 // 在OnCharachar里面设置
+			pPlayer->m_AmongUsTeam = TEAM_BLUE; // 设置队伍
+			pPlayer->m_Preselect = false; // 把m_Preselect设为否 即最近当过猎人
+			--PreselectPlayerCount;
+
+			// Generate Hunter info message 生成猎人列表消息
+			str_append(m_HunterList, Server()->ClientName(i), sizeof(m_HunterList));
+			str_append(m_HunterList, ", ", sizeof(m_HunterList));
+
+			break;
 		}
 	}
 
 	for(int i = 0; i < MAX_CLIENTS; ++i) // 循环所有旁观者 把猎人列表告诉他们
 	{
 		CPlayer *pPlayer = GetPlayerIfInRoom(i);
-		if(pPlayer)
+		if(!pPlayer)
+			continue;
+
+		if(pPlayer->GetTeam() == TEAM_SPECTATORS)
 		{
-			if(pPlayer->GetTeam() == TEAM_SPECTATORS)
-			{
-				SendChatTarget(pPlayer->GetCID(), m_HunterList); // 给膀胱者发
-			}
-			else if(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive()) // 这个玩家出生了 所以OnCharacterSpawn已经过了
-			{
-				OnResetClass(pPlayer->GetCharacter()); // 在这里给他们Class提示和武器
-			}
+			SendChatTarget(pPlayer->GetCID(), m_HunterList); // 给膀胱者发
+		}
+		else if(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive()) // 这个玩家出生了 所以OnCharacterSpawn已经过了
+		{
+			OnResetClass(pPlayer->GetCharacter()); // 在这里给他们Class提示和武器
 		}
 	}
 
@@ -549,17 +556,17 @@ int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CP
 			for(int i = 0; i < MAX_CLIENTS; ++i) // 逐个给所有人根据职业发送死亡消息
 			{
 				CPlayer *pPlayer = GetPlayerIfInRoom(i);
-				if(pPlayer)
+				if(!pPlayer)
+					continue;
+				
+				if((m_BroadcastHunterDeath != -1 && pPlayer->m_Class == CLASS_HUNTER) || // 猎
+					pPlayer->GetTeam() == TEAM_SPECTATORS || pPlayer->m_DeadSpecMode) // 观察者 和 死人
 				{
-					if((m_BroadcastHunterDeath != -1 && pPlayer->m_Class == CLASS_HUNTER) || // 猎
-						pPlayer->GetTeam() == TEAM_SPECTATORS || pPlayer->m_DeadSpecMode) // 观察者 和 死人
-					{
-						SendChatTarget(pPlayer->GetCID(), aBuf); // 给所有猎人广播他们"队友"的死亡消息
-						GameWorld()->CreateSoundGlobal(SOUND_CTF_CAPTURE, CmaskOne(pPlayer->GetCID()));
-					}
-					else
-						GameWorld()->CreateSoundGlobal(SOUND_CTF_DROP, CmaskOne(pPlayer->GetCID()));
+					SendChatTarget(pPlayer->GetCID(), aBuf); // 给所有猎人广播他们"队友"的死亡消息
+					GameWorld()->CreateSoundGlobal(SOUND_CTF_CAPTURE, CmaskOne(pPlayer->GetCID()));
 				}
+				else
+					GameWorld()->CreateSoundGlobal(SOUND_CTF_DROP, CmaskOne(pPlayer->GetCID()));
 			}	
 		}
 	}

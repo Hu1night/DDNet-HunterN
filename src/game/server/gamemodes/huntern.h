@@ -28,6 +28,7 @@ public:
 	void CycleMap();
 
 	// event
+	void OnInit() override;
 	void OnWorldReset() override;
 	void OnCharacterSpawn(class CCharacter *pChr) override;
 	void OnPlayerJoin(class CPlayer *pPlayer) override;
@@ -45,6 +46,7 @@ private: // Intelnal function and value
 	int m_NumHunter; // 有多少个猎人
 	int m_DoWinchenkClassTick; // 终局判断延迟的Tick
 	char m_HunterList[256]; // 猎人列表
+	int m_aNumTeamPlayer[2]; // 存储每个队伍有多少玩家
 	//int TeamClass[1];
 	//int MatchFlag = -1;
 
