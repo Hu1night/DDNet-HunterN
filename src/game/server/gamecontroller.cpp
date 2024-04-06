@@ -2940,7 +2940,7 @@ void IGameController::SendKillMsg(int Killer, int Victim, int Weapon, int ModeSp
 		for(int i = 0; i < MAX_CLIENTS; ++i)
 		{
 			if(GetPlayerIfInRoom(i))
-				Server()->SendPackMsg((GameServer()->m_apPlayers[i]->GetTeam() != TEAM_SPECTATORS || (GameServer()->m_apPlayers[i]->GetCharacter() && GameServer()->m_apPlayers[i]->GetCharacter()->IsAlive())) ?
+				Server()->SendPackMsg(GameServer()->m_apPlayers[i]->GetCharacter() && GameServer()->m_apPlayers[i]->GetCharacter()->IsAlive() ?
 					&PlayerMsg : &Msg, // Is Hide Reason
 						MSGFLAG_VITAL, i);
 		}
