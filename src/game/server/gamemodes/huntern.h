@@ -60,6 +60,12 @@ protected:
 		FLAG_WIN_TEAMBLUE = 4,
 	};
 
+	const char* m_apClassSpawnMsg[4] = {
+	{"这局你是平民Civic! 消灭敌方队伍胜利!     \n猎人双倍伤害 有瞬杀锤子和破片榴弹"},
+	{"     这局你是猎人Hunter! 消灭敌方队伍胜利!\n     猎人双倍伤害 有瞬杀锤子和破片榴弹"},
+	{"     这局你是剑圣Juggernaut! 消灭敌方队伍胜利!\n     剑圣40心20盾 有盾反锤子且能斩杀"},
+	{"     这局你是傀儡师Puppetee! 消灭敌方队伍胜利!\n     猎人双倍伤害 有瞬杀锤子和破片榴弹"},};
+
 	const int m_aKillScore[NUM_CLASSES][2] = { // Kill & TeamKill Score
 	{0, 0}, // CLASS_NONE
 	{1, -1}, // CLASS_CIVIC
@@ -67,7 +73,7 @@ protected:
 	{8, -114514}, // CLASS_JUGGERNAUT
 	{4, -2},}; // CLASS_PUPPETEE
 
-	const char m_aWeaponName[7][16] = {
+	const char* m_apWeaponName[7] = {
 	{"地刺"},
 	{"锤子"},
 	{"手枪"},
