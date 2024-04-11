@@ -18,35 +18,35 @@ private: // config
 
 public: // Maprotation
 	enum { MAX_MAPROTATIONS = 32, };
-	// enum { MAX_MAPROTATIONS = 114514, };
-	int m_aMaprotation[MAX_MAPROTATIONS] = {0}; // 存储MapIndex的数组
+	int m_aMaprotation[MAX_MAPROTATIONS]; // 存储MapIndex的数组
 
 public:
 	CGameControllerHunterN();
 
+	// function
 	static void OnResetClass(CCharacter *pChr);
 	void CycleMap();
 
-	// event
-	void OnInit() override;
+	// game event
 	void OnWorldReset() override;
-	void OnCharacterSpawn(class CCharacter *pChr) override;
-	void OnPlayerJoin(class CPlayer *pPlayer) override;
-	int OnCharacterTakeDamage(class CCharacter *pChr, vec2 &Force, int &Dmg, int From, int WeaponType, int WeaponID, bool IsExplosion) override;
-	//int OnPickup(CPickup *pPickup, CCharacter *pChar, SPickupSound *pSound) override;
+	void OnPreEntitySnap(int SnappingClient, int OtherMode) override; // per tick
+	void DoWincheckMatch() override;
+	void DoWincheckRound() override; // per tick
+	// player event
 	//bool CanDeadPlayerFreeView(const class CPlayer *pSpectator) override { return true; }
 	//bool CanDeadPlayerFollow(const CPlayer *pSpectator, const CPlayer *pTarget) override { return true; }
 	bool CanChangeTeam(CPlayer *pPlayer, int JoinTeam) const override;
-	void DoWincheckRound() override;
-	void DoWincheckMatch() override;
+	void OnPlayerJoin(class CPlayer *pPlayer) override;
+	void OnCharacterSpawn(class CCharacter *pChr) override;
+	int OnCharacterTakeDamage(class CCharacter *pChr, vec2 &Force, int &Dmg, int From, int WeaponType, int WeaponID, bool IsExplosion) override;
+	//int OnPickup(CPickup *pPickup, CCharacter *pChar, SPickupSound *pSound) override;
 	int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon) override;
-	void OnPreEntitySnap(int SnappingClient, int OtherMode) override;
 
 private: // Intelnal function and value
 	int m_NumHunter; // 有多少个猎人
 	int m_DoWinchenkClassTick; // 终局判断延迟的Tick
 	char m_HunterList[256]; // 猎人列表
-	int m_aNumTeamPlayer[2]; // 存储每个队伍有多少玩家
+	//int m_aNumTeamPlayer[2]; // 存储每个队伍有多少玩家
 	//int TeamClass[1];
 	//int MatchFlag = -1;
 
@@ -71,7 +71,8 @@ protected:
 	{1, -1}, // CLASS_CIVIC
 	{4, -2}, // CLASS_HUNTER
 	{8, -114514}, // CLASS_JUGGERNAUT
-	{4, -2},}; // CLASS_PUPPETEE
+	{4, -2}, // CLASS_PUPPETEE
+	{8, -2},}; // CLASS_JOJO
 
 	const char* m_apWeaponName[7] = {
 	{"地刺"},

@@ -298,7 +298,7 @@ bool CGameTeams::CreateGameInstance(int Team, const char *pGameName, int Asker)
 	m_aTeamInstances[Team].m_pWorld = pWorld;
 	m_aTeamInstances[Team].m_pController = Game;
 	m_aTeamInstances[Team].m_pController->m_MapIndex = m_NumMaps > 0 ? 1 : 0;
-	m_aTeamInstances[Team].m_pController->InitController(m_pGameContext, pWorld);
+	m_aTeamInstances[Team].m_pController->InitController(m_pGameContext, pWorld, true);
 	m_aTeamInstances[Team].m_IsCreated = true;
 	m_aTeamInstances[Team].m_Init = false;
 	m_aTeamInstances[Team].m_Entities = 0;
@@ -467,7 +467,7 @@ void CGameTeams::OnTick()
 				m_aTeamInstances[i].m_Entities = 0;
 				m_aTeamInstances[i].m_Init = false;
 				m_aTeamInstances[i].m_pWorld = new CGameWorld(i, m_pGameContext, m_aTeamInstances[i].m_pController);
-				m_aTeamInstances[i].m_pController->InitController(m_pGameContext, m_aTeamInstances[i].m_pWorld);
+				m_aTeamInstances[i].m_pController->InitController(m_pGameContext, m_aTeamInstances[i].m_pWorld, false);
 			}
 			else
 			{

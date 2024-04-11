@@ -405,7 +405,7 @@ public:
 	// DDRace
 	int GetPlayerTeam(int ClientID) const;
 	class CPlayer *GetPlayerIfInRoom(int ClientID) const;
-	void InitController(class CGameContext *pGameServer, class CGameWorld *pWorld);
+	void InitController(class CGameContext *pGameServer, class CGameWorld *pWorld, bool IsReset);
 
 	// vote
 	class CHeap *m_pVoteOptionHeap;

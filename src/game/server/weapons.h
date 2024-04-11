@@ -13,6 +13,7 @@ REGISTER_WEAPON(WEAPON_ID_HUNTHAMMER, CHuntHammer) // Hunter
 REGISTER_WEAPON(WEAPON_ID_JUGNINJA, CJugNinja) // Hunter
 REGISTER_WEAPON(WEAPON_ID_PUPPETEEHAMMER, CPuppeteeHammer) // Hunter
 REGISTER_WEAPON(WEAPON_ID_TANKGRENADE, CTankGrenade) // Hunter
+REGISTER_WEAPON(WEAPON_ID_JOJOHAMMER, CJOJOHammer) // Hunter
 REGISTER_WEAPON(WEAPON_ID_ASMRHAMMER, CASMRHammer) // Hunter
 
 #else
@@ -33,6 +34,7 @@ REGISTER_WEAPON(WEAPON_ID_ASMRHAMMER, CASMRHammer) // Hunter
 #include "weapons/jugninja.h" // Hunter
 #include "weapons/puppeteehammer.h" // Hunter
 #include "weapons/tankgrenade.h" // Hunter
+#include "weapons/jojohammer.h" // Hunter
 #include "weapons/asmrhammer.h" // Hunter
 
 enum

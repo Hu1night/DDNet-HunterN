@@ -67,7 +67,7 @@ static void ConMapList(IConsole::IResult *pResult, void *pUserData)
 		if(!pMapName)
 			continue;
 
-		str_format(aBuf, sizeof(aBuf), "%d | %d - %s, ", i, pSelf->m_aMaprotation[i], pMapName);
+		str_format(aBuf, sizeof(aBuf), "Slot%d | ID%d - %s, ", i, pSelf->m_aMaprotation[i], pMapName);
 		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "instance", aBuf); // 输出
 	}
 }
@@ -78,11 +78,7 @@ static void ConMapRemove(IConsole::IResult *pResult, void *pUserData)
 
 	int TargetMap = pResult->GetInteger(0);
 
-	bool IsRemoved = false;
-	if(pSelf->m_aMaprotation[TargetMap])
-		IsRemoved = true;
-
-	if(!IsRemoved)
+	if(!pSelf->m_aMaprotation[TargetMap])
 	{
 		char aBuf[64];
 		str_format(aBuf, sizeof(aBuf), "Cannot remove map in empty slot %d", TargetMap);
@@ -90,17 +86,8 @@ static void ConMapRemove(IConsole::IResult *pResult, void *pUserData)
 		return;
 	}
 
-	pSelf->m_aMaprotation[TargetMap] = 0; // 设目标位置为0
-
-	int i = TargetMap;
-	for(; i < CGameControllerHunterN::MAX_MAPROTATIONS; ++i) // 遍历地图循环列表 拉后面的地图补位
-	{
-		if(!pSelf->m_aMaprotation[i + 1]) // 列表走到了尽头
-			break;
-
-		pSelf->m_aMaprotation[i] = pSelf->m_aMaprotation[i + 1]; // 补位
-	}
-	pSelf->m_aMaprotation[i] = 0;
+	mem_copy(&pSelf->m_aMaprotation[TargetMap], &pSelf->m_aMaprotation[TargetMap + 1], CGameControllerHunterN::MAX_MAPROTATIONS - 1 - TargetMap);
+	pSelf->m_aMaprotation[CGameControllerHunterN::MAX_MAPROTATIONS] = 0;
 
 	char aBuf[32];
 	str_format(aBuf, sizeof(aBuf), "Removed map in slot %d", TargetMap);
@@ -194,8 +181,7 @@ CGameControllerHunterN::CGameControllerHunterN() :
 	m_GameFlags = HUNTERN_GAMEFLAGS;
 	// 生存模式，回合模式，SUDDENDEATH，回合终局显示游戏结束，游戏结束/旁观Snap队伍模式
 
-	m_aNumTeamPlayer[TEAM_RED] = 0;
-	m_aNumTeamPlayer[TEAM_BLUE] = 0;
+	mem_zero(m_aMaprotation, sizeof(m_aMaprotation));
 
 	INSTANCE_CONFIG_INT(&m_HunterRatio, "htn_hunt_ratio", 4, 2, MAX_CLIENTS, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "几个玩家里选取一个猎人（整数,默认4,限制2~64）");
 	//INSTANCE_CONFIG_INT(&m_Broadcastm_HunterList, "htn_hunt_broadcast_list", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "是否全体广播猎人列表（开关,默认0,限制0~1）");
@@ -203,7 +189,7 @@ CGameControllerHunterN::CGameControllerHunterN() :
 	INSTANCE_CONFIG_INT(&m_EffectHunterDeath, "htn_hunt_effert_death", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "猎人死亡是否使用出生烟（开关,默认0,限制0~1）");
 	INSTANCE_CONFIG_INT(&m_HuntFragNum, "htn_hunt_frag_num", 18, 0, 0xFFFFFFF, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "猎人榴弹产生的破片数量（整数,默认18,限制0~268435455）");
 	INSTANCE_CONFIG_INT(&m_HuntFragTrack, "htn_hunt_frag_track", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "猎人榴弹破片是否追踪定向（开关,默认0,限制0~1）");
-	INSTANCE_CONFIG_INT(&m_Wincheckdeley, "htn_wincheck_deley", 100, 0, 0xFFFFFFF, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "终局判断延时毫秒（整数,默认100,限制0~268435455）");
+	INSTANCE_CONFIG_INT(&m_Wincheckdeley, "htn_wincheck_deley", 200, 0, 0xFFFFFFF, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "终局判断延时毫秒（整数,默认100,限制0~268435455）");
 	INSTANCE_CONFIG_INT(&m_GameoverTime, "htn_gameover_time", 7, 0, 0xFFFFFFF, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "结算界面时长秒数（整数,默认0,限制0~268435455）");
 	//INSTANCE_CONFIG_INT(&m_RoundMode, "htn_round_mode", 0, 0, 1, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "回合模式 正常0 娱乐1（整数,默认0,限制0~1）");;
 
@@ -241,7 +227,7 @@ void CGameControllerHunterN::CycleMap() // 循环地图
 
 	bool CurrentMapfound = false; // 是否找到了当前地图
 
-	for(int i = 0; i < CGameTeams::MAX_MAPS; ++i) // 循环所有子地图
+	for(int i = 0; i < CGameControllerHunterN::MAX_MAPROTATIONS; ++i) // 循环所有子地图
 	{
 		if(!m_aMaprotation[i]) // 列表走到了尽头 没找到可用地图
 			break;
@@ -260,12 +246,6 @@ void CGameControllerHunterN::CycleMap() // 循环地图
 }
 
 // Event
-void CGameControllerHunterN::OnInit() // 换图时会软重置GameController 分数会清空 在这里恢复
-{
-	m_aTeamscore[TEAM_RED] = m_aNumTeamPlayer[TEAM_RED];
-	m_aTeamscore[TEAM_BLUE] = m_aNumTeamPlayer[TEAM_BLUE];
-}
-
 void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 {
 	m_GameFlags = HUNTERN_GAMEFLAGS;
@@ -292,9 +272,7 @@ void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 	if(m_aTeamSize[TEAM_RED] < 2) // m_aTeamSize[TEAM_RED] = 非队伍模式的人数量
 		return;
 
-	m_aNumTeamPlayer[TEAM_BLUE] = (m_aTeamSize[TEAM_RED] - 2) / m_HunterRatio + 1; // 我们要多少个猎人
-	m_aNumTeamPlayer[TEAM_RED] = m_aTeamSize[TEAM_RED] - m_aNumTeamPlayer[TEAM_BLUE];
-	m_NumHunter = m_aNumTeamPlayer[TEAM_BLUE];
+	m_NumHunter = (m_aTeamSize[TEAM_RED] - 2) / m_HunterRatio + 1; // 我们要多少个猎人
 	str_format(m_HunterList, sizeof(m_HunterList), "本回合的 %d 个Hunter是: ", m_NumHunter); // Generate Hunter info message 生成猎人列表消息头
 
 	SendChatTarget(-1, "——————欢迎来到HunterN猎人杀——————");
@@ -368,87 +346,32 @@ void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 	InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", m_HunterList);
 }
 
-void CGameControllerHunterN::OnCharacterSpawn(CCharacter *pChr) // 出生给予生命值和武器 以及职业提示
+void CGameControllerHunterN::OnPreEntitySnap(int SnappingClient, int OtherMode) // 出生用旗子显示自己队伍
 {
-	switch(IsGameRunning()
-		? pChr->GetPlayer()->m_Class // 如果游戏在正常运行
-		: CLASS_NONE) // 如果游戏未开始
+	CPlayer *pPlayer = GetPlayerIfInRoom(SnappingClient);
+	if(!pPlayer || pPlayer->GetCID() != SnappingClient) // 只对自己显示
+		return;
+
+	CCharacter *pChar = pPlayer->GetCharacter();
+	if(!pChar || pChar->m_SpawnTick + (Server()->TickSpeed() * 5) <= Server()->Tick()) // m_SpawnTick + 5 sec
+		return;
+
+	CNetObj_Flag *pFlag = (CNetObj_Flag *)Server()->SnapNewItem(NETOBJTYPE_FLAG, 0, sizeof(CNetObj_Flag));
+	if(!pFlag)
+		return;
+
+	pFlag->m_X = round_to_int(pChar->m_Pos.x);
+	pFlag->m_Y = round_to_int(pChar->m_Pos.y);
+	pFlag->m_Team = pPlayer->m_AmongUsTeam; // 显示玩家的队伍
+}
+
+void CGameControllerHunterN::DoWincheckMatch() // Roundlimit 触发DoWincheckMatch
+{
+	if(m_GameInfo.m_MatchNum > 0 && m_GameInfo.m_MatchCurrent >= m_GameInfo.m_MatchNum)
 	{
-	case CLASS_CIVIC:
-		pChr->IncreaseHealth(10);
-		pChr->GiveWeapon(WEAPON_GUN, WEAPON_ID_PISTOL, 10);
-		pChr->GetPlayer()->m_UseHunterWeapon = false; // 不使用猎人武器
-
-		pChr->GameWorld()->CreateSoundGlobal(SOUND_CTF_GRAB_PL, CmaskOne(pChr->GetPlayer()->GetCID()));
-		pChr->GameServer()->SendBroadcast(m_apClassSpawnMsg[0], pChr->GetPlayer()->GetCID(), true);
-		break;
-	case CLASS_HUNTER:
-		pChr->IncreaseHealth(10);
-		pChr->GiveWeapon(WEAPON_GUN, WEAPON_ID_PISTOL, 10);
-		pChr->GiveWeapon(WEAPON_HAMMER, WEAPON_ID_HUNTHAMMER, -1);
-		pChr->GetPlayer()->m_UseHunterWeapon = true; // 使用猎人武器
-
-		pChr->GameWorld()->CreateSoundGlobal(SOUND_CTF_GRAB_EN, CmaskOne(pChr->GetPlayer()->GetCID()));
-		pChr->GameServer()->SendBroadcast(m_apClassSpawnMsg[1], pChr->GetPlayer()->GetCID(), true);
-		break;
-	case CLASS_JUGGERNAUT:
-		pChr->m_MaxHealth = 114;
-		pChr->IncreaseHealth(114);
-		pChr->m_MaxArmor = 5;
-		pChr->IncreaseArmor(5);
-		pChr->SetPowerUpWeapon(WEAPON_ID_JUGNINJA, -1);
-		pChr->GetPlayer()->m_UseHunterWeapon = false; // 不使用猎人武器
-
-		pChr->GameWorld()->CreateSoundGlobal(SOUND_NINJA_FIRE, CmaskOne(pChr->GetPlayer()->GetCID()));
-		pChr->GameServer()->SendBroadcast(m_apClassSpawnMsg[2], pChr->GetPlayer()->GetCID(), true);
-		break;
-	case CLASS_PUPPETEE:
-		pChr->IncreaseHealth(10);
-		pChr->GiveWeapon(WEAPON_GUN, WEAPON_ID_PISTOL, 10);
-		pChr->GiveWeapon(WEAPON_HAMMER, WEAPON_ID_PUPPETEEHAMMER, -1);
-		pChr->GetPlayer()->m_UseHunterWeapon = false; // 不使用猎人武器
-
-		pChr->GameWorld()->CreateSoundGlobal(SOUND_CTF_GRAB_EN, CmaskOne(pChr->GetPlayer()->GetCID()));
-		pChr->GameServer()->SendBroadcast(m_apClassSpawnMsg[3], pChr->GetPlayer()->GetCID(), true);
-		break;
-	default:
-		pChr->IncreaseHealth(10);
-		pChr->GiveWeapon(WEAPON_HAMMER, WEAPON_ID_HAMMER, -1);
-		pChr->GiveWeapon(WEAPON_GUN, WEAPON_ID_PISTOL, 10);
-		pChr->GetPlayer()->m_UseHunterWeapon = false; // 不使用猎人武器
-		break;
+		CycleMap();
+		SetGameState(IGS_END_MATCH, m_GameoverTime); // EndMatch();
 	}
-}
-
-void CGameControllerHunterN::OnPlayerJoin(class CPlayer *pPlayer) // 使新进旁观者收到猎人列表
-{
-	if(m_GameState == IGS_GAME_RUNNING && pPlayer->m_RespawnDisabled) // 死人
-		SendChatTarget(pPlayer->GetCID(), m_HunterList);
-}
-
-int CGameControllerHunterN::OnCharacterTakeDamage(class CCharacter *pChr, vec2 &Force, int &Dmg, int From, int WeaponType, int WeaponID, bool IsExplosion)
-// 使Hunter不受到自己的伤害
-{
-	if(pChr->GetPlayer()->GetCID() == From && pChr->GetPlayer()->m_Class == CLASS_HUNTER) // Hunter不能受到来自自己的伤害（这样就不会被逆天榴弹自爆）
-		return DAMAGE_NO_DAMAGE | DAMAGE_NO_INDICATOR;
-	return DAMAGE_NORMAL;
-}
-
-/*int CGameControllerHunterN::OnPickup(CPickup *pPickup, CCharacter *pChar, SPickupSound *pSound) // Juggernaut不能捡东西
-{
-	if(pChar->GetPlayer()->m_Class != CLASS_JUGGERNAUT || ((pPickup->GetType() == POWERUP_ARMOR)))
-		return IGameController::OnPickup(pPickup, pChar, pSound);
-	return -1;
-}*/
-
-bool CGameControllerHunterN::CanChangeTeam(CPlayer *pPlayer, int JoinTeam) const // 加入膀胱者则重置职业Flag
-{
-	if(JoinTeam == TEAM_SPECTATORS)
-	{
-		pPlayer->m_Class = CLASS_NONE; // 设置成没有职业
-		pPlayer->m_AmongUsTeam = TEAM_SPECTATORS; // 设置成没有队伍
-	}
-	return true;
 }
 
 void CGameControllerHunterN::DoWincheckRound() // check for time based win
@@ -457,7 +380,8 @@ void CGameControllerHunterN::DoWincheckRound() // check for time based win
 
 	if(m_DoWinchenkClassTick && !IsTimeEnd)  // 时间没有结束且延时终局
 	{
-		--m_DoWinchenkClassTick; // 计时
+		if(m_DoWinchenkClassTick >= 0)
+			--m_DoWinchenkClassTick; // 计时
 		return;
 	}
 
@@ -480,7 +404,7 @@ void CGameControllerHunterN::DoWincheckRound() // check for time based win
 			++TeamBlueCount;
 	}
 
-	if(!IsTimeEnd || (TeamBlueCount && TeamRedCount)) // 如果不是回合限时结束则需某队死光
+	if(!IsTimeEnd && (TeamBlueCount && TeamRedCount)) // 如果不是回合限时结束则需某队死光
 	{
 		m_DoWinchenkClassTick = 0;
 		return;
@@ -541,14 +465,87 @@ void CGameControllerHunterN::DoWincheckRound() // check for time based win
 	SetGameState(IGS_END_ROUND, m_GameoverTime); // EndRound();
 }
 
-void CGameControllerHunterN::DoWincheckMatch() // Roundlimit 触发DoWincheckMatch
+bool CGameControllerHunterN::CanChangeTeam(CPlayer *pPlayer, int JoinTeam) const // 加入膀胱者则重置职业Flag
 {
-	if(m_GameInfo.m_MatchNum > 0 && m_GameInfo.m_MatchCurrent >= m_GameInfo.m_MatchNum)
+	if(JoinTeam == TEAM_SPECTATORS)
 	{
-		CycleMap();
-		SetGameState(IGS_END_MATCH, m_GameoverTime); // EndMatch();
+		pPlayer->m_Class = CLASS_NONE; // 设置成没有职业
+		pPlayer->m_AmongUsTeam = TEAM_SPECTATORS; // 设置成没有队伍
+	}
+	return true;
+}
+
+void CGameControllerHunterN::OnPlayerJoin(class CPlayer *pPlayer) // 使新进旁观者收到猎人列表
+{
+	if(m_GameState == IGS_GAME_RUNNING && pPlayer->m_RespawnDisabled) // 死人
+		SendChatTarget(pPlayer->GetCID(), m_HunterList);
+}
+
+void CGameControllerHunterN::OnCharacterSpawn(CCharacter *pChr) // 出生给予生命值和武器 以及职业提示
+{
+	switch(IsGameRunning()
+		? pChr->GetPlayer()->m_Class // 如果游戏在正常运行
+		: CLASS_NONE) // 如果游戏未开始
+	{
+	case CLASS_CIVIC:
+		pChr->IncreaseHealth(10);
+		pChr->GiveWeapon(WEAPON_GUN, WEAPON_ID_PISTOL, 10);
+		pChr->GetPlayer()->m_UseHunterWeapon = false; // 不使用猎人武器
+
+		pChr->GameWorld()->CreateSoundGlobal(SOUND_CTF_GRAB_PL, CmaskOne(pChr->GetPlayer()->GetCID()));
+		pChr->GameServer()->SendBroadcast(m_apClassSpawnMsg[0], pChr->GetPlayer()->GetCID(), true);
+		break;
+	case CLASS_HUNTER:
+		pChr->IncreaseHealth(10);
+		pChr->GiveWeapon(WEAPON_GUN, WEAPON_ID_PISTOL, 10);
+		pChr->ForceSetWeapon(WEAPON_HAMMER, WEAPON_ID_HUNTHAMMER, -1);
+		pChr->GetPlayer()->m_UseHunterWeapon = true; // 使用猎人武器
+
+		pChr->GameWorld()->CreateSoundGlobal(SOUND_CTF_GRAB_EN, CmaskOne(pChr->GetPlayer()->GetCID()));
+		pChr->GameServer()->SendBroadcast(m_apClassSpawnMsg[1], pChr->GetPlayer()->GetCID(), true);
+		break;
+	case CLASS_JUGGERNAUT:
+		pChr->m_MaxHealth = 114;
+		pChr->IncreaseHealth(114);
+		pChr->m_MaxArmor = 5;
+		pChr->IncreaseArmor(5);
+		pChr->SetPowerUpWeapon(WEAPON_ID_JUGNINJA, -1);
+		pChr->GetPlayer()->m_UseHunterWeapon = false; // 不使用猎人武器
+
+		pChr->GameWorld()->CreateSoundGlobal(SOUND_NINJA_FIRE, CmaskOne(pChr->GetPlayer()->GetCID()));
+		pChr->GameServer()->SendBroadcast(m_apClassSpawnMsg[2], pChr->GetPlayer()->GetCID(), true);
+		break;
+	case CLASS_PUPPETEE:
+		pChr->IncreaseHealth(10);
+		pChr->GiveWeapon(WEAPON_GUN, WEAPON_ID_PISTOL, 10);
+		pChr->ForceSetWeapon(WEAPON_HAMMER, WEAPON_ID_PUPPETEEHAMMER, -1);
+		pChr->GetPlayer()->m_UseHunterWeapon = false; // 不使用猎人武器
+
+		pChr->GameWorld()->CreateSoundGlobal(SOUND_CTF_GRAB_EN, CmaskOne(pChr->GetPlayer()->GetCID()));
+		pChr->GameServer()->SendBroadcast(m_apClassSpawnMsg[3], pChr->GetPlayer()->GetCID(), true);
+		break;
+	default:
+		pChr->IncreaseHealth(10);
+		pChr->GiveWeapon(WEAPON_HAMMER, WEAPON_ID_HAMMER, -1);
+		pChr->GiveWeapon(WEAPON_GUN, WEAPON_ID_PISTOL, 10);
+		pChr->GetPlayer()->m_UseHunterWeapon = false; // 不使用猎人武器
+		break;
 	}
 }
+
+int CGameControllerHunterN::OnCharacterTakeDamage(class CCharacter *pChr, vec2 &Force, int &Dmg, int From, int WeaponType, int WeaponID, bool IsExplosion) // 使Hunter不受到自己的伤害
+{
+	if(pChr->GetPlayer()->GetCID() == From && pChr->GetPlayer()->m_Class == CLASS_HUNTER) // Hunter不能受到来自自己的伤害（这样就不会被逆天榴弹自爆）
+		return DAMAGE_NO_DAMAGE | DAMAGE_NO_INDICATOR;
+	return DAMAGE_NORMAL;
+}
+
+/*int CGameControllerHunterN::OnPickup(CPickup *pPickup, CCharacter *pChar, SPickupSound *pSound) // Juggernaut不能捡东西
+{
+	if(pChar->GetPlayer()->m_Class != CLASS_JUGGERNAUT || ((pPickup->GetType() == POWERUP_ARMOR)))
+		return IGameController::OnPickup(pPickup, pChar, pSound);
+	return -1;
+}*/
 
 int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon) // 杀手隐藏分增减 和受害人职业死亡消息 以及延时终局
 {
@@ -624,23 +621,4 @@ int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CP
 	m_DoWinchenkClassTick = ((Server()->TickSpeed() * m_Wincheckdeley) / 1000); // 延时终局
 
 	return DEATH_NO_REASON | DEATH_SKIP_SCORE; // 隐藏死因并跳过内置分数逻辑
-}
-
-void CGameControllerHunterN::OnPreEntitySnap(int SnappingClient, int OtherMode) // 出生用旗子显示自己队伍
-{
-	CPlayer *pPlayer = GetPlayerIfInRoom(SnappingClient);
-	if(!pPlayer || pPlayer->GetCID() != SnappingClient) // 只对自己显示
-		return;
-
-	CCharacter *pChar = pPlayer->GetCharacter();
-	if(!pChar || pChar->m_SpawnTick + (Server()->TickSpeed() * 5) <= Server()->Tick()) // GameStart + 5 sec
-		return;
-
-	CNetObj_Flag *pFlag = (CNetObj_Flag *)Server()->SnapNewItem(NETOBJTYPE_FLAG, 0, sizeof(CNetObj_Flag));
-	if(!pFlag)
-		return;
-
-	pFlag->m_X = round_to_int(pChar->m_Pos.x);
-	pFlag->m_Y = round_to_int(pChar->m_Pos.y);
-	pFlag->m_Team = pPlayer->m_AmongUsTeam; // 显示玩家的队伍
 }

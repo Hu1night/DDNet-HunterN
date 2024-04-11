@@ -2683,7 +2683,7 @@ CPlayer *IGameController::GetPlayerIfInRoom(int ClientID) const
 	return nullptr;
 }
 
-void IGameController::InitController(class CGameContext *pGameServer, class CGameWorld *pWorld)
+void IGameController::InitController(class CGameContext *pGameServer, class CGameWorld *pWorld, bool IsReset)
 {
 	m_Started = false;
 	m_pGameServer = pGameServer;
@@ -2694,9 +2694,12 @@ void IGameController::InitController(class CGameContext *pGameServer, class CGam
 	m_pInstanceConsole->InitNoConfig(m_pGameServer->Storage());
 	m_PauseRequested = false;
 
-	// game
-	m_aTeamscore[TEAM_RED] = 0;
-	m_aTeamscore[TEAM_BLUE] = 0;
+	if(IsReset)
+	{
+		// game
+		m_aTeamscore[TEAM_RED] = 0;
+		m_aTeamscore[TEAM_BLUE] = 0;
+	}
 
 	// spawn
 	m_aNumSpawnPoints[0] = 0;
