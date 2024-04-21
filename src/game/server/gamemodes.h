@@ -11,6 +11,7 @@
 #include "gamemodes/instagib.h"
 
 #include "gamemodes/huntern.h"
+#include "gamemodes/hunterc.h"
 
 #endif
 
@@ -26,4 +27,5 @@ REGISTER_GAME_TYPE(ictf, CGameControllerICTF)
 REGISTER_GAME_TYPE(catch, CGameControllerCatch)
 REGISTER_GAME_TYPE(zcatch, CGameControllerZCatch)
 REGISTER_GAME_TYPE(huntern, CGameControllerHunterN)
+REGISTER_GAME_TYPE(hunterc, CGameControllerHunterC)
 #endif

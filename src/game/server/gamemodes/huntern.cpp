@@ -1,7 +1,5 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
-#include <engine/shared/config.h>
-
 #include "huntern.h"
 #include <game/server/entities/character.h>
 #include <game/server/weapons.h>
@@ -177,10 +175,11 @@ static void ConRevive(IConsole::IResult *pResult, void *pUserData)
 CGameControllerHunterN::CGameControllerHunterN() :
 	IGameController()
 {
-	m_pGameType = "HunterN";
+	m_pGameType = "hunterN";
 	m_GameFlags = HUNTERN_GAMEFLAGS;
 	// 生存模式，回合模式，SUDDENDEATH，回合终局显示游戏结束，游戏结束/旁观Snap队伍模式
 
+	m_DoWinchenkClassTick = -1;
 	mem_zero(m_aMaprotation, sizeof(m_aMaprotation));
 
 	INSTANCE_CONFIG_INT(&m_HunterRatio, "htn_hunt_ratio", 4, 2, MAX_CLIENTS, CFGFLAG_CHAT | CFGFLAG_INSTANCE, "几个玩家里选取一个猎人（整数,默认4,限制2~64）");
@@ -246,6 +245,11 @@ void CGameControllerHunterN::CycleMap() // 循环地图
 }
 
 // Event
+void CGameControllerHunterN::OnInit()
+{
+	SetGameState(IGS_END_MATCH, m_GameoverTime); // EndMatch();
+}
+
 void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 {
 	m_GameFlags = HUNTERN_GAMEFLAGS;
@@ -385,36 +389,31 @@ void CGameControllerHunterN::DoWincheckRound() // check for time based win
 		return;
 	}
 
-	int PlayerCount = 0;
-	int TeamRedCount = 0;
-	int TeamBlueCount = 0;
+	int TeamPlayerCount[NUM_TEAMS] = {0};
+	int AliveTeamPlayerCount[NUM_TEAMS] = {0};
 
 	for(int i = 0; i < MAX_CLIENTS; ++i) // 计数玩家
 	{
 		CPlayer *pPlayer = GetPlayerIfInRoom(i);
-		if(!pPlayer || pPlayer->GetTeam() == TEAM_SPECTATORS
-			|| (pPlayer->m_RespawnDisabled
-			&& (!pPlayer->GetCharacter() || !pPlayer->GetCharacter()->IsAlive())))
+		if(!pPlayer || pPlayer->GetTeam() == TEAM_SPECTATORS)
 			continue;
 
-		++PlayerCount;
-		if(pPlayer->m_AmongUsTeam == TEAM_RED)
-			++TeamRedCount;
-		else //if(pPlayer->m_AmongUsTeam == TEAM_BLUE)
-			++TeamBlueCount;
+		TeamPlayerCount[pPlayer->m_AmongUsTeam]++; // 计数双方队伍人数
+		if(!pPlayer->m_RespawnDisabled || (pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive()))
+			AliveTeamPlayerCount[pPlayer->m_AmongUsTeam]++; // 计数活着的玩家
 	}
 
-	if(!IsTimeEnd && (TeamBlueCount && TeamRedCount)) // 如果不是回合限时结束则需某队死光
+	if(!IsTimeEnd && (AliveTeamPlayerCount[TEAM_RED] && AliveTeamPlayerCount[TEAM_BLUE])) // 如果不是回合限时结束则需某队死光
 	{
-		m_DoWinchenkClassTick = 0;
+		m_DoWinchenkClassTick = -1;
 		return;
 	}
 
 	// 游戏结束
-	m_aTeamscore[TEAM_RED] = 0; // 重置
-	m_aTeamscore[TEAM_BLUE] = 0;
+	m_aTeamscore[TEAM_RED] = TeamPlayerCount[TEAM_RED]; // 队伍分数形式显示双方人数
+	m_aTeamscore[TEAM_BLUE] = TeamPlayerCount[TEAM_BLUE];
 
-	for(int i = 0; i < MAX_CLIENTS; ++i) // 进行队伍分数 玩家分数和隐藏分操作
+	for(int i = 0; i < MAX_CLIENTS; ++i) // 进行玩家分数和隐藏分操作
 	{
 		CPlayer *pPlayer = GetPlayerIfInRoom(i);
 		if(!pPlayer)
@@ -425,29 +424,24 @@ void CGameControllerHunterN::DoWincheckRound() // check for time based win
 
 		if(pPlayer->m_HiddenScore) // 玩家拥有隐藏分
 			pPlayer->m_Score += pPlayer->m_HiddenScore; // 添加隐藏分
-
-		if(pPlayer->m_AmongUsTeam == TEAM_RED) // 队伍分数显示双方人数
-			m_aTeamscore[TEAM_RED] += 1; // 累加队伍分数 用队伍分数显示有几个民
-		else //if(pPlayer->m_AmongUsTeam == TEAM_BLUE)
-			m_aTeamscore[TEAM_BLUE] += 1; // 累加队伍分数 用队伍分数显示有几个猎
 	}
 
-	if(!PlayerCount)
+	if(!AliveTeamPlayerCount[TEAM_RED] && !AliveTeamPlayerCount[TEAM_BLUE])
 	{
 		SendChatTarget(-1, "两人幸终！");
 	}
-	else if(!TeamBlueCount) // no blue
+	else if(!AliveTeamPlayerCount[TEAM_BLUE]) // no blue
 	{
 		SendChatTarget(-1, m_HunterList);
-		SendChatTarget(-1, "红队胜利！"); // 平民为红队
+		SendChatTarget(-1, "平民胜利！");
 		//GameWorld()->CreateSoundGlobal(SOUND_CTF_CAPTURE); // 猎人死的时候够吵了
 
 		m_aTeamscore[TEAM_BLUE] = -m_aTeamscore[TEAM_BLUE]; // 反转蓝队分数 显示"红队胜利"
 	}
-	else if(!TeamRedCount) // no red
+	else if(!AliveTeamPlayerCount[TEAM_RED]) // no red
 	{
 		//SendChatTarget(-1, m_HunterList); // 猎人胜利不显示列表（因为平民被打死的时候已经显示过了）
-		SendChatTarget(-1, "蓝队胜利！"); // 猎人为蓝队
+		SendChatTarget(-1, "猎人胜利！");
 		GameWorld()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
 
 		m_aTeamscore[TEAM_RED] = -m_aTeamscore[TEAM_RED]; // 反转红队分数 就会显示"蓝队胜利"
@@ -552,15 +546,18 @@ int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CP
 	if(m_GameState != IGS_GAME_RUNNING) // 如果游戏在正常运行
 		return DEATH_SKIP_SCORE; // 跳过内置分数逻辑
 
-	if(pVictim->GetPlayer()->m_Class == CLASS_HUNTER) // 猎人死亡 进行计数和猎人死亡报告
+	int VictimCID = pVictim->GetPlayer()->GetCID();
+
+	switch(pVictim->GetPlayer()->m_Class) // 猎人死亡 进行计数和猎人死亡报告
 	{
+	case CLASS_HUNTER:
 		--m_NumHunter; // 计数猎人死亡
 
 		if(m_EffectHunterDeath)
 			GameWorld()->CreatePlayerSpawn(pVictim->m_Pos); // 死亡给个出生烟
 
 		char aBuf[64];
-		str_format(aBuf, sizeof(aBuf), "Hunter '%s' was defeated! ", Server()->ClientName(pVictim->GetPlayer()->GetCID()));
+		str_format(aBuf, sizeof(aBuf), "Hunter '%s' was defeated! ", Server()->ClientName(VictimCID));
 
 		if(m_BroadcastHunterDeath == 1 ||
 			!m_NumHunter) // 如果是最后一个Hunter
@@ -589,16 +586,17 @@ int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CP
 					GameWorld()->CreateSoundGlobal(SOUND_CTF_DROP, CmaskOne(pPlayer->GetCID()));
 			}	
 		}
-	}
-	else if(pVictim->GetPlayer()->m_Class == CLASS_CIVIC) // 平民死亡
-	{
-		GameWorld()->CreateSoundGlobal(SOUND_CTF_DROP);
-	}
-	/*else if(pVictim->GetPlayer()->m_Class == CLASS_JUGGERNAUT)
-	{
-		SendChatTarget(-1, "Juggernaut was defeated!");
+		break;
+	case CLASS_JUGGERNAUT:
+		//char aBuf[64];
+		str_format(aBuf, sizeof(aBuf), "Juggernaut '%s' was defeated! ", Server()->ClientName(VictimCID));
+		SendChatTarget(-1, aBuf);
 		GameWorld()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
-	}*/
+		break;
+	default://case CLASS_CIVIC: // 平民死亡
+		GameWorld()->CreateSoundGlobal(SOUND_CTF_DROP);
+		break;
+	}
 
 	if(pKiller != pVictim->GetPlayer()) // 不是自杀
 	{
@@ -611,12 +609,12 @@ int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CP
 			char aBuf[64];
 			str_format(aBuf, sizeof(aBuf), "你被 '%s' 的%s所杀", Server()->ClientName(pKiller->GetCID()), m_apWeaponName[Weapon + 1]);
 
-			SendChatTarget(pVictim->GetPlayer()->GetCID(), aBuf); // 给被弄死的人发
+			SendChatTarget(VictimCID, aBuf); // 给被弄死的人发
 		}
 	}
 
 	if(m_NumHunter) // 如果没有猎人(当然是全死光啦) 就不要发猎人列表 等EndMatch
-		SendChatTarget(pVictim->GetPlayer()->GetCID(), m_HunterList); // 给被弄死的人发猎人列表
+		SendChatTarget(VictimCID, m_HunterList); // 给被弄死的人发猎人列表
 
 	m_DoWinchenkClassTick = ((Server()->TickSpeed() * m_Wincheckdeley) / 1000); // 延时终局
 

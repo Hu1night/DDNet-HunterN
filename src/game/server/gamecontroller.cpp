@@ -1871,8 +1871,8 @@ void IGameController::Snap(int SnappingClient)
 		}
 		else
 		{
-			pGameDataObj->m_FlagCarrierRed = 0;
-			pGameDataObj->m_FlagCarrierBlue = 0;
+			pGameDataObj->m_FlagCarrierRed = FLAG_ATSTAND;
+			pGameDataObj->m_FlagCarrierBlue = FLAG_ATSTAND;
 		}
 	}
 	else

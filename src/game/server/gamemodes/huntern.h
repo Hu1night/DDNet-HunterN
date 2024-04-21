@@ -7,7 +7,7 @@
 
 class CGameControllerHunterN : public IGameController
 {
-private: // config
+protected: // config
 	int m_HunterRatio;
 	//int m_BroadcastHunterList;
 	int m_BroadcastHunterDeath;
@@ -28,6 +28,7 @@ public:
 	void CycleMap();
 
 	// game event
+	void OnInit() override;
 	void OnWorldReset() override;
 	void OnPreEntitySnap(int SnappingClient, int OtherMode) override; // per tick
 	void DoWincheckMatch() override;
@@ -42,7 +43,7 @@ public:
 	//int OnPickup(CPickup *pPickup, CCharacter *pChar, SPickupSound *pSound) override;
 	int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon) override;
 
-private: // Intelnal function and value
+protected: // Intelnal function and value
 	int m_NumHunter; // 有多少个猎人
 	int m_DoWinchenkClassTick; // 终局判断延迟的Tick
 	char m_HunterList[256]; // 猎人列表
@@ -50,7 +51,6 @@ private: // Intelnal function and value
 	//int TeamClass[1];
 	//int MatchFlag = -1;
 
-protected:
 	enum { HUNTERN_GAMEFLAGS = IGF_SURVIVAL | IGF_ROUND_TIMER_ROUND | IGF_SUDDENDEATH | IGF_MARK_MATCH | IGF_MARK_AMONGUS, };
 	enum HUNTERN_WINFLAG
 	{
@@ -61,8 +61,8 @@ protected:
 	};
 
 	const char* m_apClassSpawnMsg[4] = {
-	{"这局你是平民Civic! 消灭敌方队伍胜利!     \n猎人双倍伤害 有瞬杀锤子和破片榴弹"},
-	{"     这局你是猎人Hunter! 消灭敌方队伍胜利!\n     猎人双倍伤害 有瞬杀锤子和破片榴弹"},
+	{"这局你是平民Civic! 找出并消灭猎人以胜利!     \n猎人双倍伤害 有瞬杀锤子和破片榴弹"},
+	{"     这局你是猎人Hunter! 与其他猎人消灭平民以胜利!\n     猎人双倍伤害 有瞬杀锤子和破片榴弹"},
 	{"     这局你是剑圣Juggernaut! 消灭敌方队伍胜利!\n     剑圣40心20盾 有盾反锤子且能斩杀"},
 	{"     这局你是傀儡师Puppetee! 消灭敌方队伍胜利!\n     猎人双倍伤害 有瞬杀锤子和破片榴弹"},};
 

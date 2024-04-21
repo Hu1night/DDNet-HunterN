@@ -977,6 +977,8 @@ set_src(GAME_SERVER GLOB_RECURSE src/game/server
   gamemodes/ctf.h
   gamemodes/dm.cpp
   gamemodes/dm.h
+  gamemodes/hunterc.cpp
+  gamemodes/hunterc.h
   gamemodes/huntern.cpp
   gamemodes/huntern.h
   gamemodes/instagib.cpp
