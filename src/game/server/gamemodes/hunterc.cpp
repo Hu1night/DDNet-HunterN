@@ -13,7 +13,9 @@ CGameControllerHunterC::CGameControllerHunterC() :
 {
 	m_pGameType = "hunterC";
 
-	m_apClassSpawnMsg[4] = "这局你是平民Civic! 消灭敌方队伍胜利!     \n猎人双倍伤害 有瞬杀锤子和破片榴";
+	m_apClassSpawnMsg[0] = "你是平民Civic! 守旗并消灭猎人以胜利!     \n猎人双倍伤害 有瞬杀锤子和高爆榴弹";
+	m_apClassSpawnMsg[1] = "     你是猎人Hunter! 抢占旗帜以胜利!\n     猎人双倍伤害 有瞬杀锤子和高爆榴弹";
+
 	m_pFlag = nullptr;
 }
 
@@ -40,7 +42,7 @@ void CGameControllerHunterC::OnGameStart(bool IsRound)
 			++PreselectPlayerCount; // 计数有PreselectPlayerCount个玩家
 	}
 
-	if(m_aTeamSize[TEAM_RED] < 2) // m_aTeamSize[TEAM_RED] = 非队伍模式的人数量
+	if(m_aTeamSize[TEAM_RED] < m_MinimumPlayers) // m_aTeamSize[TEAM_RED] = 非队伍模式的人数量
 		return;
 
 	m_NumHunter = (m_aTeamSize[TEAM_RED] - 2) / m_HunterRatio + 1; // 我们要多少个猎人
@@ -97,8 +99,6 @@ void CGameControllerHunterC::OnGameStart(bool IsRound)
 			// Generate Hunter info message 生成猎人列表消息
 			str_append(m_HunterList, Server()->ClientName(i), sizeof(m_HunterList));
 			str_append(m_HunterList, ", ", sizeof(m_HunterList));
-
-			m_pFlag = new CFlag(GameWorld(), 0, pPlayer->GetCharacter()->m_Pos);
 
 			break;
 		}

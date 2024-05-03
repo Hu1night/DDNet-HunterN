@@ -6,171 +6,7 @@
 //#include <game/server/entities/pickup.h>
 #include <game/server/classes.h>
 
-// HunterN commands
-static void ConMapAdd(IConsole::IResult *pResult, void *pUserData)
-{
-	CGameControllerHunterN *pSelf = (CGameControllerHunterN *)pUserData;
-
-	char aBuf[256];
-
-	const char *pMapName;
-	int MapIndex;
-	int IsError = 1; // 1 = 地图循环没有空位
-	int i = 0;
-
-	for(int j = 0; j < pResult->NumArguments(); ++j) // 逐个加入地图到列表
-	{
-		pMapName = pResult->GetString(j);
-
-		for(; i < CGameControllerHunterN::MAX_MAPROTATIONS; ++i) // 遍历地图循环列表
-		{
-			if(pSelf->m_aMaprotation[i]) // 循环 直到在列表里找到了可用空位
-				continue;
-
-			MapIndex = pSelf->GameServer()->Teams()->GetMapIndex(pMapName);
-			if(MapIndex == 0)
-			{
-				IsError = 0; // 0 = 未找到地图
-				break; // 跳出到错误提示
-			}
-
-			pSelf->m_aMaprotation[i] = MapIndex; // 加入循环列表
-
-			str_format(aBuf, sizeof(aBuf), "Added map%d '%s' to slot %d", j, pMapName, i);
-			pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "instance", aBuf);
-
-			goto NextInputedMap; // 试图加入下一个地图
-		}
-		str_format(aBuf, sizeof(aBuf), "Cannot add map%d '%s' to slot %d (%s)", j, pMapName, i, (IsError ? "Out of Range" : "No Map Found"));
-		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "instance", aBuf);
-
-		NextInputedMap:;
-	}
-}
-
-static void ConMapList(IConsole::IResult *pResult, void *pUserData)
-{
-	CGameControllerHunterN *pSelf = (CGameControllerHunterN *)pUserData;
-
-	pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "instance", "Value: ");
-
-	char aBuf[256];
-
-	for(int i = 0; i < CGameControllerHunterN::MAX_MAPROTATIONS; ++i) // 遍历地图循环列表
-	{
-		if(!pSelf->m_aMaprotation[i]) // 列表走到了尽头
-			break;
-
-		const char *pMapName = pSelf->GameServer()->Teams()->GetMapName(pSelf->m_aMaprotation[i]);
-		if(!pMapName)
-			continue;
-
-		str_format(aBuf, sizeof(aBuf), "Slot%d | ID%d - %s, ", i, pSelf->m_aMaprotation[i], pMapName);
-		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "instance", aBuf); // 输出
-	}
-}
-
-static void ConMapRemove(IConsole::IResult *pResult, void *pUserData)
-{
-	CGameControllerHunterN *pSelf = (CGameControllerHunterN *)pUserData;
-
-	int TargetMap = pResult->GetInteger(0);
-
-	if(!pSelf->m_aMaprotation[TargetMap])
-	{
-		char aBuf[64];
-		str_format(aBuf, sizeof(aBuf), "Cannot remove map in empty slot %d", TargetMap);
-		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "instance", aBuf);
-		return;
-	}
-
-	mem_copy(&pSelf->m_aMaprotation[TargetMap], &pSelf->m_aMaprotation[TargetMap + 1], CGameControllerHunterN::MAX_MAPROTATIONS - 1 - TargetMap);
-	pSelf->m_aMaprotation[CGameControllerHunterN::MAX_MAPROTATIONS] = 0;
-
-	char aBuf[32];
-	str_format(aBuf, sizeof(aBuf), "Removed map in slot %d", TargetMap);
-	pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "instance", aBuf);
-}
-
-static void ConMapClear(IConsole::IResult *pResult, void *pUserData)
-{
-	CGameControllerHunterN *pSelf = (CGameControllerHunterN *)pUserData;
-
-	mem_zero(pSelf->m_aMaprotation, sizeof(pSelf->m_aMaprotation)); // 清空地图循环列表
-}
-
-static void ConSetClass(IConsole::IResult *pResult, void *pUserData)
-{
-	IGameController *pSelf = (IGameController *)pUserData;
-
-	CPlayer *pPlayer = pSelf->GetPlayerIfInRoom(pResult->NumArguments() > 1 ? pResult->GetInteger(1) : pResult->m_ClientID);
-	if(!pPlayer) // If the player does not exist
-		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "invalid client id");
-	else
-	{	pPlayer->m_Class = pResult->GetInteger(0); // Set Class 1 = CIVIC, 2 = HUNTER, 4 = JUGGERNAUT
-		if(pResult->NumArguments() > 2)
-			pPlayer->m_AmongUsTeam = pResult->GetInteger(2); // Team
-		if(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive())
-			CGameControllerHunterN::OnResetClass(pPlayer->GetCharacter()); // reset class after OnCharacterSpawn
-		if(pResult->NumArguments() > 3)
-			pPlayer->m_UseHunterWeapon = pResult->GetInteger(3);} // Override m_UseHunterWeapon after OnResetClass/OnCharacterSpawn
-}
-
-static void ConGiveWeapon(IConsole::IResult *pResult, void *pUserData)
-{
-	IGameController *pSelf = (IGameController *)pUserData;
-
-	CPlayer *pPlayer = pSelf->GetPlayerIfInRoom((pResult->NumArguments() > 2) ? pResult->GetInteger(2) : pResult->m_ClientID);
-	if(!pPlayer) 
-		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "invalid client id");
-	else if(!pPlayer->GetCharacter() || !pPlayer->GetCharacter()->IsAlive())
-		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "character is dead");
-	else
-	{	pPlayer->GetCharacter()->RemoveWeapon((pResult->GetInteger(1) < NUM_WEAPONS && pResult->GetInteger(1) >= 0) ? pResult->GetInteger(1) : 0); // Slot
-		if(!pResult->GetInteger(4)) // Give Weapon
-			pPlayer->GetCharacter()->GiveWeapon((pResult->GetInteger(1) < NUM_WEAPONS && pResult->GetInteger(1) >= 0) ? pResult->GetInteger(1) : 0, // Slot
-				pResult->GetInteger(0), // Type
-					(pResult->NumArguments() > 3) ? pResult->GetInteger(3) : -1); // ammo
-		else // Powerup Weapon
-			pPlayer->GetCharacter()->SetPowerUpWeapon(pResult->GetInteger(0), // Type
-					(pResult->NumArguments() > 3) ? pResult->GetInteger(3) : -1); // ammo
-	}
-}
-
-static void ConSetHeal(IConsole::IResult *pResult, void *pUserData)
-{
-	IGameController *pSelf = (IGameController *)pUserData;
-
-	CPlayer *pPlayer = pSelf->GetPlayerIfInRoom((pResult->NumArguments() > 2) ? pResult->GetInteger(2) : pResult->m_ClientID);
-	if(!pPlayer)
-		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "invalid client id");
-	else if(!pPlayer->GetCharacter() || !pPlayer->GetCharacter()->IsAlive())
-		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "character is dead");
-	else
-	{	if(pResult->NumArguments() > 3) // Set m_MaxHealth
-			pPlayer->GetCharacter()->m_MaxHealth = pResult->GetInteger(3) > 0 ? pResult->GetInteger(3) : 0; // math maximum(pResult->GetInteger(3), 0);
-		if(pResult->NumArguments() > 4) // Set m_MaxArmor
-			pPlayer->GetCharacter()->m_MaxArmor = pResult->GetInteger(4) > 0 ? pResult->GetInteger(4) : 0; // math maximum(pResult->GetInteger(4), 0);
-
-		pPlayer->GetCharacter()->SetHealth(pResult->GetInteger(0)); // Set Health
-		if(pResult->NumArguments() > 1)
-			pPlayer->GetCharacter()->SetArmor(pResult->GetInteger(1));} // Set Armor
-}
-
-static void ConRevive(IConsole::IResult *pResult, void *pUserData)
-{
-	IGameController *pSelf = (IGameController *)pUserData;// CGameControllerHunterN *pSelf = (CGameControllerHunterN *)pUserData; // Use CGameControllerHunterN instead of IGameController
-
-	CPlayer *pPlayer = pSelf->GetPlayerIfInRoom((pResult->NumArguments() > 0) ? pResult->GetInteger(0) : pResult->m_ClientID);
-	if(!pPlayer) // If the player does not exist
-		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "invalid client id");
-	else if(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive())
-		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "character is alive");
-	else
-	{	if(pPlayer->m_Class == CLASS_NONE)
-			pPlayer->m_Class = CLASS_CIVIC;
-		pPlayer->TryRespawn();}
-}
+#include <game/server/hunterncommands.h> // HunterN commands
 
 CGameControllerHunterN::CGameControllerHunterN() :
 	IGameController()
@@ -219,10 +55,10 @@ void CGameControllerHunterN::OnResetClass(CCharacter *pChr) // 职业重置（�
 	pChr->Controller()->OnCharacterSpawn(pChr);
 }
 
-void CGameControllerHunterN::CycleMap() // 循环地图
+bool CGameControllerHunterN::CycleMap() // 循环地图
 {
 	if(!m_aMaprotation[0]) // 列表没东西
-		return;
+		return false;
 
 	bool CurrentMapfound = false; // 是否找到了当前地图
 
@@ -236,18 +72,19 @@ void CGameControllerHunterN::CycleMap() // 循环地图
 		{
 			m_MapIndex = m_aMaprotation[i]; // 切换地图
 			GameServer()->Teams()->ReloadGameInstance(GameWorld()->Team());
-			return;
+			return true;
 		}
 	}
 
 	m_MapIndex = m_aMaprotation[0]; // 重置到列表第一项
 	GameServer()->Teams()->ReloadGameInstance(GameWorld()->Team());
+	return true;
 }
 
 // Event
-void CGameControllerHunterN::OnInit()
+void CGameControllerHunterN::OnInit() // 使换图后终局以清除分数
 {
-	SetGameState(IGS_END_MATCH, m_GameoverTime); // EndMatch();
+	SetGameState(IGS_END_MATCH, 2); // EndMatch();
 }
 
 void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
@@ -273,7 +110,7 @@ void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 			++PreselectPlayerCount; // 计数有PreselectPlayerCount个玩家
 	}
 
-	if(m_aTeamSize[TEAM_RED] < 2) // m_aTeamSize[TEAM_RED] = 非队伍模式的人数量
+	if(m_aTeamSize[TEAM_RED] < m_MinimumPlayers) // m_aTeamSize[TEAM_RED] = 非队伍模式的人数量
 		return;
 
 	m_NumHunter = (m_aTeamSize[TEAM_RED] - 2) / m_HunterRatio + 1; // 我们要多少个猎人
@@ -371,11 +208,18 @@ void CGameControllerHunterN::OnPreEntitySnap(int SnappingClient, int OtherMode) 
 
 void CGameControllerHunterN::DoWincheckMatch() // Roundlimit 触发DoWincheckMatch
 {
-	if(m_GameInfo.m_MatchNum > 0 && m_GameInfo.m_MatchCurrent >= m_GameInfo.m_MatchNum)
+	if(m_GameInfo.m_MatchNum <= 0 || m_GameInfo.m_MatchCurrent < m_GameInfo.m_MatchNum)
+		return;
+
+	int PrevMapIndex = m_MapIndex; // 记录换图前的地图Index
+	if(CycleMap()) // 换图！！！！
 	{
-		CycleMap();
-		SetGameState(IGS_END_MATCH, m_GameoverTime); // EndMatch();
+		char aBuf[64];
+		str_format(aBuf, sizeof(aBuf), "地图循环: '%s' -> '%s'", GameServer()->Teams()->GetMapName(PrevMapIndex), GameServer()->Teams()->GetMapName(m_MapIndex));
+		SendChatTarget(-1, aBuf);
 	}
+
+	SetGameState(IGS_END_MATCH, m_GameoverTime); // EndMatch();
 }
 
 void CGameControllerHunterN::DoWincheckRound() // check for time based win
@@ -481,7 +325,7 @@ void CGameControllerHunterN::OnCharacterSpawn(CCharacter *pChr) // 出生给予�
 		? pChr->GetPlayer()->m_Class // 如果游戏在正常运行
 		: CLASS_NONE) // 如果游戏未开始
 	{
-	case CLASS_CIVIC:
+	case CLASS_CIVIC:{
 		pChr->IncreaseHealth(10);
 		pChr->GiveWeapon(WEAPON_GUN, WEAPON_ID_PISTOL, 10);
 		pChr->GetPlayer()->m_UseHunterWeapon = false; // 不使用猎人武器
@@ -489,7 +333,7 @@ void CGameControllerHunterN::OnCharacterSpawn(CCharacter *pChr) // 出生给予�
 		pChr->GameWorld()->CreateSoundGlobal(SOUND_CTF_GRAB_PL, CmaskOne(pChr->GetPlayer()->GetCID()));
 		pChr->GameServer()->SendBroadcast(m_apClassSpawnMsg[0], pChr->GetPlayer()->GetCID(), true);
 		break;
-	case CLASS_HUNTER:
+	}case CLASS_HUNTER:{
 		pChr->IncreaseHealth(10);
 		pChr->GiveWeapon(WEAPON_GUN, WEAPON_ID_PISTOL, 10);
 		pChr->ForceSetWeapon(WEAPON_HAMMER, WEAPON_ID_HUNTHAMMER, -1);
@@ -498,7 +342,7 @@ void CGameControllerHunterN::OnCharacterSpawn(CCharacter *pChr) // 出生给予�
 		pChr->GameWorld()->CreateSoundGlobal(SOUND_CTF_GRAB_EN, CmaskOne(pChr->GetPlayer()->GetCID()));
 		pChr->GameServer()->SendBroadcast(m_apClassSpawnMsg[1], pChr->GetPlayer()->GetCID(), true);
 		break;
-	case CLASS_JUGGERNAUT:
+	}case CLASS_JUGGERNAUT:{
 		pChr->m_MaxHealth = 114;
 		pChr->IncreaseHealth(114);
 		pChr->m_MaxArmor = 5;
@@ -509,7 +353,7 @@ void CGameControllerHunterN::OnCharacterSpawn(CCharacter *pChr) // 出生给予�
 		pChr->GameWorld()->CreateSoundGlobal(SOUND_NINJA_FIRE, CmaskOne(pChr->GetPlayer()->GetCID()));
 		pChr->GameServer()->SendBroadcast(m_apClassSpawnMsg[2], pChr->GetPlayer()->GetCID(), true);
 		break;
-	case CLASS_PUPPETEE:
+	}case CLASS_PUPPETEE:{
 		pChr->IncreaseHealth(10);
 		pChr->GiveWeapon(WEAPON_GUN, WEAPON_ID_PISTOL, 10);
 		pChr->ForceSetWeapon(WEAPON_HAMMER, WEAPON_ID_PUPPETEEHAMMER, -1);
@@ -518,13 +362,13 @@ void CGameControllerHunterN::OnCharacterSpawn(CCharacter *pChr) // 出生给予�
 		pChr->GameWorld()->CreateSoundGlobal(SOUND_CTF_GRAB_EN, CmaskOne(pChr->GetPlayer()->GetCID()));
 		pChr->GameServer()->SendBroadcast(m_apClassSpawnMsg[3], pChr->GetPlayer()->GetCID(), true);
 		break;
-	default:
+	}default:{
 		pChr->IncreaseHealth(10);
 		pChr->GiveWeapon(WEAPON_HAMMER, WEAPON_ID_HAMMER, -1);
 		pChr->GiveWeapon(WEAPON_GUN, WEAPON_ID_PISTOL, 10);
 		pChr->GetPlayer()->m_UseHunterWeapon = false; // 不使用猎人武器
 		break;
-	}
+	}}
 }
 
 int CGameControllerHunterN::OnCharacterTakeDamage(class CCharacter *pChr, vec2 &Force, int &Dmg, int From, int WeaponType, int WeaponID, bool IsExplosion) // 使Hunter不受到自己的伤害
@@ -550,7 +394,7 @@ int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CP
 
 	switch(pVictim->GetPlayer()->m_Class) // 猎人死亡 进行计数和猎人死亡报告
 	{
-	case CLASS_HUNTER:
+	case CLASS_HUNTER:{
 		--m_NumHunter; // 计数猎人死亡
 
 		if(m_EffectHunterDeath)
@@ -587,16 +431,16 @@ int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CP
 			}	
 		}
 		break;
-	case CLASS_JUGGERNAUT:
-		//char aBuf[64];
+	}case CLASS_JUGGERNAUT:{
+		char aBuf[64];
 		str_format(aBuf, sizeof(aBuf), "Juggernaut '%s' was defeated! ", Server()->ClientName(VictimCID));
 		SendChatTarget(-1, aBuf);
 		GameWorld()->CreateSoundGlobal(SOUND_CTF_CAPTURE);
 		break;
-	default://case CLASS_CIVIC: // 平民死亡
+	}default:{//case CLASS_CIVIC: // 平民死亡
 		GameWorld()->CreateSoundGlobal(SOUND_CTF_DROP);
 		break;
-	}
+	}}
 
 	if(pKiller != pVictim->GetPlayer()) // 不是自杀
 	{
