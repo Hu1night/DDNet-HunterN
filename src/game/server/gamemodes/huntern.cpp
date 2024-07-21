@@ -463,8 +463,6 @@ int CGameControllerHunterN::OnCharacterDeath(class CCharacter *pVictim, class CP
 
 			SendChatTarget(VictimCID, aBuf); // 给被弄死的人发
 		}
-
-		new CTextEntity(GameWorld(), pVictim->m_Pos, CTextEntity::TYPE_GUN, 8, CTextEntity::ALIGN_MIDDLE, (char *)" R.I.P.");
 	}
 
 	if(m_NumHunter) // 如果没有猎人(当然是全死光啦) 就不要发猎人列表 等EndMatch

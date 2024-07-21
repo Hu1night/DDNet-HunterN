@@ -1016,7 +1016,7 @@ void CCharacter::Snap(int SnappingClient, int OtherMode)
 	CWeapon *pWeapon = CurrentWeapon();
 	if(pWeapon)
 	{
-		// snap weapons
+		// snap weapon
 		pWeapon->Snap(SnappingClient, OtherMode);
 
 		int Type = pWeapon->GetType();
