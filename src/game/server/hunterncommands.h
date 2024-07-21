@@ -1,6 +1,8 @@
 #ifndef GAME_SERVER_HUNTERN_COMMANDS_H
 #define GAME_SERVER_HUNTERN_COMMANDS_H
 
+//#include <game/server/entities/textentity.h>
+
 static void ConMapAdd(IConsole::IResult *pResult, void *pUserData)
 {
 	CGameControllerHunterN *pSelf = (CGameControllerHunterN *)pUserData;
@@ -101,13 +103,20 @@ static void ConSetClass(IConsole::IResult *pResult, void *pUserData)
 	if(!pPlayer) // If the player does not exist
 		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "invalid client id");
 	else
-	{	pPlayer->m_Class = pResult->GetInteger(0); // Set Class 1 = CIVIC, 2 = HUNTER, 4 = JUGGERNAUT
+	{	
+		int PrevPlayerClass = pPlayer->m_Class;
+		pPlayer->m_Class = pResult->GetInteger(0); // Set Class
 		if(pResult->NumArguments() > 2)
 			pPlayer->m_AmongUsTeam = pResult->GetInteger(2); // Team
-		if(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive())
-			CGameControllerHunterN::OnResetClass(pPlayer->GetCharacter()); // reset class after OnCharacterSpawn
+
+		if(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsAlive() && PrevPlayerClass != pPlayer->m_Class)
+		{
+			CGameControllerHunterN::OnClassReset(pPlayer->GetCharacter()); // reset class after OnCharacterSpawn
+			pSelf->GameWorld()->CreatePlayerSpawn(pPlayer->GetCharacter()->m_Pos);
+		}
 		if(pResult->NumArguments() > 3)
-			pPlayer->m_UseHunterWeapon = pResult->GetInteger(3);} // Override m_UseHunterWeapon after OnResetClass/OnCharacterSpawn
+			pPlayer->m_UseHunterWeapon = pResult->GetInteger(3); // Override m_UseHunterWeapon after OnResetClass/OnCharacterSpawn
+	}
 }
 
 static void ConGiveWeapon(IConsole::IResult *pResult, void *pUserData)
@@ -164,6 +173,17 @@ static void ConRevive(IConsole::IResult *pResult, void *pUserData)
 	{	if(pPlayer->m_Class == CLASS_NONE)
 			pPlayer->m_Class = CLASS_CIVIC;
 		pPlayer->TryRespawn();}
+}
+
+static void ConSign(IConsole::IResult *pResult, void *pUserData)
+{
+	IGameController *pSelf = (IGameController *)pUserData;
+
+	CPlayer *pPlayer = pSelf->GetPlayerIfInRoom(pResult->m_ClientID);
+	if(!pPlayer) // If the player does not exist
+		pSelf->InstanceConsole()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "huntern", "invalid client id");
+	else
+		new CTextEntity(pSelf->GameWorld(), pPlayer->m_ViewPos, CTextEntity::TYPE_GUN, 8, CTextEntity::ALIGN_MIDDLE, (char *)pResult->GetString(0));
 }
 
 #endif
