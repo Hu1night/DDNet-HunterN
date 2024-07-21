@@ -977,8 +977,6 @@ set_src(GAME_SERVER GLOB_RECURSE src/game/server
   gamemodes/ctf.h
   gamemodes/dm.cpp
   gamemodes/dm.h
-  gamemodes/hunterc.cpp
-  gamemodes/hunterc.h
   gamemodes/huntern.cpp
   gamemodes/huntern.h
   gamemodes/instagib.cpp
@@ -1001,8 +999,6 @@ set_src(GAME_SERVER GLOB_RECURSE src/game/server
   weapon.cpp
   weapon.h
   weapons.h
-  weapons/asmrhammer.cpp
-  weapons/asmrhammer.h
   weapons/explodinglaser.cpp
   weapons/explodinglaser.h
   weapons/grenade.cpp
@@ -1011,22 +1007,14 @@ set_src(GAME_SERVER GLOB_RECURSE src/game/server
   weapons/hammer.h
   weapons/hunthammer.cpp
   weapons/hunthammer.h
-  weapons/jojohammer.cpp
-  weapons/jojohammer.h
-  weapons/jugninja.cpp
-  weapons/jugninja.h
   weapons/lasergun.cpp
   weapons/lasergun.h
   weapons/ninja.cpp
   weapons/ninja.h
   weapons/pistol.cpp
   weapons/pistol.h
-  weapons/puppeteehammer.cpp
-  weapons/puppeteehammer.h
   weapons/shotgun.cpp
   weapons/shotgun.h
-  weapons/tankgrenade.cpp
-  weapons/tankgrenade.h
 )
 set(GAME_GENERATED_SERVER
   "src/game/generated/server_data.cpp"
