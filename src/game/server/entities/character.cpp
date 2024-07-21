@@ -1019,15 +1019,32 @@ void CCharacter::Snap(int SnappingClient, int OtherMode)
 		// snap weapons
 		pWeapon->Snap(SnappingClient, OtherMode);
 
-		if(pWeapon->GetType() == WEAPON_NINJA)// we need this to make ninja behave normally
+		int Type = pWeapon->GetType();
+
+		if(Type == WEAPON_HAMMER)
+			pDDNetCharacter->m_Flags |= CHARACTERFLAG_WEAPON_HAMMER;
+		else if(Type == WEAPON_GUN)
+			pDDNetCharacter->m_Flags |= CHARACTERFLAG_WEAPON_GUN;
+		else if(Type == WEAPON_SHOTGUN)
+			pDDNetCharacter->m_Flags |= CHARACTERFLAG_WEAPON_SHOTGUN;
+		else if(Type == WEAPON_GRENADE)
+			pDDNetCharacter->m_Flags |= CHARACTERFLAG_WEAPON_GRENADE;
+		else if(Type == WEAPON_LASER)
+			pDDNetCharacter->m_Flags |= CHARACTERFLAG_WEAPON_LASER;
+		else if(Type == WEAPON_NINJA)
 			pDDNetCharacter->m_Flags |= CHARACTERFLAG_WEAPON_NINJA;
 	}
 
+	pDDNetCharacter->m_FreezeStart = m_FreezeTick;
 	pDDNetCharacter->m_FreezeEnd = m_DeepFreeze ? -1 : m_FreezeTime == 0 ? 0 :
                                                                                Server()->Tick() + m_FreezeTime;
 	pDDNetCharacter->m_Jumps = m_Core.m_Jumps;
 	pDDNetCharacter->m_TeleCheckpoint = m_TeleCheckpoint;
 	pDDNetCharacter->m_StrongWeakID = SnappingClient == m_pPlayer->GetCID() ? 1 : 0;
+	pDDNetCharacter->m_NinjaActivationTick = -1;
+	pDDNetCharacter->m_JumpedTotal = m_Core.m_JumpedTotal;
+	pDDNetCharacter->m_TargetX = m_Input.m_TargetX;
+	pDDNetCharacter->m_TargetY = m_Input.m_TargetY;
 }
 
 // DDRace
