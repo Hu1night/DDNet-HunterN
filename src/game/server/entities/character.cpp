@@ -71,7 +71,6 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 	m_LastBonus = false;
 
 	mem_zero(m_apWeaponSlots, sizeof(m_apWeaponSlots));
-	m_pOverrideWeapon = nullptr;
 	m_pPowerupWeapon = nullptr;
 
 	m_TeleGunTeleport = false;
@@ -305,9 +304,6 @@ CWeapon *CCharacter::CurrentWeapon()
 
 	if(!m_pPowerupWeapon)
 	{
-		if(m_pOverrideWeapon)
-			return m_pOverrideWeapon;
-
 		pCurrentWeapon = m_apWeaponSlots[m_ActiveWeaponSlot];
 		if(!pCurrentWeapon)
 			return nullptr;

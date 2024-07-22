@@ -91,7 +91,6 @@ public:
 	bool RemoveWeapon(int Slot);
 	bool GiveWeapon(int Slot, int Type, int Ammo = -1);
 	void ForceSetWeapon(int Slot, int Type, int Ammo = -1);
-	void SetOverrideWeapon(CWeapon *Weapon) { m_pOverrideWeapon = Weapon; } // Hunter
 	void SetPowerUpWeapon(int Type, int Ammo = -1);
 
 	void SetEndlessHook(bool Enable);
@@ -114,7 +113,6 @@ private:
 	int m_NeededFaketuning;
 
 	CWeapon *m_pPowerupWeapon;
-	CWeapon *m_pOverrideWeapon;
 	CWeapon *m_apWeaponSlots[NUM_WEAPONS - 1];
 
 	int m_LastWeaponSlot;
@@ -262,7 +260,6 @@ public:
 	bool IsAlive() { return m_Alive; };
 	void SetWeaponTimerType(int Type) { m_WeaponTimerType = Type; }
 	CWeapon *GetWeapon(int Slot) { return m_apWeaponSlots[Slot]; }
-	CWeapon *GetOverrideWeapon() { return m_pOverrideWeapon; }
 	CWeapon *GetPowerupWeapon() { return m_pPowerupWeapon; }
 	void Protect(float Seconds, bool CancelOnFire = false);
 	bool IsProtected();
