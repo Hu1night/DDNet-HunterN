@@ -1016,23 +1016,31 @@ void CCharacter::Snap(int SnappingClient, int OtherMode)
 	CWeapon *pWeapon = CurrentWeapon();
 	if(pWeapon)
 	{
-		// snap weapon
-		pWeapon->Snap(SnappingClient, OtherMode);
+		pWeapon->Snap(SnappingClient, OtherMode); // Snap Current Weapon to DDNet
 
-		int Type = pWeapon->GetType();
+		pDDNetCharacter->m_Flags |= 1 << (14 + pWeapon->GetType()); // :P
+	}
 
-		if(Type == WEAPON_HAMMER)
-			pDDNetCharacter->m_Flags |= CHARACTERFLAG_WEAPON_HAMMER;
-		else if(Type == WEAPON_GUN)
-			pDDNetCharacter->m_Flags |= CHARACTERFLAG_WEAPON_GUN;
-		else if(Type == WEAPON_SHOTGUN)
-			pDDNetCharacter->m_Flags |= CHARACTERFLAG_WEAPON_SHOTGUN;
-		else if(Type == WEAPON_GRENADE)
-			pDDNetCharacter->m_Flags |= CHARACTERFLAG_WEAPON_GRENADE;
-		else if(Type == WEAPON_LASER)
-			pDDNetCharacter->m_Flags |= CHARACTERFLAG_WEAPON_LASER;
-		else if(Type == WEAPON_NINJA)
-			pDDNetCharacter->m_Flags |= CHARACTERFLAG_WEAPON_NINJA;
+	{
+		bool IsClassicWeapon = true; // If Weapons are Classic then snap them to DDNet
+		int WeaponsFlag = 0;
+
+		for(int i = 0; i < NUM_WEAPON_SLOTS; i++)
+		{
+			if(!m_apWeaponSlots[i])
+				continue;
+
+			if(m_apWeaponSlots[i]->GetType() == i) // :P
+				WeaponsFlag |= 1 << (14 + i); // :P
+			else
+			{
+				IsClassicWeapon = false;
+				break;
+			}
+		}
+
+		if(IsClassicWeapon)
+			pDDNetCharacter->m_Flags |= WeaponsFlag; // Snap all Classical Weapons to DDNet
 	}
 
 	pDDNetCharacter->m_FreezeStart = m_FreezeTick;
