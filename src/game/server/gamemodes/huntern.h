@@ -64,14 +64,6 @@ protected: // Intelnal function and value
 		FLAG_WIN_TEAMBLUE = 4,
 	};
 
-	const char* m_apClassSpawnMsg[NUM_CLASSES] =
-	{
-		{"你是平民Civic! 找出并消灭猎人以胜利!     \n猎人双倍伤害 有瞬杀锤子和高爆榴弹"},
-		{"     你是猎人Hunter! 合作消灭平民以胜利!\n     猎人双倍伤害 有瞬杀锤子和高爆榴弹\n     能长按锤子追踪最近玩家和无伤榴弹跳"},
-		//{"     你是剑圣Juggernaut! 消灭敌方队伍胜利!\n     剑圣40心20盾 有盾反锤子且能斩杀"},
-		//{"     你是傀儡师Puppetee! 消灭敌方队伍胜利!\n     猎人双倍伤害 有瞬杀锤子和破片榴弹"},
-	};
-
 	const int m_aKillScore[NUM_CLASSES][2] = // Kill & TeamKill Score
 	{
 		{0, 0}, // CLASS_NONE
@@ -82,14 +74,29 @@ protected: // Intelnal function and value
 		//{8, -2}, // CLASS_JOJO
 	};
 
-	const char* m_apWeaponName[7] = {
-	{"地刺"},
-	{"锤子"},
-	{"手枪"},
-	{"霰弹"},
-	{"榴弹"},
-	{"激光"},
-	{"忍者刀"},};
+	/*const int m_aaClassReplaceWeapons[NUM_CLASSES][NUM_WEAPON_SLOTS] =
+	{
+		{WEAPON_ID_HUNTHAMMER},
+	};*/
+
+	const char* m_apClassSpawnMsg[NUM_CLASSES] =
+	{
+		{"你是平民Civic! 找出并消灭猎人以胜利!     \n猎人双倍伤害 有瞬杀锤子和高爆榴弹"},
+		{"     你是猎人Hunter! 合作消灭平民以胜利!\n     猎人双倍伤害 有瞬杀锤子和高爆榴弹\n     能长按锤子追踪最近玩家和无伤榴弹跳"},
+		//{"     你是剑圣Juggernaut! 消灭敌方队伍胜利!\n     剑圣40心20盾 有盾反锤子且能斩杀"},
+		//{"     你是傀儡师Puppetee! 消灭敌方队伍胜利!\n     猎人双倍伤害 有瞬杀锤子和破片榴弹"},
+	};
+
+	const char* m_apWeaponName[7] =
+	{
+		{"地刺"},
+		{"锤子"},
+		{"手枪"},
+		{"霰弹"},
+		{"榴弹"},
+		{"激光"},
+		{"忍者刀"},
+	};
 };
 
 #endif

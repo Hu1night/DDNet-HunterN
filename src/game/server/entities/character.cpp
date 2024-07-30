@@ -1012,13 +1012,18 @@ void CCharacter::Snap(int SnappingClient, int OtherMode)
 	CWeapon *pWeapon = CurrentWeapon();
 	if(pWeapon)
 	{
-		pWeapon->Snap(SnappingClient, OtherMode); // Snap Current Weapon to DDNet
+		pWeapon->Snap(SnappingClient, OtherMode); // Snap current weapon
 
+		//CHARACTERFLAG_WEAPON_HAMMER = 1<<14,
+		//CHARACTERFLAG_WEAPON_GUN = 1<<15,
+		//CHARACTERFLAG_WEAPON_SHOTGUN = 1<<16,
+		//CHARACTERFLAG_WEAPON_GRENADE = 1<<17,
+		//CHARACTERFLAG_WEAPON_LASER = 1<<18,
 		pDDNetCharacter->m_Flags |= 1 << (14 + pWeapon->GetType()); // :P
 	}
 
 	{
-		bool IsClassicWeapon = true; // If Weapons are Classic then snap them to DDNet
+		bool IsClassicWeapon = true; // Snap them to DDNet if weapons are classic
 		int WeaponsFlag = 0;
 
 		for(int i = 0; i < NUM_WEAPON_SLOTS; i++)
@@ -1036,7 +1041,7 @@ void CCharacter::Snap(int SnappingClient, int OtherMode)
 		}
 
 		if(IsClassicWeapon)
-			pDDNetCharacter->m_Flags |= WeaponsFlag; // Snap all Classical Weapons to DDNet
+			pDDNetCharacter->m_Flags |= WeaponsFlag; // Snap all Weapons to DDNet
 	}
 
 	pDDNetCharacter->m_FreezeStart = m_FreezeTick;
