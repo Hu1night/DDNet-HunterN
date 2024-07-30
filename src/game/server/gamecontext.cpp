@@ -1165,6 +1165,10 @@ void CGameContext::OnClientEnter(int ClientID)
 
 		IServer::CClientInfo Info;
 		Server()->GetClientInfo(ClientID, &Info);
+		char aBuf[64];
+		str_format(aBuf, sizeof(aBuf), "'%s' client version %d", Server()->ClientName(ClientID), Info.m_DDNetVersion);
+		SendChatTarget(-1, aBuf);
+
 		if(Info.m_GotDDNetVersion)
 		{
 			if(OnClientDDNetVersionKnown(ClientID))
