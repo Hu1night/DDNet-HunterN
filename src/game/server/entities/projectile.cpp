@@ -34,6 +34,7 @@ CProjectile::CProjectile(
 	m_Owner = Owner;
 	m_Callback = Callback;
 	m_Radius = Radius;
+	m_CustomData = CustomData;
 	m_NumHits = 0;
 	m_StartTick = Server()->Tick();
 	m_OwnerIsSafe = false;
