@@ -13,6 +13,7 @@ public:
 	void Tick();
 	void Fire(vec2 Direction) override;
 	int GetType() override { return Character()->GetInput()->m_PlayerFlags & PLAYERFLAG_AIM ? WEAPON_NINJA : WEAPON_HAMMER; }
+	bool IsPowerupOver() override { return false; }
 
 	int m_BounceTempTick;
 	int m_BounceCooldownTick;

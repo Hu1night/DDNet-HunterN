@@ -95,10 +95,6 @@ void CJugHammer::Tick()
 	}
 	else if(Character()->GetPrevInput()->m_Fire & 1)
 	{
-		char aBuf[32];
-		str_format(aBuf, sizeof(aBuf), "%d, %d", m_AttackEnergyTick * Server()->TickSpeed(), m_AttackEnergyLimit);
-		GameServer()->SendChatTarget(-1, aBuf);
-
 		int AttackEnergyTime = minimum(m_AttackEnergyTick * Server()->TickSpeed(), m_AttackEnergyLimit);
 
 		CCharacter *pChr = (CCharacter *)GameWorld()->ClosestEntity(CirclePos, 960.f, CGameWorld::ENTTYPE_CHARACTER, Character());
@@ -152,10 +148,6 @@ void CJugHammer::Tick()
 
 	if(IsBounced)
 	{
-		char aBuf[32];
-		str_format(aBuf, sizeof(aBuf), "%d, %d", m_BounceCooldownTick, m_BounceTempTick);
-		GameServer()->SendChatTarget(-1, aBuf);
-
 		m_BounceTempTick = clamp((m_BounceTempTick - m_BounceCooldownTick - m_BounceTempTick / 4) * 4 + Server()->TickSpeed() / 10, Server()->TickSpeed() / 5, Server()->TickSpeed() * 3);
 		m_BounceCooldownTick = 0;
 	}
