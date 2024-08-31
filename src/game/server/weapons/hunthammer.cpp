@@ -17,7 +17,7 @@ void CHuntHammer::Snap(int SnappingClient, int OtherMode)
 	if(Character()->GetPlayer()->GetCID() != SnappingClient)
 		return;
 
-	if(!(Character()->GetLatestInput().m_Fire & 1) || m_ReloadTimer > 1)
+	if(!(Character()->GetInput()->m_Fire & 1) || m_ReloadTimer > 1)
 		return;
 
 	CNetObj_Laser *pObj = static_cast<CNetObj_Laser *>(Server()->SnapNewItem(NETOBJTYPE_LASER, IndicatorSnapID, sizeof(CNetObj_Laser)));

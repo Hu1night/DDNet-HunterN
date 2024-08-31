@@ -288,8 +288,8 @@ public:
 
 	vec2 GetDirection() { return normalize(vec2(m_LatestInput.m_TargetX, m_LatestInput.m_TargetY)); } // Hunter
 	vec2 GetAimPos() { return vec2(m_LatestInput.m_TargetX, m_LatestInput.m_TargetY); } // Hunter
-	CNetObj_PlayerInput GetLatestInput() { return m_LatestInput; } // Hunter
-	CNetObj_PlayerInput GetInput() { return m_LatestPrevPrevInput; } // Hunter
+	CNetObj_PlayerInput *GetInput() { return &m_Input; } // Hunter
+	CNetObj_PlayerInput *GetPrevInput() { return &m_PrevInput; } // Hunter
 };
 
 enum
