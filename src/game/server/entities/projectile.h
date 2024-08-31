@@ -60,6 +60,8 @@ public:
 	float m_Radius;
 	int m_LifeSpan;
 
+	bool m_IsFreeze;
+
 	// DDRace
 	int m_Hit;
 	bool m_IsSolo;

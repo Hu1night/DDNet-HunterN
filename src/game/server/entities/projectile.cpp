@@ -127,6 +127,12 @@ vec2 CProjectile::GetPos(float Time)
 
 void CProjectile::Tick()
 {
+	if(m_IsFreeze)
+	{
+		++m_StartTick;
+		return;
+	}
+
 	float Pt = (Server()->Tick() - m_StartTick - 1) / (float)Server()->TickSpeed();
 	float Ct = (Server()->Tick() - m_StartTick) / (float)Server()->TickSpeed();
 	vec2 PrevPos = GetPos(Pt);
