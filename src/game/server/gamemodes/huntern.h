@@ -69,7 +69,7 @@ protected: // Intelnal function and value
 		{0, 0}, // CLASS_NONE
 		{1, -1}, // CLASS_CIVIC
 		{4, -2}, // CLASS_HUNTER
-		//{8, -114514}, // CLASS_JUGGERNAUT
+		{100, -114514}, // CLASS_JUGGERNAUT
 		//{4, -2}, // CLASS_PUPPETEE
 		//{8, -2}, // CLASS_JOJO
 	};
