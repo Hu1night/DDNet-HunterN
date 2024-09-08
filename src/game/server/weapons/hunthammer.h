@@ -7,14 +7,14 @@ class CHuntHammer : public CWeapon
 {
 public:
 	CHuntHammer(CCharacter *pOwnerChar);
-	~CHuntHammer() { if(IndicatorSnapID)Server()->SnapFreeID(IndicatorSnapID); }
+	~CHuntHammer() { if(m_SnapID)Server()->SnapFreeID(m_SnapID); }
 
 	void Fire(vec2 Direction) override;
 	void Snap(int SnappingClient, int OtherMode) override;
 	int GetType() override { return WEAPON_HAMMER; }
 
-private:
-	int IndicatorSnapID;
+protected:
+	int m_SnapID;
 };
 
 #endif // GAME_SERVER_WEAPONS_HAMMER_H

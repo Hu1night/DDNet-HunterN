@@ -9,7 +9,7 @@ CHuntHammer::CHuntHammer(CCharacter *pOwnerChar) :
 	m_AmmoRegenTime = g_pData->m_Weapons.m_aId[WEAPON_HAMMER].m_Ammoregentime;
 	m_FireDelay = g_pData->m_Weapons.m_aId[WEAPON_HAMMER].m_Firedelay;
 
-	IndicatorSnapID = Server()->SnapNewID();
+	m_SnapID = Server()->SnapNewID();
 }
 
 void CHuntHammer::Snap(int SnappingClient, int OtherMode)
@@ -20,16 +20,16 @@ void CHuntHammer::Snap(int SnappingClient, int OtherMode)
 	if(!(Character()->GetInput()->m_Fire & 1) || m_ReloadTimer > 1)
 		return;
 
-	CNetObj_Laser *pObj = static_cast<CNetObj_Laser *>(Server()->SnapNewItem(NETOBJTYPE_LASER, IndicatorSnapID, sizeof(CNetObj_Laser)));
+	CNetObj_Laser *pObj = static_cast<CNetObj_Laser *>(Server()->SnapNewItem(NETOBJTYPE_LASER, m_SnapID, sizeof(CNetObj_Laser)));
 	if(!pObj)
 		return;
 
-	CEntity *IndCharacter = GameWorld()->ClosestEntity(Pos(), 8192, CGameWorld::ENTTYPE_CHARACTER, Character());
+	CEntity *IndCharacter = GameWorld()->ClosestEntity(Pos(), 8192.f, CGameWorld::ENTTYPE_CHARACTER, Character());
 	if(!IndCharacter)
 		return;
 
 	vec2 IndicatorFrom = Pos();
-	vec2 IndicatorTo = IndicatorFrom + normalize(IndCharacter->m_Pos - IndicatorFrom) * 120;
+	vec2 IndicatorTo = IndicatorFrom + normalize(IndCharacter->m_Pos - IndicatorFrom) * 128.f;
 
 	pObj->m_X = (int)IndicatorTo.x;
 	pObj->m_Y = (int)IndicatorTo.y;
