@@ -14,9 +14,9 @@ CJugHammer::CJugHammer(CCharacter *pOwnerChar) :
 	m_BounceMode = 0;
 	m_AttackEnergyTick = 0;
 
-	m_aBounceTypeTemp[0] = Server()->TickSpeed() / 5;
+	m_aBounceTypeTemp[0] = Server()->TickSpeed() / 4;
 	m_aBounceTypeTemp[1] = Server()->TickSpeed() / 5;
-	m_aBounceTypeTemp[2] = Server()->TickSpeed();
+	m_aBounceTypeTemp[2] = Server()->TickSpeed() * 3;
 	m_AttackEnergyLimit = 800;
 
 	for(unsigned int i = 0; i < sizeof(m_SnapID) / sizeof(m_SnapID[0]); i++)
@@ -25,8 +25,8 @@ CJugHammer::CJugHammer(CCharacter *pOwnerChar) :
 
 CJugHammer::~CJugHammer()
 {
-	for(unsigned int i = 0; i < sizeof(m_SnapID) / sizeof(m_SnapID[0]); i++)
-		Server()->SnapFreeID(m_SnapID[i]);
+	for(auto ID : m_SnapID)
+		Server()->SnapFreeID(ID);
 }
 
 void CJugHammer::Snap(int SnappingClient, int OtherMode)
@@ -35,14 +35,14 @@ void CJugHammer::Snap(int SnappingClient, int OtherMode)
 	vec2 Dir = normalize(vec2(Character()->GetInput()->m_TargetX, Character()->GetInput()->m_TargetY));
 	vec2 CirclePos = Pos() + Dir * 96.f;
 	vec2 CirclePoints[8] =
-	{CirclePos + vec2(96.f, 0.f),
-	CirclePos + vec2(67.9f, 67.9f),
-	CirclePos + vec2(0.f, 96.f),
-	CirclePos + vec2(-67.9f, 67.9f),
-	CirclePos + vec2(-96.f, 0.f),
-	CirclePos + vec2(-67.9f, -67.9f),
-	CirclePos + vec2(0.f, -96.f),
-	CirclePos + vec2(67.9f, -67.9f),};
+		{CirclePos + vec2(96.f, 0.f),
+		CirclePos + vec2(67.9f, 67.9f),
+		CirclePos + vec2(0.f, 96.f),
+		CirclePos + vec2(-67.9f, 67.9f),
+		CirclePos + vec2(-96.f, 0.f),
+		CirclePos + vec2(-67.9f, -67.9f),
+		CirclePos + vec2(0.f, -96.f),
+		CirclePos + vec2(67.9f, -67.9f),};
 
 	for(int i = 0; i < 8; i++)
 	{
@@ -57,51 +57,57 @@ void CJugHammer::Snap(int SnappingClient, int OtherMode)
 		pObj->m_StartTick = Server()->Tick() - 2;
 	}
 
-	// Do attack energy ind
-	CNetObj_Laser *pAttackEnergyIndObj = static_cast<CNetObj_Laser *>(Server()->SnapNewItem(NETOBJTYPE_LASER, m_SnapID[8], sizeof(CNetObj_Laser)));
-	if(!pAttackEnergyIndObj)
-		return;
+	{
+		// Do attack energy ind
+		CNetObj_Laser *pObj = static_cast<CNetObj_Laser *>(Server()->SnapNewItem(NETOBJTYPE_LASER, m_SnapID[8], sizeof(CNetObj_Laser)));
+		if(!pObj)
+			return;
 
-	vec2 AttackEnergyInd = CirclePos - (Dir * (clamp(m_AttackEnergyTick * Server()->TickSpeed() - 200, 0, m_AttackEnergyLimit) / 8));
+		vec2 AttackEnergyInd = CirclePos - (Dir * (clamp(m_AttackEnergyTick * Server()->TickSpeed() - 200, 0, m_AttackEnergyLimit) / 8));
 
-	pAttackEnergyIndObj->m_X = (int)CirclePos.x;
-	pAttackEnergyIndObj->m_Y = (int)CirclePos.y;
-	pAttackEnergyIndObj->m_FromX = (int)AttackEnergyInd.x;
-	pAttackEnergyIndObj->m_FromY = (int)AttackEnergyInd.y;
-	pAttackEnergyIndObj->m_StartTick = Server()->Tick() - 3;
+		pObj->m_X = (int)CirclePos.x;
+		pObj->m_Y = (int)CirclePos.y;
+		pObj->m_FromX = (int)AttackEnergyInd.x;
+		pObj->m_FromY = (int)AttackEnergyInd.y;
+		pObj->m_StartTick = Server()->Tick() - 3;
+	}
 
-	// Do bounce temperature ind
-	CNetObj_Laser *pBounceTempIndObj = static_cast<CNetObj_Laser *>(Server()->SnapNewItem(NETOBJTYPE_LASER, m_SnapID[9], sizeof(CNetObj_Laser)));
-	if(!pBounceTempIndObj)
-		return;
+	{
+		// Do bounce temperature ind
+		CNetObj_Laser *pObj = static_cast<CNetObj_Laser *>(Server()->SnapNewItem(NETOBJTYPE_LASER, m_SnapID[9], sizeof(CNetObj_Laser)));
+		if(!pObj)
+			return;
 
-	vec2 BounceTempInd = CirclePos + (Dir * 128.f * (maximum(m_BounceTempTick - m_BounceCooldownTick, 0) * 1.f / maximum(m_BounceTempTick, 1)));
+		vec2 BounceTempInd = CirclePos + (Dir * 128.f * (maximum(m_BounceTempTick - m_BounceCooldownTick, 0) * 1.f / maximum(m_BounceTempTick, 1)));
 
-	pBounceTempIndObj->m_X = (int)BounceTempInd.x;
-	pBounceTempIndObj->m_Y = (int)BounceTempInd.y;
-	pBounceTempIndObj->m_FromX = (int)CirclePos.x;
-	pBounceTempIndObj->m_FromY = (int)CirclePos.y;
-	pBounceTempIndObj->m_StartTick = Server()->Tick() - 3;
+		pObj->m_X = (int)BounceTempInd.x;
+		pObj->m_Y = (int)BounceTempInd.y;
+		pObj->m_FromX = (int)CirclePos.x;
+		pObj->m_FromY = (int)CirclePos.y;
+		pObj->m_StartTick = Server()->Tick() - 3;
+	}
 
-	// Do character track
-	if(SnappingClient != Character()->GetPlayer()->GetCID())
-		return;
+	{
+		// Do character track
+		if(SnappingClient != Character()->GetPlayer()->GetCID())
+			return;
 
-	CEntity *IndCharacter = GameWorld()->ClosestEntity(Pos(), 8192.f, CGameWorld::ENTTYPE_CHARACTER, Character());
-	if(!IndCharacter)
-		return;
+		CEntity *IndCharacter = GameWorld()->ClosestEntity(Pos(), 8192.f, CGameWorld::ENTTYPE_CHARACTER, Character());
+		if(!IndCharacter)
+			return;
 
-	CNetObj_Laser *pPlayerTrackIndObj = static_cast<CNetObj_Laser *>(Server()->SnapNewItem(NETOBJTYPE_LASER, m_SnapID[10], sizeof(CNetObj_Laser)));
-	if(!pPlayerTrackIndObj)
-		return;
+		CNetObj_Laser *pObj = static_cast<CNetObj_Laser *>(Server()->SnapNewItem(NETOBJTYPE_LASER, m_SnapID[10], sizeof(CNetObj_Laser)));
+		if(!pObj)
+			return;
 
-	vec2 PlayerTrackInd = Pos() + vec2(0.f, -16.f) + normalize(IndCharacter->m_Pos - Pos() + vec2(0.f, -16.f)) * 128.f;
+		vec2 PlayerTrackInd = Pos() + vec2(0.f, -16.f) + normalize(IndCharacter->m_Pos - Pos() + vec2(0.f, -16.f)) * 128.f;
 
-	pPlayerTrackIndObj->m_X = (int)PlayerTrackInd.x;
-	pPlayerTrackIndObj->m_Y = (int)PlayerTrackInd.y;
-	pPlayerTrackIndObj->m_FromX = (int)Pos().x;
-	pPlayerTrackIndObj->m_FromY = (int)(Pos().y - 16.f);
-	pPlayerTrackIndObj->m_StartTick = Server()->Tick() - 3;
+		pObj->m_X = (int)PlayerTrackInd.x;
+		pObj->m_Y = (int)PlayerTrackInd.y;
+		pObj->m_FromX = (int)Pos().x;
+		pObj->m_FromY = (int)(Pos().y - 16.f);
+		pObj->m_StartTick = Server()->Tick() - 3;
+	}
 }
 
 void CJugHammer::Tick()
@@ -160,7 +166,7 @@ void CJugHammer::Tick()
 			
 			if(!pProj->m_IsFreeze && pProj->GetOwner() != Character()->GetPlayer()->GetCID())
 			{
-				GameWorld()->CreateHammerHit(pProj->m_Pos);
+				GameWorld()->CreatePlayerSpawn(pProj->m_Pos);
 
 				pProj->m_IsFreeze = true;
 				IsBounced = true;
@@ -171,14 +177,24 @@ void CJugHammer::Tick()
 
 	if(IsBounced)
 	{
-		m_BounceTempTick = clamp((m_BounceTempTick - m_BounceCooldownTick - m_BounceTempTick / 4) * 2, 0, Server()->TickSpeed() * 3) + m_aBounceTypeTemp[apProj[HitProj]->m_Type - 1];
+		m_BounceTempTick = m_aBounceTypeTemp[apProj[HitProj]->m_Type - 1] + clamp(
+			(m_BounceTempTick - m_BounceCooldownTick) * 2,
+			0,
+			Server()->TickSpeed() * 5);
 		m_BounceCooldownTick = 0;
 	}
 	else
+	{
 		m_BounceCooldownTick++;
+	}
 
 	char aBuf[96];
-	str_format(aBuf, sizeof(aBuf), "子弹截停冷却: %d/%d\n近战蓄力伤害: %d\n辅助线榴弹跳: %d", maximum(m_BounceTempTick / 4 - m_BounceCooldownTick, 0), maximum(m_BounceTempTick - m_BounceCooldownTick, 0), AttackDmg, m_ReloadTimer);
+	str_format(aBuf, sizeof(aBuf), "子弹截停冷却: %d / %d\n近战蓄力伤害: %d\n辅助线榴弹跳: %d",
+		maximum(m_BounceTempTick / 4 - m_BounceCooldownTick, 0),
+		maximum(m_BounceTempTick - m_BounceCooldownTick, 0),
+		AttackDmg,
+		m_ReloadTimer);
+
 	GameServer()->SendBroadcast(aBuf, Character()->GetPlayer()->GetCID(), false);
 }
 
