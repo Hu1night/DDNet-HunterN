@@ -135,51 +135,57 @@ void CGameControllerHunterN::OnWorldReset() // 重置部分值和职业选择
 	SendChatTarget(-1, "      猎人双倍伤害 有瞬杀锤子(平民无锤)和破片榴弹(对自己无伤)");
 	SendChatTarget(-1, "分辨队友并消灭敌人来取得胜利！Be warned! Sudden Death.");
 
-	for(int iHunter = m_NumHunter; iHunter > 0; --iHunter) // 需要选择m_NumHunter个猎人
 	{
-		if(PreselectPlayerCount <= 0) // 先检查m_Preselect的玩家够不够（即所有玩家是不是最近都当过猎人了） 如果不够就重置所有玩家的m_Preselect
+		CPlayer *pHuntPlayer;
+
+		for(int iHunter = m_NumHunter; iHunter > 0; --iHunter) // 需要选择m_NumHunter个猎人
 		{
-			for(int i = 0; i < MAX_CLIENTS; ++i) // 重置所有玩家的m_Preselect
+			if(PreselectPlayerCount <= 0) // 先检查m_Preselect的玩家够不够（即所有玩家是不是最近都当过猎人了） 如果不够就重置所有玩家的m_Preselect
 			{
-				CPlayer *pPlayer = GetPlayerIfInRoom(i);
-				if(!pPlayer || pPlayer->GetTeam() == TEAM_SPECTATORS
-					|| (pPlayer->m_RespawnDisabled && (!pPlayer->GetCharacter() || !pPlayer->GetCharacter()->IsAlive())))
+				for(int i = 0; i < MAX_CLIENTS; ++i) // 重置所有玩家的m_Preselect
+				{
+					CPlayer *pPlayer = GetPlayerIfInRoom(i);
+					if(!pPlayer || pPlayer->GetTeam() == TEAM_SPECTATORS
+						|| (pPlayer->m_RespawnDisabled && (!pPlayer->GetCharacter() || !pPlayer->GetCharacter()->IsAlive())))
+						continue;
+
+					pPlayer->m_Preselect = true; // 设置m_Preselect为真（包括猎人 主要是为了随机性）
+					if(pPlayer->m_Class == CLASS_CIVIC) // 只有平民才可以被计数
+						++PreselectPlayerCount; // 重置PreselectPlayerCount
+				}
+			}
+
+			rHunter = rand() % PreselectPlayerCount; // 在PreselectPlayerCount个玩家里选择第rHunter个猎人
+
+			for(int i = 0; i < MAX_CLIENTS; ++i) // 在PreselectPlayerCount个玩家里选择第rHunter个玩家为猎人
+			{
+				pHuntPlayer = GetPlayerIfInRoom(i);
+				if(!pHuntPlayer || pHuntPlayer->GetTeam() == TEAM_SPECTATORS
+					|| (pHuntPlayer->m_RespawnDisabled && (!pHuntPlayer->GetCharacter() || !pHuntPlayer->GetCharacter()->IsAlive()))
+					|| !pHuntPlayer->m_Preselect || pHuntPlayer->m_Class != CLASS_CIVIC) // 在平民职业的玩家里面选择猎人
+					continue; // 首先剔除不在选择队列里的玩家
+
+				if(rHunter != 0) // 计数玩家
+				{
+					rHunter--;
 					continue;
+				}
 
-				pPlayer->m_Preselect = true; // 设置m_Preselect为真（包括猎人 主要是为了随机性）
-				if(pPlayer->m_Class == CLASS_CIVIC) // 只有平民才可以被计数
-					++PreselectPlayerCount; // 重置PreselectPlayerCount
+				pHuntPlayer->m_Class = CLASS_HUNTER; // 设置猎人Flag
+				//pHuntPlayer->m_UseHunterWeapon = true; // 使用猎人武器 // 在OnCharachar里面设置
+				pHuntPlayer->m_AmongUsTeam = TEAM_BLUE; // 设置队伍
+				pHuntPlayer->m_Preselect = false; // 把m_Preselect设为否 即最近当过猎人
+				--PreselectPlayerCount;
+
+				// Generate Hunter info message 生成猎人列表消息
+				str_append(m_HunterList, Server()->ClientName(i), sizeof(m_HunterList));
+				str_append(m_HunterList, ", ", sizeof(m_HunterList));
+
+				break;
 			}
 		}
 
-		rHunter = rand() % PreselectPlayerCount; // 在PreselectPlayerCount个玩家里选择第rHunter个猎人
-
-		for(int i = 0; i < MAX_CLIENTS; ++i) // 在PreselectPlayerCount个玩家里选择第rHunter个玩家为猎人
-		{
-			CPlayer *pPlayer = GetPlayerIfInRoom(i);
-			if(!pPlayer || pPlayer->GetTeam() == TEAM_SPECTATORS
-				|| (pPlayer->m_RespawnDisabled && (!pPlayer->GetCharacter() || !pPlayer->GetCharacter()->IsAlive()))
-				|| !pPlayer->m_Preselect || pPlayer->m_Class != CLASS_CIVIC) // 在平民职业的玩家里面选择猎人
-				continue; // 首先剔除不在选择队列里的玩家
-
-			if(rHunter != 0) // 计数玩家
-			{
-				rHunter--;
-				continue;
-			}
-
-			pPlayer->m_Class = CLASS_HUNTER; // 设置猎人Flag
-			//pPlayer->m_UseHunterWeapon = true; // 使用猎人武器 // 在OnCharachar里面设置
-			pPlayer->m_AmongUsTeam = TEAM_BLUE; // 设置队伍
-			pPlayer->m_Preselect = false; // 把m_Preselect设为否 即最近当过猎人
-			--PreselectPlayerCount;
-
-			// Generate Hunter info message 生成猎人列表消息
-			str_append(m_HunterList, Server()->ClientName(i), sizeof(m_HunterList));
-			str_append(m_HunterList, ", ", sizeof(m_HunterList));
-
-			break;
-		}
+		pHuntPlayer->m_Preselect = true; // 使最后一个猎人不清除m_Preselect 增强单猎局选择的随机性
 	}
 
 	for(int i = 0; i < MAX_CLIENTS; ++i) // 循环所有旁观者 把猎人列表告诉他们
