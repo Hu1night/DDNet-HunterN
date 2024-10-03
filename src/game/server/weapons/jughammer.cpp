@@ -11,7 +11,6 @@ CJugHammer::CJugHammer(CCharacter *pOwnerChar) :
 
 	m_BounceTempTick = 5;
 	m_BounceCooldownTick = 0;
-	m_BounceMode = 0;
 	m_AttackEnergyTick = 0;
 
 	m_aBounceTypeTemp[0] = Server()->TickSpeed() / 4;
@@ -180,7 +179,7 @@ void CJugHammer::Tick()
 		m_BounceTempTick = m_aBounceTypeTemp[apProj[HitProj]->m_Type - 1] + clamp(
 			(m_BounceTempTick - m_BounceCooldownTick) * 2,
 			0,
-			Server()->TickSpeed() * 5);
+			Server()->TickSpeed() * 2);
 		m_BounceCooldownTick = 0;
 	}
 	else

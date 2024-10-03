@@ -12,7 +12,6 @@ public:
 protected: // Value
 	int m_BounceTempTick;
 	int m_BounceCooldownTick;
-	int m_BounceMode;
 	int m_AttackEnergyTick;
 
 	int m_aBounceTypeTemp[NUM_WEAPONS - 3];
